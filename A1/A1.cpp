@@ -22,6 +22,7 @@ A1::A1()
     cubes( DIM*DIM, vec3(0,0,0) ),
     cube_indices( DIM*DIM, vector<unsigned int>(0, 0) ),
     flattened_cube_indices( 0, 0 ),
+    indicator( 0, vec3(0,0,0) ),
     zoom( 45.0f )
 {
   colour[0] = 0.0f;
@@ -98,20 +99,48 @@ void A1::initGrid()
     ct += 6;
   }
 
-  // Create the vertex array to record buffer assignments.
+  // VAO for grid.
   glGenVertexArrays( 1, &m_grid_vao );
   glBindVertexArray( m_grid_vao );
 
-  // Create the grid vertex buffer
+  // VBO for grid.
   glGenBuffers( 1, &m_grid_vbo );
   glBindBuffer( GL_ARRAY_BUFFER, m_grid_vbo );
   glBufferData( GL_ARRAY_BUFFER, sz*sizeof(float),
     verts, GL_STATIC_DRAW );
 
+  GLint gridPosAttrib = m_shader.getAttribLocation( "position" );
+  glEnableVertexAttribArray( gridPosAttrib );
+  glVertexAttribPointer( gridPosAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
+
+
+  // Indicator vertices
+  vector<vec3> indicatorVerts = {
+    vec3( current_col, 0, current_row ),
+    vec3( current_col, 0, current_row+1 ),
+    vec3( current_col+1, 0, current_row+1 ),
+    vec3( current_col, 0, current_row ),
+    vec3( current_col+1, 0, current_row ),
+    vec3( current_col+1, 0, current_row+1 ),
+  };
+
+  indicator.insert(indicator.begin(), indicatorVerts.begin(), indicatorVerts.end());
+
+  // VAO for indicator.
+  glGenVertexArrays( 1, &m_indicator_vao );
+  glBindVertexArray( m_indicator_vao );
+
+  // VBO for indicator
+  glGenBuffers( 1, &m_indicator_vbo );
+  glBindBuffer( GL_ARRAY_BUFFER, m_indicator_vbo );
+  glBufferData( GL_ARRAY_BUFFER, indicator.size()*sizeof(vec3),
+    &indicator[0], GL_DYNAMIC_DRAW );
+
   // Specify the means of extracting the position values properly.
-  GLint posAttrib = m_shader.getAttribLocation( "position" );
-  glEnableVertexAttribArray( posAttrib );
-  glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
+  GLint indicatorPosAttrib = m_shader.getAttribLocation( "position" );
+  glEnableVertexAttribArray( indicatorPosAttrib );
+  glVertexAttribPointer( indicatorPosAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), nullptr );
+
 
   // Generate the vertex buffers for building cubes
   glGenVertexArrays( 1, &m_cubes_vao );
@@ -126,8 +155,6 @@ void A1::initGrid()
 
   // Generate the index buffer
   glGenBuffers( 1, &m_cubes_index_vbo );
-  glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
-  glBufferData( GL_ELEMENT_ARRAY_BUFFER, cube_indices.size()*sizeof(int), &cube_indices[0], GL_DYNAMIC_DRAW );
 
   // Reset state to prevent rogue code from messing with *my*
   // stuff!
@@ -139,6 +166,30 @@ void A1::initGrid()
   delete [] verts;
 
   CHECK_GL_ERRORS;
+}
+
+//----------------------------------------------------------------------------------------
+/*
+ * Updates the position of the indicator.
+ */
+void A1::updateIndicatorPos()
+{
+  // Indicator vertices
+  vector<vec3> indicatorVerts = {
+    vec3( current_col, 0, current_row ),
+    vec3( current_col, 0, current_row+1 ),
+    vec3( current_col+1, 0, current_row+1 ),
+    vec3( current_col, 0, current_row ),
+    vec3( current_col+1, 0, current_row ),
+    vec3( current_col+1, 0, current_row+1 ),
+  };
+
+  indicator.clear();
+  indicator.insert(indicator.begin(), indicatorVerts.begin(), indicatorVerts.end());
+
+  glBindBuffer( GL_ARRAY_BUFFER, m_indicator_vbo );
+  glBufferData( GL_ARRAY_BUFFER, indicator.size()*sizeof(vec3),
+    &indicator[0], GL_DYNAMIC_DRAW );
 }
 
 void A1::flattenCubeIndices()
@@ -295,10 +346,6 @@ void A1::draw()
   W = glm::translate( W, vec3( -float(DIM)/2.0f, 0, -float(DIM)/2.0f ) );
 
   m_shader.enable();
-    glDisable(GL_DEPTH_TEST);
-
-
-
     glEnable( GL_DEPTH_TEST );
 
     glUniformMatrix4fv( P_uni, 1, GL_FALSE, value_ptr( proj ) );
@@ -314,7 +361,11 @@ void A1::draw()
     glBindVertexArray( m_cubes_vao );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
     glDrawElements( GL_TRIANGLES, flattened_cube_indices.size(), GL_UNSIGNED_INT, nullptr );
+
     // Highlight the active square.
+    glDisable(GL_DEPTH_TEST);
+    glBindVertexArray( m_indicator_vao );
+    glDrawArrays( GL_TRIANGLES, 0, indicator.size() );
   m_shader.disable();
 
   // Restore defaults
@@ -423,15 +474,19 @@ bool A1::keyInputEvent(int key, int action, int mods) {
     }
     if (key == GLFW_KEY_DOWN && current_row < DIM) {
       current_row++;
+      updateIndicatorPos();
     }
     if (key == GLFW_KEY_UP && current_row > 0) {
       current_row--;
+      updateIndicatorPos();
     }
     if (key == GLFW_KEY_RIGHT && current_col < DIM) {
       current_col++;
+      updateIndicatorPos();
     }
     if (key == GLFW_KEY_LEFT && current_col > 0) {
       current_col--;
+      updateIndicatorPos();
     }
   }
 

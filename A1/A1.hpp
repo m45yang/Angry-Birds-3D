@@ -30,6 +30,7 @@ protected:
 
 private:
 	void initGrid();
+	void updateIndicatorPos();
 	void addCube();
 	void removeCube();
 	void flattenCubeIndices();
@@ -47,6 +48,8 @@ private:
 	GLuint m_cubes_vao;
 	GLuint m_cubes_vbo;
 	GLuint m_cubes_index_vbo;
+	GLuint m_indicator_vao;
+	GLuint m_indicator_vbo;
 
 	// Fields related to cube geometry
 	GLuint m_cube_vao;
@@ -60,6 +63,7 @@ private:
 	std::vector<glm::vec3> cubes;
 	std::vector<std::vector<unsigned int> > cube_indices;
 	std::vector<unsigned int> flattened_cube_indices;
+	std::vector<glm::vec3> indicator;
 	int current_col;
 	int current_row;
 	float zoom;
