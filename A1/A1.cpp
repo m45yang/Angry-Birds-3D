@@ -354,7 +354,7 @@ void A1::draw()
 
     // Just draw the grid for now.
     glBindVertexArray( m_grid_vao );
-    glUniform3f( col_uni, 1, 1, 1 );
+    glUniform3f( col_uni, 0, 1, 1 );
     glDrawArrays( GL_LINES, 0, (3+DIM)*4);
 
     // Draw the cubes

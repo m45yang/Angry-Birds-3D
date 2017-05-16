@@ -45,15 +45,15 @@ private:
 	// Fields related to grid geometry.
 	GLuint m_grid_vao; // Vertex Array Object
 	GLuint m_grid_vbo; // Vertex Buffer Object
+
+	// Fields related to cube geometry
 	GLuint m_cubes_vao;
 	GLuint m_cubes_vbo;
 	GLuint m_cubes_index_vbo;
+
+	// Fields related to indicator geomety
 	GLuint m_indicator_vao;
 	GLuint m_indicator_vbo;
-
-	// Fields related to cube geometry
-	GLuint m_cube_vao;
-	GLuint m_cube_vbo;
 
 	// Matrices controlling the camera and projection.
 	glm::mat4 proj;
