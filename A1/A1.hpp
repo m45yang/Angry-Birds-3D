@@ -32,7 +32,7 @@ private:
 	void initGrid();
 	void addCube();
 	void removeCube();
-	unsigned int numCubes();
+	void flattenCubeIndices();
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
@@ -58,8 +58,8 @@ private:
 
 	float colour[3];
 	std::vector<glm::vec3> cubes;
-	std::vector<unsigned int> cube_indices;
-	int *cube_heights;
+	std::vector<std::vector<unsigned int> > cube_indices;
+	std::vector<unsigned int> flattened_cube_indices;
 	int current_col;
 	int current_row;
 };

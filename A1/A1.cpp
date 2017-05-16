@@ -19,13 +19,13 @@ static const size_t DIM = 16;
 A1::A1()
   : current_col( 0 ),
     current_row( 0 ),
-    cubes( 0, vec3(0, 0, 0) ),
-    cube_indices( 0, 0 )
+    cubes( DIM*DIM, vec3(0,0,0) ),
+    cube_indices( DIM*DIM, vector<unsigned int>(0, 0) ),
+    flattened_cube_indices( 0, 0 )
 {
   colour[0] = 0.0f;
   colour[1] = 0.0f;
   colour[2] = 0.0f;
-  cube_heights = new int[DIM*DIM];
 }
 
 //----------------------------------------------------------------------------------------
@@ -123,8 +123,6 @@ void A1::initGrid()
   glEnableVertexAttribArray( cubesAttrib );
   glVertexAttribPointer( cubesAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), nullptr );
 
-  glBindVertexArray( 0 );
-
   // Generate the index buffer
   glGenBuffers( 1, &m_cubes_index_vbo );
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
@@ -142,18 +140,15 @@ void A1::initGrid()
   CHECK_GL_ERRORS;
 }
 
-//----------------------------------------------------------------------------------------
-/*
- * Returns the total number of cubes on the grid.
- */
-unsigned int A1::numCubes() {
-  int num = 0;
+void A1::flattenCubeIndices()
+{
+  flattened_cube_indices.clear();
 
-  for (int i=0; i<DIM*DIM; i++) {
-    num += cube_heights[i];
+  for (int i=0; i<cube_indices.size(); i++) {
+    for (int j=0; j<cube_indices[i].size(); j++) {
+      flattened_cube_indices.push_back(cube_indices[i][j]);
+    }
   }
-
-  return num;
 }
 
 //----------------------------------------------------------------------------------------
@@ -164,8 +159,8 @@ void A1::addCube()
 {
   int posx = current_col;
   int posz = current_row;
-  int posy = cube_heights[current_col + current_row];
-  unsigned int ct = numCubes()*8;
+  int posy = cube_indices[current_col + current_row].size() / 30;
+  unsigned int ct = cubes.size();
 
   vector<vec3> new_cubes = {
     vec3( posx, posy, posz ),
@@ -178,8 +173,7 @@ void A1::addCube()
     vec3( posx, posy, posz+1 )
   };
 
-  cube_heights[current_row + current_col]++;
-  cubes.insert(cubes.end(), new_cubes.begin(), new_cubes.end());
+  cubes.insert( cubes.end(), new_cubes.begin(), new_cubes.end() );
   glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
   glBufferData( GL_ARRAY_BUFFER, cubes.size()*sizeof(vec3),
     &cubes[0], GL_DYNAMIC_DRAW );
@@ -198,9 +192,12 @@ void A1::addCube()
     ct + 1, ct + 4, ct + 6
   };
 
-  cube_indices.insert(cube_indices.end(), new_indices.begin(), new_indices.end());
+  cube_indices[current_col+current_row].insert( cube_indices[current_col+current_row].end(), new_indices.begin(), new_indices.end() );
+  flattenCubeIndices();
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
-  glBufferData( GL_ELEMENT_ARRAY_BUFFER, cube_indices.size()*sizeof(GL_UNSIGNED_INT), &cube_indices[0], GL_DYNAMIC_DRAW);
+  glBufferData( GL_ELEMENT_ARRAY_BUFFER, flattened_cube_indices.size()*sizeof(GL_UNSIGNED_INT),
+    &flattened_cube_indices[0], GL_DYNAMIC_DRAW);
+
 
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
   glBindBuffer( GL_ARRAY_BUFFER, 0 );
@@ -208,7 +205,6 @@ void A1::addCube()
 
 void A1::removeCube()
 {
-  cube_heights[current_row + current_col]--;
   // cubes = 0;
   // glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
   // glBufferData( GL_ARRAY_BUFFER, 0,
@@ -309,7 +305,7 @@ void A1::draw()
     // Draw the cubes
     glBindVertexArray( m_cubes_vao );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
-    glDrawElements( GL_TRIANGLES, cube_indices.size(), GL_UNSIGNED_INT, nullptr );
+    glDrawElements( GL_TRIANGLES, flattened_cube_indices.size(), GL_UNSIGNED_INT, nullptr );
     // Highlight the active square.
   m_shader.disable();
 
@@ -325,9 +321,7 @@ void A1::draw()
  * Called once, after program is signaled to terminate.
  */
 void A1::cleanup()
-{
-  delete[] cube_heights;
-}
+{}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -411,25 +405,27 @@ bool A1::keyInputEvent(int key, int action, int mods) {
   if( action == GLFW_PRESS ) {
     if (key == GLFW_KEY_SPACE) {
       addCube();
-      return eventHandled;
     }
     if (key == GLFW_KEY_BACKSPACE) {
       removeCube();
-      return eventHandled;
     }
     if (key == GLFW_KEY_DOWN && current_row < DIM) {
       current_row++;
-      return eventHandled;
+      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
     if (key == GLFW_KEY_UP && current_row > 0) {
       current_row--;
+      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
     if (key == GLFW_KEY_RIGHT && current_col < DIM) {
       current_col++;
-      return eventHandled;
+      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
     if (key == GLFW_KEY_LEFT && current_col > 0) {
       current_col--;
+      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
   }
+
+  return eventHandled;
 }
