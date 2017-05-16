@@ -18,12 +18,14 @@ static const size_t DIM = 16;
 // Constructor
 A1::A1()
   : current_col( 0 ),
-    cubes( 0 ),
+    current_row( 0 ),
+    cubes( 0, vec3(0, 0, 0) ),
     cube_indices( 0, 0 )
 {
   colour[0] = 0.0f;
   colour[1] = 0.0f;
   colour[2] = 0.0f;
+  cube_heights = new int[DIM*DIM];
 }
 
 //----------------------------------------------------------------------------------------
@@ -116,7 +118,6 @@ void A1::initGrid()
 
   glGenBuffers( 1, &m_cubes_vbo );
   glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
-  glBufferData( GL_ARRAY_BUFFER, 0, cubes, GL_DYNAMIC_DRAW );
 
   GLint cubesAttrib = m_shader.getAttribLocation( "position" );
   glEnableVertexAttribArray( cubesAttrib );
@@ -143,41 +144,63 @@ void A1::initGrid()
 
 //----------------------------------------------------------------------------------------
 /*
+ * Returns the total number of cubes on the grid.
+ */
+unsigned int A1::numCubes() {
+  int num = 0;
+
+  for (int i=0; i<DIM*DIM; i++) {
+    num += cube_heights[i];
+  }
+
+  return num;
+}
+
+//----------------------------------------------------------------------------------------
+/*
  * Defines the vertices for a cube at posy, posx and posz.
  */
-void A1::addCube(int posx, int posy, int posz, size_t ct)
+void A1::addCube()
 {
-  cubes = new vec3[ 8 ];
+  int posx = current_col;
+  int posz = current_row;
+  int posy = cube_heights[current_col + current_row];
+  unsigned int ct = numCubes()*8;
 
-  cubes[ ct ] = vec3( posx, posy, posz );
-  cubes[ ct+1 ] = vec3( posx, posy+1, posz );
-  cubes[ ct+2 ] = vec3( posx+1, posy+1, posz );
-  cubes[ ct+3 ] = vec3( posx+1, posy, posz );
-  cubes[ ct+4 ] = vec3( posx+1, posy+1, posz+1 );
-  cubes[ ct+5 ] = vec3( posx+1, posy, posz+1 );
-  cubes[ ct+6 ] = vec3( posx, posy+1, posz+1 );
-  cubes[ ct+7 ] = vec3( posx, posy, posz+1 );
+  vector<vec3> new_cubes = {
+    vec3( posx, posy, posz ),
+    vec3( posx, posy+1, posz ),
+    vec3( posx+1, posy+1, posz ),
+    vec3( posx+1, posy, posz ),
+    vec3( posx+1, posy+1, posz+1 ),
+    vec3( posx+1, posy, posz+1 ),
+    vec3( posx, posy+1, posz+1 ),
+    vec3( posx, posy, posz+1 )
+  };
+
+  cube_heights[current_row + current_col]++;
+  cubes.insert(cubes.end(), new_cubes.begin(), new_cubes.end());
+  glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
+  glBufferData( GL_ARRAY_BUFFER, cubes.size()*sizeof(vec3),
+    &cubes[0], GL_DYNAMIC_DRAW );
 
   vector<unsigned int> new_indices =
   {
-    0, 1, 2,
-    0, 2, 3,
-    2, 3, 5,
-    2, 4, 5,
-    4, 5, 6,
-    5, 6, 7,
-    0, 1, 6,
-    0, 6, 7
+    ct + 0, ct + 1, ct + 2,
+    ct + 0, ct + 2, ct + 3,
+    ct + 2, ct + 3, ct + 5,
+    ct + 2, ct + 4, ct + 5,
+    ct + 4, ct + 5, ct + 6,
+    ct + 4, ct + 6, ct + 7,
+    ct + 0, ct + 1, ct + 6,
+    ct + 0, ct + 6, ct + 7,
+    ct + 1, ct + 2, ct + 4,
+    ct + 1, ct + 4, ct + 6
   };
 
   cube_indices.insert(cube_indices.end(), new_indices.begin(), new_indices.end());
-
-  glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
-  glBufferData( GL_ARRAY_BUFFER, 8*sizeof(vec3),
-    cubes, GL_DYNAMIC_DRAW );
-
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
-  glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*36, &cube_indices[0], GL_DYNAMIC_DRAW);
+  glBufferData( GL_ELEMENT_ARRAY_BUFFER, cube_indices.size()*sizeof(GL_UNSIGNED_INT), &cube_indices[0], GL_DYNAMIC_DRAW);
 
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
   glBindBuffer( GL_ARRAY_BUFFER, 0 );
@@ -185,7 +208,13 @@ void A1::addCube(int posx, int posy, int posz, size_t ct)
 
 void A1::removeCube()
 {
-  cubes = 0;
+  cube_heights[current_row + current_col]--;
+  // cubes = 0;
+  // glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
+  // glBufferData( GL_ARRAY_BUFFER, 0,
+  //   cubes, GL_DYNAMIC_DRAW );
+
+  // glBindBuffer( GL_ARRAY_BUFFER, 0 );
 }
 
 //----------------------------------------------------------------------------------------
@@ -280,7 +309,7 @@ void A1::draw()
     // Draw the cubes
     glBindVertexArray( m_cubes_vao );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
-    glDrawElements( GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr );
+    glDrawElements( GL_TRIANGLES, cube_indices.size(), GL_UNSIGNED_INT, nullptr );
     // Highlight the active square.
   m_shader.disable();
 
@@ -296,7 +325,9 @@ void A1::draw()
  * Called once, after program is signaled to terminate.
  */
 void A1::cleanup()
-{}
+{
+  delete[] cube_heights;
+}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -379,20 +410,26 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 
   if( action == GLFW_PRESS ) {
     if (key == GLFW_KEY_SPACE) {
-      addCube( -1, 0, -1, 0 );
-
+      addCube();
       return eventHandled;
     }
     if (key == GLFW_KEY_BACKSPACE) {
       removeCube();
-
-      glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
-      glBufferData( GL_ARRAY_BUFFER, 9*sizeof(vec3),
-        cubes, GL_DYNAMIC_DRAW );
-
-      glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
       return eventHandled;
+    }
+    if (key == GLFW_KEY_DOWN && current_row < DIM) {
+      current_row++;
+      return eventHandled;
+    }
+    if (key == GLFW_KEY_UP && current_row > 0) {
+      current_row--;
+    }
+    if (key == GLFW_KEY_RIGHT && current_col < DIM) {
+      current_col++;
+      return eventHandled;
+    }
+    if (key == GLFW_KEY_LEFT && current_col > 0) {
+      current_col--;
     }
   }
 }

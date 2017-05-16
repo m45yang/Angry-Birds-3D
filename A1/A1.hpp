@@ -30,8 +30,9 @@ protected:
 
 private:
 	void initGrid();
-	void addCube(int posx, int posy, int posz, size_t ct);
+	void addCube();
 	void removeCube();
+	unsigned int numCubes();
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
@@ -56,7 +57,9 @@ private:
 	glm::mat4 view;
 
 	float colour[3];
-	glm::vec3 *cubes;
+	std::vector<glm::vec3> cubes;
 	std::vector<unsigned int> cube_indices;
+	int *cube_heights;
 	int current_col;
+	int current_row;
 };
