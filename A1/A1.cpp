@@ -206,12 +206,14 @@ void A1::addCube()
 
 void A1::removeCube()
 {
-  // cubes = 0;
-  // glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
-  // glBufferData( GL_ARRAY_BUFFER, 0,
-  //   cubes, GL_DYNAMIC_DRAW );
+  cube_indices[current_col+current_row*DIM].resize(cube_indices[current_col+current_row*DIM].size() - 30);
+  flattenCubeIndices();
+  glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
+  glBufferData( GL_ELEMENT_ARRAY_BUFFER, flattened_cube_indices.size()*sizeof(GL_UNSIGNED_INT),
+    &flattened_cube_indices[0], GL_DYNAMIC_DRAW);
 
-  // glBindBuffer( GL_ARRAY_BUFFER, 0 );
+  glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+  glBindBuffer( GL_ARRAY_BUFFER, 0 );
 }
 
 //----------------------------------------------------------------------------------------
