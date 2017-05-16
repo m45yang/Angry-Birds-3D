@@ -32,7 +32,8 @@ private:
 	void initGrid();
 	void updateIndicatorPos();
 	void addCube();
-	void removeCube();
+	void removeCube(int num);
+	void copyStack(int prev_col, int prev_row);
 	void flattenCubeIndices();
 
 	// Fields related to the shader and uniforms.
@@ -66,5 +67,6 @@ private:
 	std::vector<glm::vec3> indicator;
 	int current_col;
 	int current_row;
+	bool is_shift_pressed;
 	float zoom;
 };

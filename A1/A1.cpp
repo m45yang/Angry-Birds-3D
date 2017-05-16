@@ -23,7 +23,8 @@ A1::A1()
     cube_indices( DIM*DIM, vector<unsigned int>(0, 0) ),
     flattened_cube_indices( 0, 0 ),
     indicator( 0, vec3(0,0,0) ),
-    zoom( 45.0f )
+    zoom( 45.0f ),
+    is_shift_pressed( false )
 {
   colour[0] = 0.0f;
   colour[1] = 0.0f;
@@ -192,6 +193,26 @@ void A1::updateIndicatorPos()
     &indicator[0], GL_DYNAMIC_DRAW );
 }
 
+void A1::copyStack(int prev_col, int prev_row)
+{
+  int prev_height = cube_indices[prev_col+prev_row*DIM].size();
+  int height = cube_indices[current_col+current_row*DIM].size();
+  int diff = (prev_height - height) / 30;
+  cout << diff << endl;
+
+  if (diff == 0) {
+    return;
+  }
+  else if (diff < 0) {
+    removeCube(diff);
+  }
+  else {
+    for (int i=0; i<diff; i++) {
+      addCube();
+    }
+  }
+}
+
 void A1::flattenCubeIndices()
 {
   flattened_cube_indices.clear();
@@ -256,9 +277,9 @@ void A1::addCube()
 
 }
 
-void A1::removeCube()
+void A1::removeCube(int num)
 {
-  cube_indices[current_col+current_row*DIM].resize(cube_indices[current_col+current_row*DIM].size() - 30);
+  cube_indices[current_col+current_row*DIM].resize(cube_indices[current_col+current_row*DIM].size() - 30*num);
   flattenCubeIndices();
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
   glBufferData( GL_ELEMENT_ARRAY_BUFFER, flattened_cube_indices.size()*sizeof(GL_UNSIGNED_INT),
@@ -354,7 +375,7 @@ void A1::draw()
 
     // Just draw the grid for now.
     glBindVertexArray( m_grid_vao );
-    glUniform3f( col_uni, 0, 1, 1 );
+    glUniform3f( col_uni, 1, 1, 1 );
     glDrawArrays( GL_LINES, 0, (3+DIM)*4);
 
     // Draw the cubes
@@ -459,36 +480,55 @@ bool A1::windowResizeEvent(int width, int height) {
 }
 
 //----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles key input events.
  */
 bool A1::keyInputEvent(int key, int action, int mods) {
   bool eventHandled(false);
 
-  if( action == GLFW_PRESS ) {
+  if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_SPACE) {
       addCube();
     }
     if (key == GLFW_KEY_BACKSPACE) {
-      removeCube();
+      removeCube(1);
     }
     if (key == GLFW_KEY_DOWN && current_row < DIM) {
       current_row++;
       updateIndicatorPos();
+      if (is_shift_pressed) {
+        copyStack(current_col, current_row-1);
+      }
     }
     if (key == GLFW_KEY_UP && current_row > 0) {
       current_row--;
       updateIndicatorPos();
+      if (is_shift_pressed) {
+        copyStack(current_col, current_row+1);
+      }
     }
     if (key == GLFW_KEY_RIGHT && current_col < DIM) {
       current_col++;
       updateIndicatorPos();
+      if (is_shift_pressed) {
+        copyStack(current_col-1, current_row);
+      }
     }
     if (key == GLFW_KEY_LEFT && current_col > 0) {
       current_col--;
       updateIndicatorPos();
+      if (is_shift_pressed) {
+        copyStack(current_col+1, current_row);
+      }
+    }
+    if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+      is_shift_pressed = true;
     }
   }
-
-  return eventHandled;
+  if (action == GLFW_RELEASE) {
+    if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+      is_shift_pressed = false;
+    }
+  }
 }
