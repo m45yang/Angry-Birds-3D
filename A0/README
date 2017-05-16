@@ -1,0 +1,15 @@
+Compilation:
+Build the skeleton code and run it.
+cd A0
+premake4 gmake
+make
+./A0
+
+Manual:
+Features added include
+1) Blue and Green color sliders
+2) Rotation slider
+3) '+' and '-' keys scale the size of the triangle up and down respectively, each keypress changing scale by 0.1
+4) 'R' key resets triangle
+ 
+Inlcluded math.h for the value of pi to set rotational limit.
