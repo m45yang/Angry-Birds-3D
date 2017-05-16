@@ -21,7 +21,8 @@ A1::A1()
     current_row( 0 ),
     cubes( DIM*DIM, vec3(0,0,0) ),
     cube_indices( DIM*DIM, vector<unsigned int>(0, 0) ),
-    flattened_cube_indices( 0, 0 )
+    flattened_cube_indices( 0, 0 ),
+    zoom( 45.0f )
 {
   colour[0] = 0.0f;
   colour[1] = 0.0f;
@@ -66,7 +67,7 @@ void A1::init()
     glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
   proj = glm::perspective(
-    glm::radians( 45.0f ),
+    glm::radians( zoom ),
     float( m_framebufferWidth ) / float( m_framebufferHeight ),
     1.0f, 1000.0f );
 }
@@ -294,6 +295,10 @@ void A1::draw()
   W = glm::translate( W, vec3( -float(DIM)/2.0f, 0, -float(DIM)/2.0f ) );
 
   m_shader.enable();
+    glDisable(GL_DEPTH_TEST);
+
+
+
     glEnable( GL_DEPTH_TEST );
 
     glUniformMatrix4fv( P_uni, 1, GL_FALSE, value_ptr( proj ) );
@@ -381,7 +386,11 @@ bool A1::mouseButtonInputEvent(int button, int actions, int mods) {
 bool A1::mouseScrollEvent(double xOffSet, double yOffSet) {
   bool eventHandled(false);
 
-  // Zoom in or out.
+  zoom -= 2*yOffSet;
+  proj = glm::perspective(
+    glm::radians( zoom ),
+    float( m_framebufferWidth ) / float( m_framebufferHeight ),
+    1.0f, 1000.0f );
 
   return eventHandled;
 }

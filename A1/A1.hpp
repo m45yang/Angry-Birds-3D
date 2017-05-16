@@ -62,4 +62,5 @@ private:
 	std::vector<unsigned int> flattened_cube_indices;
 	int current_col;
 	int current_row;
+	float zoom;
 };
