@@ -159,7 +159,7 @@ void A1::addCube()
 {
   int posx = current_col;
   int posz = current_row;
-  int posy = cube_indices[current_col + current_row].size() / 30;
+  int posy = cube_indices[current_col + current_row*DIM].size() / 30;
   unsigned int ct = cubes.size();
 
   vector<vec3> new_cubes = {
@@ -192,7 +192,7 @@ void A1::addCube()
     ct + 1, ct + 4, ct + 6
   };
 
-  cube_indices[current_col+current_row].insert( cube_indices[current_col+current_row].end(), new_indices.begin(), new_indices.end() );
+  cube_indices[current_col+current_row*DIM].insert( cube_indices[current_col+current_row*DIM].end(), new_indices.begin(), new_indices.end() );
   flattenCubeIndices();
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
   glBufferData( GL_ELEMENT_ARRAY_BUFFER, flattened_cube_indices.size()*sizeof(GL_UNSIGNED_INT),
@@ -201,6 +201,7 @@ void A1::addCube()
 
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
   glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
 }
 
 void A1::removeCube()
@@ -411,19 +412,15 @@ bool A1::keyInputEvent(int key, int action, int mods) {
     }
     if (key == GLFW_KEY_DOWN && current_row < DIM) {
       current_row++;
-      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
     if (key == GLFW_KEY_UP && current_row > 0) {
       current_row--;
-      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
     if (key == GLFW_KEY_RIGHT && current_col < DIM) {
       current_col++;
-      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
     if (key == GLFW_KEY_LEFT && current_col > 0) {
       current_col--;
-      cout << cube_indices[current_row+current_col].size() / 30 << endl;
     }
   }
 
