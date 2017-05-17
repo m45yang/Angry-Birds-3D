@@ -241,11 +241,11 @@ void A1::updateIndicatorPos()
     &indicator[0], GL_DYNAMIC_DRAW );
 }
 
-void A1::copyStack(int prev_col, int prev_row)
+void A1::copyStack(int prev_column, int prev_row)
 {
-  int prev_height = cube_indices[current_col][prev_col+prev_row*DIM].size();
-  int height = cube_indices[current_col][current_column+current_row*DIM].size();
-  int diff = (prev_height - height) / 30;
+  int prev_height = getHeight(prev_column, prev_row);
+  int height = getHeight(current_column, current_row);
+  int diff = prev_height - height;
 
   if (diff == 0) {
     return;
@@ -271,6 +271,15 @@ void A1::flattenCubeIndices()
   }
 }
 
+int A1::getHeight(int column, int row) {
+  int height = 0;
+  for (int i=0; i<8; i++) {
+    height += cube_indices[i][column + row*DIM].size() / 30;
+  }
+
+  return height;
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Defines the vertices for a cube at posy, posx and posz.
@@ -279,7 +288,7 @@ void A1::addCube()
 {
   int posx = current_column;
   int posz = current_row;
-  int posy = cube_indices[current_col][current_column + current_row*DIM].size() / 30;
+  int posy = getHeight(current_column, current_row);
   unsigned int ct = cubes[current_col].size();
 
   vector<vec3> new_cubes = {

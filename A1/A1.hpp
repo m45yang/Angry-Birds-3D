@@ -33,8 +33,9 @@ private:
 	void updateIndicatorPos();
 	void addCube();
 	void removeCube(int num);
-	void copyStack(int prev_col, int prev_row);
+	void copyStack(int prev_column, int prev_row);
 	void flattenCubeIndices();
+	int getHeight(int column, int row);
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
