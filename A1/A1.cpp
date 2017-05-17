@@ -336,7 +336,7 @@ void A1::addCube()
 
 void A1::removeCube(int num)
 {
-  if (cube_indices[current_col][current_column+current_row*DIM].size() >= 30) {
+  if (getHeight(current_column, current_row) >= 30) {
     cube_indices[current_col][current_column+current_row*DIM].resize(
       cube_indices[current_col][current_column+current_row*DIM].size() - 30*num);
     flattenCubeIndices();
