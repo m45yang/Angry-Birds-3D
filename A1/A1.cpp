@@ -346,7 +346,7 @@ void A1::addCube()
 
 void A1::removeCube(int num)
 {
-  if (getHeight(current_column, current_row) >= 31) {
+  if (getHeight(current_column, current_row) >= 1) {
     cout << "here" << endl;
     cube_indices[current_column+current_row*DIM].resize(
       cube_indices[current_column+current_row*DIM].size() - 31*num);
