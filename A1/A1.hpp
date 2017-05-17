@@ -68,6 +68,9 @@ private:
 	int current_col;
 	int current_row;
 	int current_column;
+	double mouse_x_pos;
 	bool is_shift_pressed;
+	bool is_mouse_clicked;
 	float zoom;
+	double rotation;
 };

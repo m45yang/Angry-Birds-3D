@@ -25,7 +25,10 @@ A1::A1()
     flattened_cube_indices( 0, 0 ),
     indicator( 0, vec3(0,0,0) ),
     zoom( 45.0f ),
-    is_shift_pressed( false )
+    is_shift_pressed( false ),
+    is_mouse_clicked( false ),
+    mouse_x_pos( 0.0 ),
+    rotation( 0.0f )
 {
   colour[0] = 0.0f;
   colour[1] = 0.0f;
@@ -488,14 +491,19 @@ bool A1::mouseMoveEvent(double xPos, double yPos)
 {
   bool eventHandled(false);
 
-  if (!ImGui::IsMouseHoveringAnyWindow()) {
+  if (!ImGui::IsMouseHoveringAnyWindow() && is_mouse_clicked) {
     // Put some code here to handle rotations.  Probably need to
     // check whether we're *dragging*, not just moving the mouse.
     // Probably need some instance variables to track the current
     // rotation amount, and maybe the previous X position (so
     // that you can rotate relative to the *change* in X.
+    rotation = (xPos - mouse_x_pos) / (50*2*M_PI);
+    vec3 y_axis(0.0f,1.0f,0.0f);
+    mat4 transform = glm::rotate(mat4(), (float)rotation, y_axis);
+    view *= transform;
   }
 
+  mouse_x_pos = xPos;
   return eventHandled;
 }
 
@@ -506,9 +514,14 @@ bool A1::mouseMoveEvent(double xPos, double yPos)
 bool A1::mouseButtonInputEvent(int button, int actions, int mods) {
   bool eventHandled(false);
 
-  if (!ImGui::IsMouseHoveringAnyWindow()) {
-    // The user clicked in the window.  If it's the left
-    // mouse button, initiate a rotation.
+  if (actions == GLFW_PRESS) {
+    if (!ImGui::IsMouseHoveringAnyWindow()) {
+      is_mouse_clicked = true;
+    }
+  }
+
+  if (actions == GLFW_RELEASE) {
+    is_mouse_clicked = false;
   }
 
   return eventHandled;
