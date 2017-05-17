@@ -67,6 +67,7 @@ private:
 	std::vector<glm::vec3> indicator;
 	int current_col;
 	int current_row;
+	int current_column;
 	bool is_shift_pressed;
 	float zoom;
 };

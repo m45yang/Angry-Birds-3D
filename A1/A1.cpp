@@ -17,8 +17,9 @@ static const size_t DIM = 16;
 //----------------------------------------------------------------------------------------
 // Constructor
 A1::A1()
-  : current_col( 0 ),
+  : current_column( 0 ),
     current_row( 0 ),
+    current_col( 0 ),
     cubes( DIM*DIM, vec3(0,0,0) ),
     cube_indices( DIM*DIM, vector<unsigned int>(0, 0) ),
     flattened_cube_indices( 0, 0 ),
@@ -117,12 +118,12 @@ void A1::initGrid()
 
   // Indicator vertices
   vector<vec3> indicatorVerts = {
-    vec3( current_col, 0, current_row ),
-    vec3( current_col, 0, current_row+1 ),
-    vec3( current_col+1, 0, current_row+1 ),
-    vec3( current_col, 0, current_row ),
-    vec3( current_col+1, 0, current_row ),
-    vec3( current_col+1, 0, current_row+1 ),
+    vec3( current_column, 0, current_row ),
+    vec3( current_column, 0, current_row+1 ),
+    vec3( current_column+1, 0, current_row+1 ),
+    vec3( current_column, 0, current_row ),
+    vec3( current_column+1, 0, current_row ),
+    vec3( current_column+1, 0, current_row+1 ),
   };
 
   indicator.insert(indicator.begin(), indicatorVerts.begin(), indicatorVerts.end());
@@ -177,12 +178,12 @@ void A1::updateIndicatorPos()
 {
   // Indicator vertices
   vector<vec3> indicatorVerts = {
-    vec3( current_col, 0, current_row ),
-    vec3( current_col, 0, current_row+1 ),
-    vec3( current_col+1, 0, current_row+1 ),
-    vec3( current_col, 0, current_row ),
-    vec3( current_col+1, 0, current_row ),
-    vec3( current_col+1, 0, current_row+1 ),
+    vec3( current_column, 0, current_row ),
+    vec3( current_column, 0, current_row+1 ),
+    vec3( current_column+1, 0, current_row+1 ),
+    vec3( current_column, 0, current_row ),
+    vec3( current_column+1, 0, current_row ),
+    vec3( current_column+1, 0, current_row+1 ),
   };
 
   indicator.clear();
@@ -196,7 +197,7 @@ void A1::updateIndicatorPos()
 void A1::copyStack(int prev_col, int prev_row)
 {
   int prev_height = cube_indices[prev_col+prev_row*DIM].size();
-  int height = cube_indices[current_col+current_row*DIM].size();
+  int height = cube_indices[current_column+current_row*DIM].size();
   int diff = (prev_height - height) / 30;
   cout << diff << endl;
 
@@ -230,9 +231,9 @@ void A1::flattenCubeIndices()
  */
 void A1::addCube()
 {
-  int posx = current_col;
+  int posx = current_column;
   int posz = current_row;
-  int posy = cube_indices[current_col + current_row*DIM].size() / 30;
+  int posy = cube_indices[current_column + current_row*DIM].size() / 30;
   unsigned int ct = cubes.size();
 
   vector<vec3> new_cubes = {
@@ -265,7 +266,7 @@ void A1::addCube()
     ct + 1, ct + 4, ct + 6
   };
 
-  cube_indices[current_col+current_row*DIM].insert( cube_indices[current_col+current_row*DIM].end(), new_indices.begin(), new_indices.end() );
+  cube_indices[current_column+current_row*DIM].insert( cube_indices[current_column+current_row*DIM].end(), new_indices.begin(), new_indices.end() );
   flattenCubeIndices();
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
   glBufferData( GL_ELEMENT_ARRAY_BUFFER, flattened_cube_indices.size()*sizeof(GL_UNSIGNED_INT),
@@ -279,7 +280,7 @@ void A1::addCube()
 
 void A1::removeCube(int num)
 {
-  cube_indices[current_col+current_row*DIM].resize(cube_indices[current_col+current_row*DIM].size() - 30*num);
+  cube_indices[current_column+current_row*DIM].resize(cube_indices[current_column+current_row*DIM].size() - 30*num);
   flattenCubeIndices();
   glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
   glBufferData( GL_ELEMENT_ARRAY_BUFFER, flattened_cube_indices.size()*sizeof(GL_UNSIGNED_INT),
@@ -498,28 +499,28 @@ bool A1::keyInputEvent(int key, int action, int mods) {
       current_row++;
       updateIndicatorPos();
       if (is_shift_pressed) {
-        copyStack(current_col, current_row-1);
+        copyStack(current_column, current_row-1);
       }
     }
     if (key == GLFW_KEY_UP && current_row > 0) {
       current_row--;
       updateIndicatorPos();
       if (is_shift_pressed) {
-        copyStack(current_col, current_row+1);
+        copyStack(current_column, current_row+1);
       }
     }
-    if (key == GLFW_KEY_RIGHT && current_col < DIM) {
-      current_col++;
+    if (key == GLFW_KEY_RIGHT && current_column < DIM) {
+      current_column++;
       updateIndicatorPos();
       if (is_shift_pressed) {
-        copyStack(current_col-1, current_row);
+        copyStack(current_column-1, current_row);
       }
     }
-    if (key == GLFW_KEY_LEFT && current_col > 0) {
-      current_col--;
+    if (key == GLFW_KEY_LEFT && current_column > 0) {
+      current_column--;
       updateIndicatorPos();
       if (is_shift_pressed) {
-        copyStack(current_col+1, current_row);
+        copyStack(current_column+1, current_row);
       }
     }
     if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
