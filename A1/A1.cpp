@@ -151,9 +151,21 @@ void A1::initGrid()
   glGenBuffers( 1, &m_cubes_vbo );
   glBindBuffer( GL_ARRAY_BUFFER, m_cubes_vbo );
 
-  GLint cubesAttrib = m_shader.getAttribLocation( "position" );
-  glEnableVertexAttribArray( cubesAttrib );
-  glVertexAttribPointer( cubesAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), nullptr );
+  {
+    GLint cubesAttrib = m_shader.getAttribLocation( "position" );
+    glEnableVertexAttribArray( cubesAttrib );
+    GLsizei stride = sizeof(vec3);
+    const GLvoid * offset = 0;
+    glVertexAttribPointer( cubesAttrib, 3, GL_FLOAT, GL_FALSE, stride, nullptr );
+  }
+
+  // {
+  //   GLint cubesColorAttrib = m_shader.getAttribLocation( "color" );
+  //   glEnableVertexAttribArray( cubesColorAttrib );
+  //   GLsizei stride = sizeof(vec3) * 2;
+  //   GLuint offset = sizeof(vec3);
+  //   glVertexAttribPointer( cubesColorAttrib, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<const GLvoid *>(offset) );
+  // }
 
   // Generate the index buffer
   glGenBuffers( 1, &m_cubes_index_vbo );
@@ -199,7 +211,6 @@ void A1::copyStack(int prev_col, int prev_row)
   int prev_height = cube_indices[prev_col+prev_row*DIM].size();
   int height = cube_indices[current_column+current_row*DIM].size();
   int diff = (prev_height - height) / 30;
-  cout << diff << endl;
 
   if (diff == 0) {
     return;
@@ -259,7 +270,7 @@ void A1::addCube()
     ct + 2, ct + 3, ct + 5,
     ct + 2, ct + 4, ct + 5,
     ct + 4, ct + 5, ct + 6,
-    ct + 4, ct + 6, ct + 7,
+    ct + 5, ct + 6, ct + 7,
     ct + 0, ct + 1, ct + 6,
     ct + 0, ct + 6, ct + 7,
     ct + 1, ct + 2, ct + 4,
