@@ -241,7 +241,7 @@ void A1::copyStack(int prev_col, int prev_row)
     return;
   }
   else if (diff < 0) {
-    removeCube(diff);
+    removeCube(-diff);
   }
   else {
     for (int i=0; i<diff; i++) {
