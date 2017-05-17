@@ -159,13 +159,10 @@ void A1::initGrid()
     glVertexAttribPointer( cubesAttrib, 3, GL_FLOAT, GL_FALSE, stride, nullptr );
   }
 
-  // {
-  //   GLint cubesColorAttrib = m_shader.getAttribLocation( "color" );
-  //   glEnableVertexAttribArray( cubesColorAttrib );
-  //   GLsizei stride = sizeof(vec3) * 2;
-  //   GLuint offset = sizeof(vec3);
-  //   glVertexAttribPointer( cubesColorAttrib, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<const GLvoid *>(offset) );
-  // }
+  {
+    GLint cubesColorAttrib = m_shader.getUniformLocation( "colour" );
+    glEnableVertexAttribArray( cubesColorAttrib );
+  }
 
   // Generate the index buffer
   glGenBuffers( 1, &m_cubes_index_vbo );
@@ -341,13 +338,9 @@ void A1::guiLogic()
     // Prefixing a widget name with "##" keeps it from being
     // displayed.
 
-    ImGui::PushID( 0 );
     ImGui::ColorEdit3( "##Colour", colour );
     ImGui::SameLine();
-    if( ImGui::RadioButton( "##Col", &current_col, 0 ) ) {
-      // Select this colour.
-    }
-    ImGui::PopID();
+    ImGui::RadioButton( "##Col", &current_col, 0 );
 
 
     // For convenience, you can uncomment this to show ImGui's massive
@@ -393,11 +386,13 @@ void A1::draw()
     // Draw the cubes
     glBindVertexArray( m_cubes_vao );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
+    glUniform3f( col_uni, colour[0], colour[1], colour[2] );
     glDrawElements( GL_TRIANGLES, flattened_cube_indices.size(), GL_UNSIGNED_INT, nullptr );
 
     // Highlight the active square.
     glDisable(GL_DEPTH_TEST);
     glBindVertexArray( m_indicator_vao );
+    glUniform3f( col_uni, 0.5, 0.5, 0.5 );
     glDrawArrays( GL_TRIANGLES, 0, indicator.size() );
   m_shader.disable();
 
