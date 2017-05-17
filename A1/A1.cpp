@@ -30,6 +30,34 @@ A1::A1()
   colour[0] = 0.0f;
   colour[1] = 0.0f;
   colour[2] = 0.0f;
+
+  colour[3] = 1.0f;
+  colour[4] = 0.0f;
+  colour[5] = 0.0f;
+
+  colour[6] = 0.0f;
+  colour[7] = 1.0f;
+  colour[8] = 0.0f;
+
+  colour[9] = 0.0f;
+  colour[10] = 0.0f;
+  colour[11] = 1.0f;
+
+  colour[12] = 0.4f;
+  colour[13] = 0.4f;
+  colour[14] = 0.4f;
+
+  colour[15] = 1.0f;
+  colour[16] = 1.0f;
+  colour[17] = 1.0f;
+
+  colour[18] = 0.7f;
+  colour[19] = 0.3f;
+  colour[20] = 0.7f;
+
+  colour[21] = 0.3f;
+  colour[22] = 0.7f;
+  colour[23] = 0.3f;
 }
 
 //----------------------------------------------------------------------------------------
@@ -338,9 +366,37 @@ void A1::guiLogic()
     // Prefixing a widget name with "##" keeps it from being
     // displayed.
 
-    ImGui::ColorEdit3( "##Colour", colour );
+    ImGui::ColorEdit3( "##Colour0", colour );
     ImGui::SameLine();
-    ImGui::RadioButton( "##Col", &current_col, 0 );
+    ImGui::RadioButton( "##Col0", &current_col, 0 );
+
+    ImGui::ColorEdit3( "##Colour1", &colour[3] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col1", &current_col, 1 );
+
+    ImGui::ColorEdit3( "##Colour2", &colour[6] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col2", &current_col, 2 );
+
+    ImGui::ColorEdit3( "##Colour3", &colour[9] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col3", &current_col, 3 );
+
+    ImGui::ColorEdit3( "##Colour4", &colour[12] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col4", &current_col, 4 );
+
+    ImGui::ColorEdit3( "##Colour5", &colour[15] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col5", &current_col, 5 );
+
+    ImGui::ColorEdit3( "##Colour6", &colour[18] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col6", &current_col, 6 );
+
+    ImGui::ColorEdit3( "##Colour7", &colour[21] );
+    ImGui::SameLine();
+    ImGui::RadioButton( "##Col7", &current_col, 7 );
 
 
     // For convenience, you can uncomment this to show ImGui's massive
@@ -386,7 +442,7 @@ void A1::draw()
     // Draw the cubes
     glBindVertexArray( m_cubes_vao );
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_cubes_index_vbo );
-    glUniform3f( col_uni, colour[0], colour[1], colour[2] );
+    glUniform3f( col_uni, colour[current_col*3], colour[current_col*3+1], colour[current_col*3+2] );
     glDrawElements( GL_TRIANGLES, flattened_cube_indices.size(), GL_UNSIGNED_INT, nullptr );
 
     // Highlight the active square.

@@ -60,7 +60,7 @@ private:
 	glm::mat4 proj;
 	glm::mat4 view;
 
-	float colour[3];
+	float colour[24];
 	std::vector<glm::vec3> cubes;
 	std::vector<std::vector<unsigned int> > cube_indices;
 	std::vector<unsigned int> flattened_cube_indices;
