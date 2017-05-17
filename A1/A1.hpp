@@ -48,9 +48,9 @@ private:
 	GLuint m_grid_vbo; // Vertex Buffer Object
 
 	// Fields related to cube geometry
-	GLuint m_cubes_vao;
-	GLuint m_cubes_vbo;
-	GLuint m_cubes_index_vbo;
+	std::vector<GLuint> m_cubes_vao;
+	std::vector<GLuint> m_cubes_vbo;
+	std::vector<GLuint> m_cubes_index_vbo;
 
 	// Fields related to indicator geomety
 	GLuint m_indicator_vao;
@@ -61,9 +61,9 @@ private:
 	glm::mat4 view;
 
 	float colour[24];
-	std::vector<glm::vec3> cubes;
-	std::vector<std::vector<unsigned int> > cube_indices;
-	std::vector<unsigned int> flattened_cube_indices;
+	std::vector<std::vector<glm::vec3> > cubes;
+	std::vector<std::vector<std::vector<unsigned int> > > cube_indices;
+	std::vector<std::vector<unsigned int> > flattened_cube_indices;
 	std::vector<glm::vec3> indicator;
 	int current_col;
 	int current_row;
