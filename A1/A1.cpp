@@ -347,7 +347,6 @@ void A1::addCube()
 void A1::removeCube(int num)
 {
   if (getHeight(current_column, current_row) >= 1) {
-    cout << "here" << endl;
     cube_indices[current_column+current_row*DIM].resize(
       cube_indices[current_column+current_row*DIM].size() - 31*num);
     flattenCubeIndices();
@@ -600,11 +599,9 @@ bool A1::keyInputEvent(int key, int action, int mods) {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_SPACE) {
       addCube();
-      cout << flattened_cube_indices[current_col][current_column+current_row*DIM][0] << endl;
     }
     if (key == GLFW_KEY_BACKSPACE) {
       removeCube(1);
-      cout << flattened_cube_indices[current_col][current_column+current_row*DIM].size() << endl;
     }
     if (key == GLFW_KEY_DOWN && current_row < DIM) {
       current_row++;
