@@ -73,18 +73,18 @@ protected:
   GLuint m_vbo_colours;    // Vertex Buffer Object
 
   // Matrices controlling the camera and projection.
-  glm::mat3 t_proj;
-  glm::mat3 t_view;
-  glm::mat3 t_model;
+  glm::mat4 t_proj;
+  glm::mat4 t_view;
+  glm::mat4 t_model;
 
   VertexData m_vertexData;
 
   glm::vec3 m_currentLineColour;
-  std::vector<glm::vec3> model_coordinates;
-  std::vector<glm::vec3> world_coordinates;
-  std::vector<glm::vec3> view_coordinates;
+  std::vector<glm::vec4> model_coordinates;
+  std::vector<glm::vec4> world_coordinates;
+  std::vector<glm::vec4> view_coordinates;
 
-  std::vector<glm::vec3> f_model;
-  std::vector<glm::vec3> f_world;
-  std::vector<glm::vec3> f_view;
+  std::vector<glm::vec4> f_model;
+  std::vector<glm::vec4> f_world;
+  std::vector<glm::vec4> f_view;
 };

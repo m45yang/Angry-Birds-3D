@@ -158,53 +158,53 @@ void A2::mapVboDataToVertexAttributeLocation()
 void A2::initializeModelCoordinates()
 {
   // Initialize local coordinates for cube
-  model_coordinates.push_back(vec3(-1.0f, -1.0f, -1.0f)); // left bottom front
-  model_coordinates.push_back(vec3(-1.0f, 1.0f, -1.0f)); // left top front
-  model_coordinates.push_back(vec3(1.0f, -1.0f, -1.0f)); // right bottom front
-  model_coordinates.push_back(vec3(1.0f, 1.0f, -1.0f)); // right top front
+  model_coordinates.push_back(vec4(-1.0f, -1.0f, -1.0f, 1.0f)); // left bottom front
+  model_coordinates.push_back(vec4(-1.0f, 1.0f, -1.0f, 1.0f)); // left top front
+  model_coordinates.push_back(vec4(1.0f, -1.0f, -1.0f, 1.0f)); // right bottom front
+  model_coordinates.push_back(vec4(1.0f, 1.0f, -1.0f, 1.0f)); // right top front
 
-  model_coordinates.push_back(vec3(-1.0f, -1.0f, 1.0f)); // left bottom back
-  model_coordinates.push_back(vec3(-1.0f, 1.0f, 1.0f)); // left top back
-  model_coordinates.push_back(vec3(1.0f, -1.0f, 1.0f)); // right bottom back
-  model_coordinates.push_back(vec3(1.0f, 1.0f, 1.0f)); // right top back
+  model_coordinates.push_back(vec4(-1.0f, -1.0f, 1.0f, 1.0f)); // left bottom back
+  model_coordinates.push_back(vec4(-1.0f, 1.0f, 1.0f, 1.0f)); // left top back
+  model_coordinates.push_back(vec4(1.0f, -1.0f, 1.0f, 1.0f)); // right bottom back
+  model_coordinates.push_back(vec4(1.0f, 1.0f, 1.0f, 1.0f)); // right top back
 }
 
 //----------------------------------------------------------------------------------------
 void A2::initializeCoordinateFrames()
 {
-  f_model.push_back(vec3(1.0f, 0.0f, 0.0f));
-  f_model.push_back(vec3(0.0f, 1.0f, 0.0f));
-  f_model.push_back(vec3(0.0f, 0.0f, 1.0f));
+  f_model.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
+  f_model.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
+  f_model.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
 
-  f_world.push_back(vec3(1.0f, 0.0f, 0.0f));
-  f_world.push_back(vec3(0.0f, 1.0f, 0.0f));
-  f_world.push_back(vec3(0.0f, 0.0f, 1.0f));
+  f_world.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
+  f_world.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
+  f_world.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
 
-  f_view.push_back(vec3(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f));
-  f_view.push_back(vec3(0.0f, 0.0f, 1.0f));
-  f_view.push_back(vec3(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f));
+  f_view.push_back(vec4(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
+  f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
+  f_view.push_back(vec4(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
 }
 
 //----------------------------------------------------------------------------------------
 void A2::initializeTransformationMatrices()
 {
-  t_model = mat3( 1.0f ); // initialize model transformation matrix as identity
+  t_model = mat4( 1.0f ); // initialize model transformation matrix as identity
 
-  t_view = mat3( 0.0f );
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
+  t_view = mat4( 0.0f );
+  for (int i=0; i<4; i++) {
+    for (int j=0; j<4; j++) {
       t_view[i][j] = dot(f_world[j], f_view[i]);
     }
   }
 
-  t_proj = mat3( 1.0f );
+  t_proj = mat4( 1.0f );
 }
 
 //----------------------------------------------------------------------------------------
 void A2::applyModelTransformation()
 {
   // Apply transformations to the cube coordinates
-  vector<vec3>::iterator it;
+  vector<vec4>::iterator it;
   world_coordinates.resize(0);
 
   for (it=model_coordinates.begin(); it!=model_coordinates.end(); it++) {
@@ -216,7 +216,7 @@ void A2::applyModelTransformation()
 void A2::applyViewingTransformation()
 {
   // Apply transformations to the cube coordinates
-  vector<vec3>::iterator it;
+  vector<vec4>::iterator it;
   view_coordinates.resize(0);
 
   for (it=world_coordinates.begin(); it!=world_coordinates.end(); it++) {
