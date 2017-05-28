@@ -51,6 +51,10 @@ protected:
 	void mapVboDataToVertexAttributeLocation();
 	void uploadVertexDataToVbos();
 	void initializeModelCoordinates();
+	void initializeTransformationMatrices();
+	void applyModelTransformation();
+	void applyViewingTransformation();
+	void applyProjectionTransformation();
 
 	void initLineData();
 
@@ -68,9 +72,9 @@ protected:
 	GLuint m_vbo_colours;    // Vertex Buffer Object
 
 	// Matrices controlling the camera and projection.
-	glm::mat4 proj;
-	glm::mat4 view;
-	glm::mat4 model;
+	glm::mat3 t_proj;
+	glm::mat3 t_view;
+	glm::mat3 t_model;
 
 	VertexData m_vertexData;
 

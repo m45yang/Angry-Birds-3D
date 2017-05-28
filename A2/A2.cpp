@@ -57,6 +57,8 @@ void A2::init()
 	mapVboDataToVertexAttributeLocation();
 
 	initializeModelCoordinates();
+
+	initializeTransformationMatrices();
 }
 
 //----------------------------------------------------------------------------------------
@@ -164,6 +166,45 @@ void A2::initializeModelCoordinates()
 	model_coordinates.push_back(vec3(1.0f, -1.0f, 1.0f)); // right bottom back
 	model_coordinates.push_back(vec3(1.0f, 1.0f, 1.0f)); // right top back
 }
+
+//----------------------------------------------------------------------------------------
+void A2::initializeTransformationMatrices()
+{
+	t_model = mat3( 1.0 ); // initialize model transformation matrix as identity
+	t_view = mat3(1.0);
+	t_proj = mat3(1.0);
+}
+
+//----------------------------------------------------------------------------------------
+void A2::applyModelTransformation()
+{
+	// Apply transformations to the cube coordinates
+	vector<vec3>::iterator it;
+	world_coordinates.clear();
+
+	for (it=model_coordinates.begin(); it!=model_coordinates.end(); it++) {
+		world_coordinates.push_back(t_model * (*it));
+	}
+}
+
+//----------------------------------------------------------------------------------------
+void A2::applyViewingTransformation()
+{
+	// Apply transformations to the cube coordinates
+	vector<vec3>::iterator it;
+	view_coordinates.clear();
+
+	for (it=world_coordinates.begin(); it!=world_coordinates.end(); it++) {
+		view_coordinates.push_back(t_model * (*it));
+	}
+}
+
+//----------------------------------------------------------------------------------------
+void A2::applyProjectionTransformation()
+{
+
+}
+
 
 //---------------------------------------------------------------------------------------
 void A2::initLineData()
