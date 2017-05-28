@@ -83,6 +83,7 @@ protected:
   std::vector<glm::vec4> model_coordinates;
   std::vector<glm::vec4> world_coordinates;
   std::vector<glm::vec4> view_coordinates;
+  std::vector<glm::vec2> normalized_device_coordinates;
 
   std::vector<glm::vec4> f_model;
   std::vector<glm::vec4> f_world;

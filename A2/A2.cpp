@@ -56,9 +56,9 @@ void A2::init()
 
   mapVboDataToVertexAttributeLocation();
 
-  initializeModelCoordinates();
-
   initializeCoordinateFrames();
+
+  initializeModelCoordinates();
 
   initializeTransformationMatrices();
 }
@@ -155,53 +155,61 @@ void A2::mapVboDataToVertexAttributeLocation()
 }
 
 //----------------------------------------------------------------------------------------
-void A2::initializeModelCoordinates()
-{
-  // Initialize local coordinates for cube
-  model_coordinates.push_back(vec4(-1.0f, -1.0f, -1.0f, 1.0f)); // left bottom front
-  model_coordinates.push_back(vec4(-1.0f, 1.0f, -1.0f, 1.0f)); // left top front
-  model_coordinates.push_back(vec4(1.0f, -1.0f, -1.0f, 1.0f)); // right bottom front
-  model_coordinates.push_back(vec4(1.0f, 1.0f, -1.0f, 1.0f)); // right top front
-
-  model_coordinates.push_back(vec4(-1.0f, -1.0f, 1.0f, 1.0f)); // left bottom back
-  model_coordinates.push_back(vec4(-1.0f, 1.0f, 1.0f, 1.0f)); // left top back
-  model_coordinates.push_back(vec4(1.0f, -1.0f, 1.0f, 1.0f)); // right bottom back
-  model_coordinates.push_back(vec4(1.0f, 1.0f, 1.0f, 1.0f)); // right top back
-}
-
-//----------------------------------------------------------------------------------------
 void A2::initializeCoordinateFrames()
 {
+  f_model.resize(0);
   f_model.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
   f_model.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
   f_model.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
   f_model.push_back(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
+  f_world.resize(0);
   f_world.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
   f_world.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
   f_world.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
   f_world.push_back(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-  f_view.push_back(vec4(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
+  f_view.resize(0);
+  f_view.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
+  f_view.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
   f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
-  f_view.push_back(vec4(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
-  f_view.push_back(vec4(1.0f, 0.0f, 3.0f, 1.0f));
+  f_view.push_back(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+  // f_view.push_back(vec4(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
+  // f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
+  // f_view.push_back(vec4(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
+  // f_view.push_back(vec4(1.0f, 0.0f, 3.0f, 1.0f));
+}
+
+//----------------------------------------------------------------------------------------
+void A2::initializeModelCoordinates()
+{
+  // Initialize local coordinates for cube
+  model_coordinates.push_back(f_model[3] - f_model[0] - f_model[1] - f_model[2]); // left bottom front
+  model_coordinates.push_back(f_model[3] - f_model[0] + f_model[1] - f_model[2]); // left top front
+  model_coordinates.push_back(f_model[3] + f_model[0] - f_model[1] - f_model[2]); // right bottom front
+  model_coordinates.push_back(f_model[3] + f_model[0] + f_model[1] - f_model[2]); // right top front
+
+  model_coordinates.push_back(f_model[3] - f_model[0] - f_model[1] + f_model[2]); // left bottom back
+  model_coordinates.push_back(f_model[3] - f_model[0] + f_model[1] + f_model[2]); // left top back
+  model_coordinates.push_back(f_model[3] + f_model[0] - f_model[1] + f_model[2]); // right bottom back
+  model_coordinates.push_back(f_model[3] + f_model[0] + f_model[1] + f_model[2]); // right top back
 }
 
 //----------------------------------------------------------------------------------------
 void A2::initializeTransformationMatrices()
 {
-  t_model = mat4( 1.0f ); // initialize model transformation matrix as identity
+  t_model = translate( mat4(1.0f), vec3(0.0f, 0.0f, 0.0f) );
 
-  t_view = mat4( 0.0f );
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
-      t_view[i][j] = dot(f_world[j], f_view[i]);
-    }
-    t_view[i][3] = dot((f_world[3] - f_view[3]), f_view[i]);
-  }
+  t_view = glm::lookAt(
+    glm::vec3( 0.0f, 1.0f, 3.0f ),
+    glm::vec3( 0.0f, 0.0f, 0.0f ),
+    glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
-  t_proj = mat4( 1.0f );
+  t_proj =  glm::perspective(
+    glm::radians( 1.0f ),
+    float( m_framebufferWidth ) / float( m_framebufferHeight ),
+    0.01f, 100.0f );
 }
 
 //----------------------------------------------------------------------------------------
@@ -231,6 +239,24 @@ void A2::applyViewingTransformation()
 //----------------------------------------------------------------------------------------
 void A2::applyProjectionTransformation()
 {
+  // Apply transformations to the cube coordinates
+  vector<vec4>::iterator it;
+  float width_ratio = 0.9f;
+  float height_ratio = 0.9f;
+  normalized_device_coordinates.resize(0);
+
+  for (it=view_coordinates.begin(); it!=view_coordinates.end(); it++) {
+    // Remove z coordinate and normalize
+    // vec2 device_coordinate = vec2(it->x/it->z, it->y/it->z);
+    // cout << device_coordinate << endl;
+    // vec2 normalized_device_coordinate = normalize(vec2(
+    //   (width_ratio * device_coordinate.x) + 0.05*m_windowWidth,
+    //   (height_ratio * device_coordinate.y) + 0.05*m_windowHeight
+    // ));
+    // normalized_device_coordinates.push_back(normalized_device_coordinate);
+    vec4 normalized_device_coordinate = t_proj * (*it);
+    normalized_device_coordinates.push_back(normalize(vec2(normalized_device_coordinate.x, normalized_device_coordinate.y)));
+  }
 
 }
 
@@ -272,24 +298,44 @@ void A2::drawLine(
 void A2::appLogic()
 {
   // Place per frame, application logic here ...
+  applyModelTransformation();
+  applyViewingTransformation();
+  applyProjectionTransformation();
 
   // Call at the beginning of frame, before drawing lines:
   initLineData();
 
   // Draw outer square:
+  // setLineColour(vec3(1.0f, 0.7f, 0.8f));
+  // drawLine(vec2(-0.5f, -0.5f), vec2(0.5f, -0.5f));
+  // drawLine(vec2(0.5f, -0.5f), vec2(0.5f, 0.5f));
+  // drawLine(vec2(0.5f, 0.5f), vec2(-0.5f, 0.5f));
+  // drawLine(vec2(-0.5f, 0.5f), vec2(-0.5f, -0.5f));
+
+
+  // // Draw inner square:
+  // setLineColour(vec3(0.2f, 1.0f, 1.0f));
+  // drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
+  // drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
+  // drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
+  // drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
+
   setLineColour(vec3(1.0f, 0.7f, 0.8f));
-  drawLine(vec2(-0.5f, -0.5f), vec2(0.5f, -0.5f));
-  drawLine(vec2(0.5f, -0.5f), vec2(0.5f, 0.5f));
-  drawLine(vec2(0.5f, 0.5f), vec2(-0.5f, 0.5f));
-  drawLine(vec2(-0.5f, 0.5f), vec2(-0.5f, -0.5f));
+  drawLine(normalized_device_coordinates[0], normalized_device_coordinates[1]);
+  drawLine(normalized_device_coordinates[2], normalized_device_coordinates[3]);
+  drawLine(normalized_device_coordinates[0], normalized_device_coordinates[2]);
+  drawLine(normalized_device_coordinates[1], normalized_device_coordinates[3]);
 
+  drawLine(normalized_device_coordinates[4], normalized_device_coordinates[5]);
+  drawLine(normalized_device_coordinates[6], normalized_device_coordinates[7]);
+  drawLine(normalized_device_coordinates[4], normalized_device_coordinates[6]);
+  drawLine(normalized_device_coordinates[5], normalized_device_coordinates[7]);
 
-  // Draw inner square:
-  setLineColour(vec3(0.2f, 1.0f, 1.0f));
-  drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
-  drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
-  drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
-  drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
+  cout << normalized_device_coordinates.size() << endl;
+  vector<vec2>::iterator it;
+  for (it=normalized_device_coordinates.begin(); it!=normalized_device_coordinates.end(); it++) {
+    cout << *it << endl;
+  }
 }
 
 //----------------------------------------------------------------------------------------
