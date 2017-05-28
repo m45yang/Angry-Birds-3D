@@ -175,14 +175,17 @@ void A2::initializeCoordinateFrames()
   f_model.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
   f_model.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
   f_model.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
+  f_model.push_back(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
   f_world.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
   f_world.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
   f_world.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
+  f_world.push_back(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
   f_view.push_back(vec4(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
   f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
   f_view.push_back(vec4(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
+  f_view.push_back(vec4(1.0f, 0.0f, 3.0f, 1.0f));
 }
 
 //----------------------------------------------------------------------------------------
@@ -191,10 +194,11 @@ void A2::initializeTransformationMatrices()
   t_model = mat4( 1.0f ); // initialize model transformation matrix as identity
 
   t_view = mat4( 0.0f );
-  for (int i=0; i<4; i++) {
-    for (int j=0; j<4; j++) {
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
       t_view[i][j] = dot(f_world[j], f_view[i]);
     }
+    t_view[i][3] = dot((f_world[3] - f_view[3]), f_view[i]);
   }
 
   t_proj = mat4( 1.0f );
