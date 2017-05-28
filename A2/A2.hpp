@@ -50,6 +50,7 @@ protected:
 	void generateVertexBuffers();
 	void mapVboDataToVertexAttributeLocation();
 	void uploadVertexDataToVbos();
+	void initializeModelCoordinates();
 
 	void initLineData();
 
@@ -66,8 +67,15 @@ protected:
 	GLuint m_vbo_positions;  // Vertex Buffer Object
 	GLuint m_vbo_colours;    // Vertex Buffer Object
 
+	// Matrices controlling the camera and projection.
+	glm::mat4 proj;
+	glm::mat4 view;
+	glm::mat4 model;
+
 	VertexData m_vertexData;
 
 	glm::vec3 m_currentLineColour;
-
+	std::vector<glm::vec3> model_coordinates;
+	std::vector<glm::vec3> world_coordinates;
+	std::vector<glm::vec3> view_coordinates;
 };

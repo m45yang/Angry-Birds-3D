@@ -55,6 +55,8 @@ void A2::init()
 	generateVertexBuffers();
 
 	mapVboDataToVertexAttributeLocation();
+
+	initializeModelCoordinates();
 }
 
 //----------------------------------------------------------------------------------------
@@ -146,6 +148,21 @@ void A2::mapVboDataToVertexAttributeLocation()
 	glBindVertexArray(0);
 
 	CHECK_GL_ERRORS;
+}
+
+//----------------------------------------------------------------------------------------
+void A2::initializeModelCoordinates()
+{
+	// Initialize local coordinates for cube
+	model_coordinates.push_back(vec3(-1.0f, -1.0f, -1.0f)); // left bottom front
+	model_coordinates.push_back(vec3(-1.0f, 1.0f, -1.0f)); // left top front
+	model_coordinates.push_back(vec3(1.0f, -1.0f, -1.0f)); // right bottom front
+	model_coordinates.push_back(vec3(1.0f, 1.0f, -1.0f)); // right top front
+
+	model_coordinates.push_back(vec3(-1.0f, -1.0f, 1.0f)); // left bottom back
+	model_coordinates.push_back(vec3(-1.0f, 1.0f, 1.0f)); // left top back
+	model_coordinates.push_back(vec3(1.0f, -1.0f, 1.0f)); // right bottom back
+	model_coordinates.push_back(vec3(1.0f, 1.0f, 1.0f)); // right top back
 }
 
 //---------------------------------------------------------------------------------------
