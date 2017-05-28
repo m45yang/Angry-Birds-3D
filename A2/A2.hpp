@@ -51,6 +51,7 @@ protected:
 	void mapVboDataToVertexAttributeLocation();
 	void uploadVertexDataToVbos();
 	void initializeModelCoordinates();
+	void initializeCoordinateFrames();
 	void initializeTransformationMatrices();
 	void applyModelTransformation();
 	void applyViewingTransformation();
@@ -82,4 +83,8 @@ protected:
 	std::vector<glm::vec3> model_coordinates;
 	std::vector<glm::vec3> world_coordinates;
 	std::vector<glm::vec3> view_coordinates;
+
+	std::vector<glm::vec3> f_model;
+	std::vector<glm::vec3> f_world;
+	std::vector<glm::vec3> f_view;
 };

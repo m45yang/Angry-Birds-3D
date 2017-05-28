@@ -15,7 +15,7 @@ using namespace glm;
 // Constructor
 VertexData::VertexData()
 	: numVertices(0),
-	  index(0)
+		index(0)
 {
 	positions.resize(kMaxVertices);
 	colours.resize(kMaxVertices);
@@ -57,6 +57,8 @@ void A2::init()
 	mapVboDataToVertexAttributeLocation();
 
 	initializeModelCoordinates();
+
+	initializeCoordinateFrames();
 
 	initializeTransformationMatrices();
 }
@@ -168,11 +170,34 @@ void A2::initializeModelCoordinates()
 }
 
 //----------------------------------------------------------------------------------------
+void A2::initializeCoordinateFrames()
+{
+	f_model.push_back(vec3(1.0f, 0.0f, 0.0f));
+	f_model.push_back(vec3(0.0f, 1.0f, 0.0f));
+	f_model.push_back(vec3(0.0f, 0.0f, 1.0f));
+
+	f_world.push_back(vec3(1.0f, 0.0f, 0.0f));
+	f_world.push_back(vec3(0.0f, 1.0f, 0.0f));
+	f_world.push_back(vec3(0.0f, 0.0f, 1.0f));
+
+	f_view.push_back(vec3(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f));
+	f_view.push_back(vec3(0.0f, 0.0f, 1.0f));
+	f_view.push_back(vec3(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f));
+}
+
+//----------------------------------------------------------------------------------------
 void A2::initializeTransformationMatrices()
 {
-	t_model = mat3( 1.0 ); // initialize model transformation matrix as identity
-	t_view = mat3(1.0);
-	t_proj = mat3(1.0);
+	t_model = mat3( 1.0f ); // initialize model transformation matrix as identity
+
+	t_view = mat3( 0.0f );
+	for (int i=0; i<3; i++) {
+		for (int j=0; j<3; j++) {
+			t_view[i][j] = dot(f_world[j], f_view[i]);
+		}
+	}
+
+	t_proj = mat3( 1.0f );
 }
 
 //----------------------------------------------------------------------------------------
@@ -180,7 +205,7 @@ void A2::applyModelTransformation()
 {
 	// Apply transformations to the cube coordinates
 	vector<vec3>::iterator it;
-	world_coordinates.clear();
+	world_coordinates.resize(0);
 
 	for (it=model_coordinates.begin(); it!=model_coordinates.end(); it++) {
 		world_coordinates.push_back(t_model * (*it));
@@ -192,10 +217,10 @@ void A2::applyViewingTransformation()
 {
 	// Apply transformations to the cube coordinates
 	vector<vec3>::iterator it;
-	view_coordinates.clear();
+	view_coordinates.resize(0);
 
 	for (it=world_coordinates.begin(); it!=world_coordinates.end(); it++) {
-		view_coordinates.push_back(t_model * (*it));
+		view_coordinates.push_back(t_view * (*it));
 	}
 }
 
