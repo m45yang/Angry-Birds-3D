@@ -89,10 +89,8 @@ protected:
   std::vector<glm::vec4> f_world;
   std::vector<glm::vec4> f_view;
 
-  bool is_left_mouse_clicked;
-  bool is_middle_mouse_clicked;
-  bool is_right_mouse_clicked;
+  bool keys[1024];
   float mouse_x_pos;
-  float mouse_y_pos;
   float zoom;
+  int current_mode;
 };

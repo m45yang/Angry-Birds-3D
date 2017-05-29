@@ -28,11 +28,8 @@ A2::A2()
   : m_currentLineColour(vec3(0.0f))
 {
   mouse_x_pos = 0.0f;
-  mouse_y_pos = 0.0f;
   zoom = 0.0f;
-  is_left_mouse_clicked = false;
-  is_middle_mouse_clicked = false;
-  is_right_mouse_clicked = false;
+  current_mode = 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -168,22 +165,11 @@ void A2::initializeCoordinateFrames()
   f_model.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
   f_model.push_back(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-  f_world.resize(0);
-  f_world.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
-  f_world.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
-  f_world.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
-  f_world.push_back(vec4(0.0f, 0.0f, 0.0f, 1.0f));
-
   f_view.resize(0);
   f_view.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
   f_view.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
   f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
   f_view.push_back(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-  // f_view.push_back(vec4(pow(2.0f, 0.5f)/2, pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
-  // f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
-  // f_view.push_back(vec4(pow(2.0f, 0.5f)/2, -pow(2.0f, 0.5f)/2, 0.0f, 0.0f));
-  // f_view.push_back(vec4(1.0f, 0.0f, 3.0f, 1.0f));
 }
 
 //----------------------------------------------------------------------------------------
@@ -199,15 +185,21 @@ void A2::initializeModelCoordinates()
   model_coordinates.push_back( vec4(-0.5f, 0.5f, 0.5f, 1.0f) ); // left top back
   model_coordinates.push_back( vec4(0.5f, -0.5f, 0.5f, 1.0f) ); // right bottom back
   model_coordinates.push_back( vec4(0.5f, 0.5f, 0.5f, 1.0f) ); // right top back
+
+  // Initiate the coordinates for world frame
+  model_coordinates.push_back( vec4(0.0f, 0.0f, 0.0f, 1.0f) );
+  model_coordinates.push_back( vec4(0.25f, 0.0f, 0.0f, 1.0f) );
+  model_coordinates.push_back( vec4(0.0f, 0.25f, 0.0f, 1.0f) );
+  model_coordinates.push_back( vec4(0.0f, 0.0f, 0.25f, 1.0f) );
 }
 
 //----------------------------------------------------------------------------------------
 void A2::initializeTransformationMatrices()
 {
-  t_model = translate( mat4(1.0f), vec3(0.0f, 0.0f, 0.0f) );
+  t_model = mat4(1.0f);
 
   t_view = glm::lookAt(
-    glm::vec3( 0.0f, 0.0f, 10.0f ),
+    glm::vec3( 0.0f, 0.0f, -10.0f ),
     glm::vec3( 0.0f, 0.0f, 0.0f ),
     glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
@@ -340,6 +332,13 @@ void A2::appLogic()
   drawLine(normalized_device_coordinates[2], normalized_device_coordinates[6]);
   drawLine(normalized_device_coordinates[1], normalized_device_coordinates[5]);
   drawLine(normalized_device_coordinates[3], normalized_device_coordinates[7]);
+
+  setLineColour(vec3(0.2f, 1.0f, 1.0f));
+  drawLine(normalized_device_coordinates[8], normalized_device_coordinates[9]);
+  setLineColour(vec3(1.0f, 0.2f, 1.0f));
+  drawLine(normalized_device_coordinates[8], normalized_device_coordinates[10]);
+  setLineColour(vec3(1.0f, 1.0f, 0.2f));
+  drawLine(normalized_device_coordinates[8], normalized_device_coordinates[11]);
 }
 
 //----------------------------------------------------------------------------------------
@@ -452,19 +451,132 @@ bool A2::mouseMoveEvent (
 ) {
   bool eventHandled(false);
 
-  if (!ImGui::IsMouseHoveringAnyWindow() && is_right_mouse_clicked) {
-    float y_rotation = (xPos - mouse_x_pos) / (100*2*M_PI);
-    mat4 transform = rotate(mat4(), y_rotation, vec3(0.0f, 1.0f, 0.0f));
-    t_view *= transform;
+  // Model rotation
+  if (current_mode == GLFW_KEY_R) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
+      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      mat4 transform = mat4(
+        vec4( cos(q), 0.0f, sin(q), 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( -sin(q), 0.0f, cos(q), 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
+      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      mat4 transform = mat4(
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, cos(q), -sin(q), 0.0f ),
+        vec4( 0.0f, sin(q), cos(q), 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
+      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      mat4 transform = mat4(
+        vec4( cos(q), -sin(q), 0.0f, 0.0f ),
+        vec4( sin(q), cos(q), 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
   }
 
-  if (!ImGui::IsMouseHoveringAnyWindow() && is_left_mouse_clicked) {
-    float x_rotation = (yPos - mouse_y_pos) / (100*2*M_PI);
-    mat4 transform = rotate(mat4(), x_rotation, vec3(1.0f, 0.0f, 0.0f));
-    t_view *= transform;
+  // Model translation
+  if (current_mode == GLFW_KEY_T) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
+      float q = (xPos - mouse_x_pos);
+      mat4 transform = mat4(
+        vec4( 1.0f, 0.0f, 0.0f, 0.1f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
+      float q = (xPos - mouse_x_pos);
+      mat4 transform = mat4(
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, q ),
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
+      float q = (xPos - mouse_x_pos);
+      mat4 transform = mat4(
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 1.0f, q ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
   }
 
-  mouse_y_pos = yPos;
+  // Model scaling
+  if (current_mode == GLFW_KEY_S) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
+      float q = (xPos - mouse_x_pos);
+      if (q < 0) {
+        q = 0.99f;
+      }
+      else {
+        q = 1.01f;
+      }
+      mat4 transform = mat4(
+        vec4( q, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
+      float q = (xPos - mouse_x_pos);
+      if (q < 0) {
+        q = 0.99f;
+      }
+      else {
+        q = 1.01f;
+      }
+      mat4 transform = mat4(
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, q, 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
+      float q = (xPos - mouse_x_pos);
+      if (q < 0) {
+        q = 0.99f;
+      }
+      else {
+        q = 1.01f;
+      }
+      mat4 transform = mat4(
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, q, 0.0f ),
+        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+      );
+      t_model *= transform;
+    }
+  }
+
   mouse_x_pos = xPos;
 
   return eventHandled;
@@ -483,25 +595,25 @@ bool A2::mouseButtonInputEvent (
 
   if (actions == GLFW_PRESS && !ImGui::IsMouseHoveringAnyWindow()) {
     if (button == GLFW_MOUSE_BUTTON_1) {
-      is_left_mouse_clicked = true;
+      keys[GLFW_MOUSE_BUTTON_1] = true;
     }
     if (button == GLFW_MOUSE_BUTTON_2) {
-      is_right_mouse_clicked = true;
+      keys[GLFW_MOUSE_BUTTON_2] = true;
     }
     if (button == GLFW_MOUSE_BUTTON_3) {
-      is_left_mouse_clicked = true;
+      keys[GLFW_MOUSE_BUTTON_3] = true;
     }
   }
 
   if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
     if (button == GLFW_MOUSE_BUTTON_1) {
-      is_left_mouse_clicked = false;
+      keys[GLFW_MOUSE_BUTTON_1] = false;
     }
     if (button == GLFW_MOUSE_BUTTON_2) {
-      is_right_mouse_clicked = false;
+      keys[GLFW_MOUSE_BUTTON_2] = false;
     }
     if (button == GLFW_MOUSE_BUTTON_3) {
-      is_middle_mouse_clicked = false;
+      keys[GLFW_MOUSE_BUTTON_3] = false;
     }
   }
 
@@ -554,7 +666,11 @@ bool A2::keyInputEvent (
 ) {
   bool eventHandled(false);
 
-  // Fill in with event handling code...
+  if (action == GLFW_PRESS) {
+    keys[current_mode] = false;
+    keys[key] = true;
+    current_mode = key;
+  }
 
   return eventHandled;
 }
