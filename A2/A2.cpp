@@ -27,7 +27,12 @@ VertexData::VertexData()
 A2::A2()
   : m_currentLineColour(vec3(0.0f))
 {
-
+  mouse_x_pos = 0.0f;
+  mouse_y_pos = 0.0f;
+  zoom = 0.0f;
+  is_left_mouse_clicked = false;
+  is_middle_mouse_clicked = false;
+  is_right_mouse_clicked = false;
 }
 
 //----------------------------------------------------------------------------------------
@@ -185,15 +190,15 @@ void A2::initializeCoordinateFrames()
 void A2::initializeModelCoordinates()
 {
   // Initialize local coordinates for cube
-  model_coordinates.push_back(f_model[3] - f_model[0] - f_model[1] - f_model[2]); // left bottom front
-  model_coordinates.push_back(f_model[3] - f_model[0] + f_model[1] - f_model[2]); // left top front
-  model_coordinates.push_back(f_model[3] + f_model[0] - f_model[1] - f_model[2]); // right bottom front
-  model_coordinates.push_back(f_model[3] + f_model[0] + f_model[1] - f_model[2]); // right top front
+  model_coordinates.push_back( vec4(-0.5f, -0.5f, -0.5f, 1.0f) ); // left bottom front
+  model_coordinates.push_back( vec4(-0.5f, 0.5f, -0.5f, 1.0f) ); // left top front
+  model_coordinates.push_back( vec4(0.5f, -0.5f, -0.5f, 1.0f) ); // right bottom front
+  model_coordinates.push_back( vec4(0.5f, 0.5f, -0.5f, 1.0f) ); // right top front
 
-  model_coordinates.push_back(f_model[3] - f_model[0] - f_model[1] + f_model[2]); // left bottom back
-  model_coordinates.push_back(f_model[3] - f_model[0] + f_model[1] + f_model[2]); // left top back
-  model_coordinates.push_back(f_model[3] + f_model[0] - f_model[1] + f_model[2]); // right bottom back
-  model_coordinates.push_back(f_model[3] + f_model[0] + f_model[1] + f_model[2]); // right top back
+  model_coordinates.push_back( vec4(-0.5f, -0.5f, 0.5f, 1.0f) ); // left bottom back
+  model_coordinates.push_back( vec4(-0.5f, 0.5f, 0.5f, 1.0f) ); // left top back
+  model_coordinates.push_back( vec4(0.5f, -0.5f, 0.5f, 1.0f) ); // right bottom back
+  model_coordinates.push_back( vec4(0.5f, 0.5f, 0.5f, 1.0f) ); // right top back
 }
 
 //----------------------------------------------------------------------------------------
@@ -202,14 +207,15 @@ void A2::initializeTransformationMatrices()
   t_model = translate( mat4(1.0f), vec3(0.0f, 0.0f, 0.0f) );
 
   t_view = glm::lookAt(
-    glm::vec3( 0.0f, 1.0f, 3.0f ),
+    glm::vec3( 0.0f, 0.0f, 10.0f ),
     glm::vec3( 0.0f, 0.0f, 0.0f ),
     glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
   t_proj =  glm::perspective(
-    glm::radians( 1.0f ),
+    glm::radians( 45.0f ),
     float( m_framebufferWidth ) / float( m_framebufferHeight ),
-    0.01f, 100.0f );
+    1.0f, 1000.0f );
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -254,8 +260,7 @@ void A2::applyProjectionTransformation()
     //   (height_ratio * device_coordinate.y) + 0.05*m_windowHeight
     // ));
     // normalized_device_coordinates.push_back(normalized_device_coordinate);
-    vec4 normalized_device_coordinate = t_proj * (*it);
-    normalized_device_coordinates.push_back(normalize(vec2(normalized_device_coordinate.x, normalized_device_coordinate.y)));
+    normalized_device_coordinates.push_back(vec2(it->x, it->y));
   }
 
 }
@@ -331,11 +336,10 @@ void A2::appLogic()
   drawLine(normalized_device_coordinates[4], normalized_device_coordinates[6]);
   drawLine(normalized_device_coordinates[5], normalized_device_coordinates[7]);
 
-  cout << normalized_device_coordinates.size() << endl;
-  vector<vec2>::iterator it;
-  for (it=normalized_device_coordinates.begin(); it!=normalized_device_coordinates.end(); it++) {
-    cout << *it << endl;
-  }
+  drawLine(normalized_device_coordinates[0], normalized_device_coordinates[4]);
+  drawLine(normalized_device_coordinates[2], normalized_device_coordinates[6]);
+  drawLine(normalized_device_coordinates[1], normalized_device_coordinates[5]);
+  drawLine(normalized_device_coordinates[3], normalized_device_coordinates[7]);
 }
 
 //----------------------------------------------------------------------------------------
@@ -448,7 +452,20 @@ bool A2::mouseMoveEvent (
 ) {
   bool eventHandled(false);
 
-  // Fill in with event handling code...
+  if (!ImGui::IsMouseHoveringAnyWindow() && is_right_mouse_clicked) {
+    float y_rotation = (xPos - mouse_x_pos) / (100*2*M_PI);
+    mat4 transform = rotate(mat4(), y_rotation, vec3(0.0f, 1.0f, 0.0f));
+    t_view *= transform;
+  }
+
+  if (!ImGui::IsMouseHoveringAnyWindow() && is_left_mouse_clicked) {
+    float x_rotation = (yPos - mouse_y_pos) / (100*2*M_PI);
+    mat4 transform = rotate(mat4(), x_rotation, vec3(1.0f, 0.0f, 0.0f));
+    t_view *= transform;
+  }
+
+  mouse_y_pos = yPos;
+  mouse_x_pos = xPos;
 
   return eventHandled;
 }
@@ -464,7 +481,30 @@ bool A2::mouseButtonInputEvent (
 ) {
   bool eventHandled(false);
 
-  // Fill in with event handling code...
+  if (actions == GLFW_PRESS && !ImGui::IsMouseHoveringAnyWindow()) {
+    if (button == GLFW_MOUSE_BUTTON_1) {
+      is_left_mouse_clicked = true;
+    }
+    if (button == GLFW_MOUSE_BUTTON_2) {
+      is_right_mouse_clicked = true;
+    }
+    if (button == GLFW_MOUSE_BUTTON_3) {
+      is_left_mouse_clicked = true;
+    }
+  }
+
+  if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
+    if (button == GLFW_MOUSE_BUTTON_1) {
+      is_left_mouse_clicked = false;
+    }
+    if (button == GLFW_MOUSE_BUTTON_2) {
+      is_right_mouse_clicked = false;
+    }
+    if (button == GLFW_MOUSE_BUTTON_3) {
+      is_middle_mouse_clicked = false;
+    }
+  }
+
 
   return eventHandled;
 }
@@ -479,7 +519,11 @@ bool A2::mouseScrollEvent (
 ) {
   bool eventHandled(false);
 
-  // Fill in with event handling code...
+  zoom -= 2*yOffSet;
+  t_proj = glm::perspective(
+    glm::radians( zoom ),
+    float( m_framebufferWidth ) / float( m_framebufferHeight ),
+    1.0f, 1000.0f );
 
   return eventHandled;
 }
