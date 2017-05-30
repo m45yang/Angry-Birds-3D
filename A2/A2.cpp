@@ -557,7 +557,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_rotation *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
@@ -569,7 +569,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_rotation *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -581,7 +581,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_rotation *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
   }
 
@@ -596,7 +596,7 @@ bool A2::mouseMoveEvent (
         vec4( q, 0.0f, 0.0f, 1.0f )
       );
       t_model_translation *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
@@ -608,7 +608,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, q, 0.0f, 1.0f )
       );
       t_model_translation *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -620,7 +620,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, q, 1.0f )
       );
       t_model_translation *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
   }
 
@@ -641,7 +641,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_scale *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
@@ -659,7 +659,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_scale *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -677,7 +677,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_scale *= transform;
-      t_model = t_model_rotation * t_model_translation * t_model_scale;
+      t_model = t_model_translation * t_model_rotation * t_model_scale;
     }
   }
 
