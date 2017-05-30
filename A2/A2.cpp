@@ -202,9 +202,9 @@ void A2::initializeModelCoordinates()
 
   // Initialize the coordinates for the world gnomon
   world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.1f, 0.0f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.1f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.1f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.25f, 0.0f, 0.0f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.25f, 0.0f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.25f, 1.0f) );
 
   // Initialize viewport coordinates
   viewport_xl = -0.95;
@@ -222,6 +222,7 @@ void A2::initializeTransformationMatrices()
     vec4( 0.0f, 0.0f, 0.5f, 0.0f ),
     vec4( 0.0f, 0.0f, 0.0f, 1.0f )
   );
+
   t_model_cube_gnomon = mat4(
     vec4( 0.5f, 0.0f, 0.0f, 0.0f ),
     vec4( 0.0f, 0.5f, 0.0f, 0.0f ),
@@ -246,12 +247,21 @@ void A2::initializeTransformationMatrices()
     t_view[i][3] = dot( (f_world[3] - f_view[i]), f_view[i] );
   }
 
+  near = 1.0f;
+  far = 100.0f;
+  fov = 45.0f;
+  float ratio = cos(fov/2)/sin(fov/2);
   t_proj = mat4(
-    vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
-    vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
-    vec4( 0.0f, 0.0f, (1.0f + 100.0f)/1.0f, -100.0f ),
-    vec4( 0.0f, 0.0f, 1/1.0f, 0.0f )
+    vec4( ratio/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+    vec4( 0.0f, ratio, 0.0f, 0.0f ),
+    vec4( 0.0f, 0.0f, (far + near)/(far - near), 1.0f ),
+    vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
   );
+
+  // t_proj = glm::perspective(
+  //   glm::radians( 45.0f ),
+  //   float( m_windowWidth ) / float( m_windowHeight ),
+  //   1.0f, 100.0f );
 }
 
 //----------------------------------------------------------------------------------------
@@ -303,22 +313,40 @@ void A2::applyProjectionTransformation()
 {
   // Apply transformations to the cube coordinates
   vector<vec4>::iterator it;
-  float width_ratio = 0.9f;
-  float height_ratio = 0.9f;
   cube_normalized_device_coordinates.resize(0);
   cube_gnomon_normalized_device_coordinates.resize(0);
   world_gnomon_normalized_device_coordinates.resize(0);
+  float width_ratio = (viewport_xr-viewport_xl) / 2;
+  float height_ratio = (viewport_yt-viewport_yb) / 2;
 
   for (it=cube_view_coordinates.begin(); it!=cube_view_coordinates.end(); it++) {
-    cube_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
+    vec4 clip_coordinate = t_proj * (*it);
+    cube_normalized_device_coordinates.push_back(
+      vec2(
+        clip_coordinate.x/clip_coordinate.w,
+        clip_coordinate.y/clip_coordinate.w
+      )
+    );
   }
 
   for (it=cube_gnomon_view_coordinates.begin(); it!=cube_gnomon_view_coordinates.end(); it++) {
-    cube_gnomon_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
+    vec4 clip_coordinate = t_proj * (*it);
+    cube_gnomon_normalized_device_coordinates.push_back(
+      vec2(
+        clip_coordinate.x/clip_coordinate.w,
+        clip_coordinate.y/clip_coordinate.w
+      )
+    );
   }
 
   for (it=world_gnomon_view_coordinates.begin(); it!=world_gnomon_view_coordinates.end(); it++) {
-    world_gnomon_normalized_device_coordinates.push_back(vec2(it->x, it->y));
+    vec4 clip_coordinate = t_proj * (*it);
+    world_gnomon_normalized_device_coordinates.push_back(
+      vec2(
+        clip_coordinate.x/clip_coordinate.w,
+        clip_coordinate.y/clip_coordinate.w
+      )
+    );
   }
 }
 

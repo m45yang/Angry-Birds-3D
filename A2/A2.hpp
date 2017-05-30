@@ -105,11 +105,14 @@ protected:
 
   bool keys[1024];
   bool is_changing_viewport;
+  int current_mode;
   float mouse_x_pos;
   float mouse_y_pos;
-  int current_mode;
   float viewport_xl;
   float viewport_yb;
   float viewport_xr;
   float viewport_yt;
+  float near;
+  float far;
+  float fov;
 };
