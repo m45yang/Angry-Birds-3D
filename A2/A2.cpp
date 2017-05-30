@@ -184,21 +184,21 @@ void A2::initializeCoordinateFrames()
 void A2::initializeModelCoordinates()
 {
   // Initialize local coordinates for cube
-  model_coordinates.push_back( vec4(-1.0f, -1.0f, -1.0f, 1.0f) ); // left bottom front
-  model_coordinates.push_back( vec4(-1.0f, 1.0f, -1.0f, 1.0f) ); // left top front
-  model_coordinates.push_back( vec4(1.0f, -1.0f, -1.0f, 1.0f) ); // right bottom front
-  model_coordinates.push_back( vec4(1.0f, 1.0f, -1.0f, 1.0f) ); // right top front
+  cube_model_coordinates.push_back( vec4(-1.0f, -1.0f, -1.0f, 1.0f) ); // left bottom front
+  cube_model_coordinates.push_back( vec4(-1.0f, 1.0f, -1.0f, 1.0f) ); // left top front
+  cube_model_coordinates.push_back( vec4(1.0f, -1.0f, -1.0f, 1.0f) ); // right bottom front
+  cube_model_coordinates.push_back( vec4(1.0f, 1.0f, -1.0f, 1.0f) ); // right top front
 
-  model_coordinates.push_back( vec4(-1.0f, -1.0f, 1.0f, 1.0f) ); // left bottom back
-  model_coordinates.push_back( vec4(-1.0f, 1.0f, 1.0f, 1.0f) ); // left top back
-  model_coordinates.push_back( vec4(1.0f, -1.0f, 1.0f, 1.0f) ); // right bottom back
-  model_coordinates.push_back( vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // right top back
+  cube_model_coordinates.push_back( vec4(-1.0f, -1.0f, 1.0f, 1.0f) ); // left bottom back
+  cube_model_coordinates.push_back( vec4(-1.0f, 1.0f, 1.0f, 1.0f) ); // left top back
+  cube_model_coordinates.push_back( vec4(1.0f, -1.0f, 1.0f, 1.0f) ); // right bottom back
+  cube_model_coordinates.push_back( vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // right top back
 
-  // Initiate the coordinates for the cube's model frame
-  model_coordinates.push_back( vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-  model_coordinates.push_back( vec4(0.25f, 0.0f, 0.0f, 1.0f) );
-  model_coordinates.push_back( vec4(0.0f, 0.25f, 0.0f, 1.0f) );
-  model_coordinates.push_back( vec4(0.0f, 0.0f, 0.25f, 1.0f) );
+  // Initiate the coordinates for the cube's gnomon
+  cube_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.0f, 1.0f) );
+  cube_gnomon_model_coordinates.push_back( vec4(0.25f, 0.0f, 0.0f, 1.0f) );
+  cube_gnomon_model_coordinates.push_back( vec4(0.0f, 0.25f, 0.0f, 1.0f) );
+  cube_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.25f, 1.0f) );
 
   // Initialize viewport coordinates
   viewport_xl = -0.95;
@@ -210,7 +210,13 @@ void A2::initializeModelCoordinates()
 //----------------------------------------------------------------------------------------
 void A2::initializeTransformationMatrices()
 {
-  t_model = mat4(
+  t_model_cube = mat4(
+    vec4( 0.5f, 0.0f, 0.0f, 0.0f ),
+    vec4( 0.0f, 0.5f, 0.0f, 0.0f ),
+    vec4( 0.0f, 0.0f, 0.5f, 0.0f ),
+    vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+  );
+  t_model_cube_gnomon = mat4(
     vec4( 0.5f, 0.0f, 0.0f, 0.0f ),
     vec4( 0.0f, 0.5f, 0.0f, 0.0f ),
     vec4( 0.0f, 0.0f, 0.5f, 0.0f ),
@@ -247,10 +253,15 @@ void A2::applyModelTransformation()
 {
   // Apply transformations to the cube coordinates
   vector<vec4>::iterator it;
-  world_coordinates.resize(0);
+  cube_world_coordinates.resize(0);
+  cube_gnomon_world_coordinates.resize(0);
 
-  for (it=model_coordinates.begin(); it!=model_coordinates.end(); it++) {
-    world_coordinates.push_back(t_model * (*it));
+  for (it=cube_model_coordinates.begin(); it!=cube_model_coordinates.end(); it++) {
+    cube_world_coordinates.push_back(t_model_cube * (*it));
+  }
+
+  for (it=cube_gnomon_model_coordinates.begin(); it!=cube_gnomon_model_coordinates.end(); it++) {
+    cube_gnomon_world_coordinates.push_back(t_model_cube_gnomon * (*it));
   }
 }
 
@@ -259,10 +270,15 @@ void A2::applyViewingTransformation()
 {
   // Apply transformations to the cube coordinates
   vector<vec4>::iterator it;
-  view_coordinates.resize(0);
+  cube_view_coordinates.resize(0);
+  cube_gnomon_view_coordinates.resize(0);
 
-  for (it=world_coordinates.begin(); it!=world_coordinates.end(); it++) {
-    view_coordinates.push_back(t_view * (*it));
+  for (it=cube_world_coordinates.begin(); it!=cube_world_coordinates.end(); it++) {
+    cube_view_coordinates.push_back(t_view * (*it));
+  }
+
+  for (it=cube_gnomon_world_coordinates.begin(); it!=cube_gnomon_world_coordinates.end(); it++) {
+    cube_gnomon_view_coordinates.push_back(t_view * (*it));
   }
 }
 
@@ -273,18 +289,16 @@ void A2::applyProjectionTransformation()
   vector<vec4>::iterator it;
   float width_ratio = 0.9f;
   float height_ratio = 0.9f;
-  normalized_device_coordinates.resize(0);
+  cube_normalized_device_coordinates.resize(0);
+  cube_gnomon_normalized_device_coordinates.resize(0);
 
-  for (it=view_coordinates.begin(); it!=view_coordinates.end(); it++) {
-    vec4 projection_coordinate = t_proj * (*it);
-    normalized_device_coordinates.push_back(
-      vec2(
-        projection_coordinate.x,
-        projection_coordinate.y
-      )
-    );
+  for (it=cube_view_coordinates.begin(); it!=cube_view_coordinates.end(); it++) {
+    cube_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
   }
 
+  for (it=cube_gnomon_view_coordinates.begin(); it!=cube_gnomon_view_coordinates.end(); it++) {
+    cube_gnomon_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
+  }
 }
 
 
@@ -339,29 +353,34 @@ void A2::appLogic()
   drawLine(vec2(viewport_xr, viewport_yt), vec2(viewport_xl, viewport_yt));
   drawLine(vec2(viewport_xl, viewport_yt), vec2(viewport_xl, viewport_yb));
 
-
   setLineColour(vec3(1.0f, 0.7f, 0.8f));
-  drawLine(normalized_device_coordinates[0], normalized_device_coordinates[1]);
-  drawLine(normalized_device_coordinates[2], normalized_device_coordinates[3]);
-  drawLine(normalized_device_coordinates[0], normalized_device_coordinates[2]);
-  drawLine(normalized_device_coordinates[1], normalized_device_coordinates[3]);
+  drawLine(cube_normalized_device_coordinates[0], cube_normalized_device_coordinates[1]);
+  drawLine(cube_normalized_device_coordinates[2], cube_normalized_device_coordinates[3]);
+  drawLine(cube_normalized_device_coordinates[0], cube_normalized_device_coordinates[2]);
+  drawLine(cube_normalized_device_coordinates[1], cube_normalized_device_coordinates[3]);
 
-  drawLine(normalized_device_coordinates[4], normalized_device_coordinates[5]);
-  drawLine(normalized_device_coordinates[6], normalized_device_coordinates[7]);
-  drawLine(normalized_device_coordinates[4], normalized_device_coordinates[6]);
-  drawLine(normalized_device_coordinates[5], normalized_device_coordinates[7]);
+  drawLine(cube_normalized_device_coordinates[4], cube_normalized_device_coordinates[5]);
+  drawLine(cube_normalized_device_coordinates[6], cube_normalized_device_coordinates[7]);
+  drawLine(cube_normalized_device_coordinates[4], cube_normalized_device_coordinates[6]);
+  drawLine(cube_normalized_device_coordinates[5], cube_normalized_device_coordinates[7]);
 
-  drawLine(normalized_device_coordinates[0], normalized_device_coordinates[4]);
-  drawLine(normalized_device_coordinates[2], normalized_device_coordinates[6]);
-  drawLine(normalized_device_coordinates[1], normalized_device_coordinates[5]);
-  drawLine(normalized_device_coordinates[3], normalized_device_coordinates[7]);
+  drawLine(cube_normalized_device_coordinates[0], cube_normalized_device_coordinates[4]);
+  drawLine(cube_normalized_device_coordinates[2], cube_normalized_device_coordinates[6]);
+  drawLine(cube_normalized_device_coordinates[1], cube_normalized_device_coordinates[5]);
+  drawLine(cube_normalized_device_coordinates[3], cube_normalized_device_coordinates[7]);
 
+  // Draw the cube's local gnomon
   setLineColour(vec3(0.2f, 1.0f, 1.0f));
-  drawLine(normalized_device_coordinates[8], normalized_device_coordinates[9]);
+  drawLine(cube_gnomon_normalized_device_coordinates[0], cube_gnomon_normalized_device_coordinates[1]);
   setLineColour(vec3(1.0f, 0.2f, 1.0f));
-  drawLine(normalized_device_coordinates[8], normalized_device_coordinates[10]);
+  drawLine(cube_gnomon_normalized_device_coordinates[0], cube_gnomon_normalized_device_coordinates[2]);
   setLineColour(vec3(1.0f, 1.0f, 0.2f));
-  drawLine(normalized_device_coordinates[8], normalized_device_coordinates[11]);
+  drawLine(cube_gnomon_normalized_device_coordinates[0], cube_gnomon_normalized_device_coordinates[3]);
+
+  // Draw the world gnomon
+  setLineColour(vec3(0.0f, 0.0f, 0.0f));
+  drawLine(vec2(0.0f, 0.0f), vec2(0.1f, 0.0f));
+  drawLine(vec2(0.0f, 0.0f), vec2(0.0f, 0.1f));
 }
 
 //----------------------------------------------------------------------------------------
@@ -557,7 +576,8 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_rotation *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube_gnomon = t_model_translation * t_model_rotation;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
@@ -569,7 +589,8 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_rotation *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube_gnomon = t_model_translation * t_model_rotation;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -581,7 +602,8 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_rotation *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube_gnomon = t_model_translation * t_model_rotation;
     }
   }
 
@@ -596,7 +618,8 @@ bool A2::mouseMoveEvent (
         vec4( q, 0.0f, 0.0f, 1.0f )
       );
       t_model_translation *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube_gnomon = t_model_translation * t_model_rotation;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
@@ -608,7 +631,8 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, q, 0.0f, 1.0f )
       );
       t_model_translation *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube_gnomon = t_model_translation * t_model_rotation;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -620,7 +644,8 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, q, 1.0f )
       );
       t_model_translation *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube_gnomon = t_model_translation * t_model_rotation;
     }
   }
 
@@ -641,7 +666,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_scale *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
@@ -659,7 +684,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_scale *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -677,7 +702,7 @@ bool A2::mouseMoveEvent (
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model_scale *= transform;
-      t_model = t_model_translation * t_model_rotation * t_model_scale;
+      t_model_cube = t_model_translation * t_model_rotation * t_model_scale;
     }
   }
 

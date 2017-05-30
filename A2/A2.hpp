@@ -75,7 +75,8 @@ protected:
   // Matrices controlling the camera and projection.
   glm::mat4 t_proj;
   glm::mat4 t_view;
-  glm::mat4 t_model;
+  glm::mat4 t_model_cube;
+  glm::mat4 t_model_cube_gnomon;
   glm::mat4 t_model_scale;
   glm::mat4 t_model_rotation;
   glm::mat4 t_model_translation;
@@ -83,10 +84,20 @@ protected:
   VertexData m_vertexData;
 
   glm::vec3 m_currentLineColour;
-  std::vector<glm::vec4> model_coordinates;
-  std::vector<glm::vec4> world_coordinates;
-  std::vector<glm::vec4> view_coordinates;
-  std::vector<glm::vec2> normalized_device_coordinates;
+  std::vector<glm::vec4> cube_model_coordinates;
+  std::vector<glm::vec4> cube_world_coordinates;
+  std::vector<glm::vec4> cube_view_coordinates;
+  std::vector<glm::vec2> cube_normalized_device_coordinates;
+
+  std::vector<glm::vec4> cube_gnomon_model_coordinates;
+  std::vector<glm::vec4> cube_gnomon_world_coordinates;
+  std::vector<glm::vec4> cube_gnomon_view_coordinates;
+  std::vector<glm::vec2> cube_gnomon_normalized_device_coordinates;
+
+  std::vector<glm::vec4> world_gnomon_model_coordinates;
+  std::vector<glm::vec4> world_gnomon_world_coordinates;
+  std::vector<glm::vec4> world_gnomon_view_coordinates;
+  std::vector<glm::vec2> world_gnomon_normalized_device_coordinates;
 
   std::vector<glm::vec4> f_model;
   std::vector<glm::vec4> f_world;
