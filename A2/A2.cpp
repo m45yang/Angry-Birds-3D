@@ -334,13 +334,7 @@ void A2::applyProjectionTransformation()
   }
 
   for (it=world_gnomon_view_coordinates.begin(); it!=world_gnomon_view_coordinates.end(); it++) {
-    vec4 clip_coordinate = t_proj * (*it);
-    world_gnomon_normalized_device_coordinates.push_back(
-      vec2(
-        clip_coordinate.x/clip_coordinate.w,
-        clip_coordinate.y/clip_coordinate.w
-      )
-    );
+    world_gnomon_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
   }
 }
 
