@@ -90,7 +90,12 @@ protected:
   std::vector<glm::vec4> f_view;
 
   bool keys[1024];
+  bool is_changing_viewport;
   float mouse_x_pos;
-  float zoom;
+  float mouse_y_pos;
   int current_mode;
+  float viewport_xl;
+  float viewport_yb;
+  float viewport_xr;
+  float viewport_yt;
 };

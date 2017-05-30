@@ -28,7 +28,8 @@ A2::A2()
   : m_currentLineColour(vec3(0.0f))
 {
   mouse_x_pos = 0.0f;
-  zoom = 0.0f;
+  mouse_y_pos = 0.0f;
+  is_changing_viewport = false;
   current_mode = 0;
 }
 
@@ -198,6 +199,12 @@ void A2::initializeModelCoordinates()
   model_coordinates.push_back( vec4(0.25f, 0.0f, 0.0f, 1.0f) );
   model_coordinates.push_back( vec4(0.0f, 0.25f, 0.0f, 1.0f) );
   model_coordinates.push_back( vec4(0.0f, 0.0f, 0.25f, 1.0f) );
+
+  // Initialize viewport coordinates
+  viewport_xl = -0.95;
+  viewport_yb = -0.95;
+  viewport_xr = 0.95;
+  viewport_yt = 0.95;
 }
 
 //----------------------------------------------------------------------------------------
@@ -247,9 +254,6 @@ void A2::applyViewingTransformation()
 
   for (it=world_coordinates.begin(); it!=world_coordinates.end(); it++) {
     view_coordinates.push_back(t_view * (*it));
-    cout << "!" << endl;
-    cout << *it << endl;
-    cout << t_view * (*it) << endl;
   }
 }
 
@@ -320,11 +324,12 @@ void A2::appLogic()
   initLineData();
 
   // // Draw viewport:
-  // setLineColour(vec3(0.2f, 1.0f, 1.0f));
-  // drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
-  // drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
-  // drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
-  // drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
+  setLineColour(vec3(0.2f, 1.0f, 1.0f));
+  drawLine(vec2(viewport_xl, viewport_yb), vec2(viewport_xr, viewport_yb));
+  drawLine(vec2(viewport_xr, viewport_yb), vec2(viewport_xr, viewport_yt));
+  drawLine(vec2(viewport_xr, viewport_yt), vec2(viewport_xl, viewport_yt));
+  drawLine(vec2(viewport_xl, viewport_yt), vec2(viewport_xl, viewport_yb));
+
 
   setLineColour(vec3(1.0f, 0.7f, 0.8f));
   drawLine(normalized_device_coordinates[0], normalized_device_coordinates[1]);
@@ -658,7 +663,23 @@ bool A2::mouseMoveEvent (
     }
   }
 
+  if (current_mode == GLFW_KEY_V) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
+      if (!is_changing_viewport) {
+        is_changing_viewport = true;
+        viewport_xl = (xPos/m_windowWidth)*2 - 1;
+        viewport_yb = -(yPos/m_windowHeight)*2 + 1;
+
+      }
+      else {
+        viewport_xr = (xPos/m_windowWidth)*2 - 1;
+        viewport_yt = -(yPos/m_windowHeight)*2 + 1;
+      }
+    }
+  }
+
   mouse_x_pos = xPos;
+  mouse_y_pos = yPos;
 
   return eventHandled;
 }
@@ -689,6 +710,15 @@ bool A2::mouseButtonInputEvent (
   if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
     if (button == GLFW_MOUSE_BUTTON_1) {
       keys[GLFW_MOUSE_BUTTON_1] = false;
+      if (current_mode = GLFW_KEY_V) {
+        is_changing_viewport = false;
+        if (viewport_yt < viewport_yb) {
+          swap(viewport_yt, viewport_yb);
+        }
+        if (viewport_xr < viewport_xl) {
+          swap(viewport_xl, viewport_xr);
+        }
+      }
     }
     if (button == GLFW_MOUSE_BUTTON_2) {
       keys[GLFW_MOUSE_BUTTON_2] = false;
@@ -711,12 +741,6 @@ bool A2::mouseScrollEvent (
     double yOffSet
 ) {
   bool eventHandled(false);
-
-  zoom -= 2*yOffSet;
-  t_proj = glm::perspective(
-    glm::radians( zoom ),
-    float( m_framebufferWidth ) / float( m_framebufferHeight ),
-    1.0f, 1000.0f );
 
   return eventHandled;
 }
