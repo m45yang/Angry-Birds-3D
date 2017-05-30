@@ -710,7 +710,9 @@ bool A2::mouseButtonInputEvent (
   if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
     if (button == GLFW_MOUSE_BUTTON_1) {
       keys[GLFW_MOUSE_BUTTON_1] = false;
-      if (current_mode = GLFW_KEY_V) {
+
+      // Tidy up viewport mode and coordinates
+      if (current_mode == GLFW_KEY_V) {
         is_changing_viewport = false;
         if (viewport_yt < viewport_yb) {
           swap(viewport_yt, viewport_yb);
