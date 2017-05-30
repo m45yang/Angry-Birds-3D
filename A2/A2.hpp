@@ -76,6 +76,9 @@ protected:
   glm::mat4 t_proj;
   glm::mat4 t_view;
   glm::mat4 t_model;
+  glm::mat4 t_model_scale;
+  glm::mat4 t_model_rotation;
+  glm::mat4 t_model_translation;
 
   VertexData m_vertexData;
 
