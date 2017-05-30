@@ -37,6 +37,7 @@ A2::A2()
 A2::~A2()
 {
 
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -202,7 +203,12 @@ void A2::initializeModelCoordinates()
 //----------------------------------------------------------------------------------------
 void A2::initializeTransformationMatrices()
 {
-  t_model = mat4( 1.0f );
+  t_model = mat4(
+    vec4( 0.5f, 0.0f, 0.0f, 0.0f ),
+    vec4( 0.0f, 0.5f, 0.0f, 0.0f ),
+    vec4( 0.0f, 0.0f, 0.5f, 0.0f ),
+    vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+  );
 
   t_view = mat4( 1.0f );
   for (int i=0; i<4; i++) {
@@ -212,7 +218,12 @@ void A2::initializeTransformationMatrices()
     t_view[i][3] = dot( (f_world[3] - f_view[i]), f_view[i] );
   }
 
-  t_proj = mat4( 1.0f );
+  t_proj = mat4(
+    vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+    vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+    vec4( 0.0f, 0.0f, (1.0f + 100.0f)/1.0f, -100.0f ),
+    vec4( 0.0f, 0.0f, 1/1.0f, 0.0f )
+  );
 }
 
 //----------------------------------------------------------------------------------------
@@ -236,6 +247,9 @@ void A2::applyViewingTransformation()
 
   for (it=world_coordinates.begin(); it!=world_coordinates.end(); it++) {
     view_coordinates.push_back(t_view * (*it));
+    cout << "!" << endl;
+    cout << *it << endl;
+    cout << t_view * (*it) << endl;
   }
 }
 
@@ -249,15 +263,13 @@ void A2::applyProjectionTransformation()
   normalized_device_coordinates.resize(0);
 
   for (it=view_coordinates.begin(); it!=view_coordinates.end(); it++) {
-    // Remove z coordinate and normalize
-    // vec2 device_coordinate = vec2(it->x/it->z, it->y/it->z);
-    // cout << device_coordinate << endl;
-    // vec2 normalized_device_coordinate = normalize(vec2(
-    //   (width_ratio * device_coordinate.x) + 0.05*m_windowWidth,
-    //   (height_ratio * device_coordinate.y) + 0.05*m_windowHeight
-    // ));
-    // normalized_device_coordinates.push_back(normalized_device_coordinate);
-    normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
+    vec4 projection_coordinate = t_proj * (*it);
+    normalized_device_coordinates.push_back(
+      vec2(
+        projection_coordinate.x,
+        projection_coordinate.y
+      )
+    );
   }
 
 }
@@ -307,15 +319,7 @@ void A2::appLogic()
   // Call at the beginning of frame, before drawing lines:
   initLineData();
 
-  // Draw outer square:
-  // setLineColour(vec3(1.0f, 0.7f, 0.8f));
-  // drawLine(vec2(-0.5f, -0.5f), vec2(0.5f, -0.5f));
-  // drawLine(vec2(0.5f, -0.5f), vec2(0.5f, 0.5f));
-  // drawLine(vec2(0.5f, 0.5f), vec2(-0.5f, 0.5f));
-  // drawLine(vec2(-0.5f, 0.5f), vec2(-0.5f, -0.5f));
-
-
-  // // Draw inner square:
+  // // Draw viewport:
   // setLineColour(vec3(0.2f, 1.0f, 1.0f));
   // drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
   // drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
@@ -459,32 +463,32 @@ bool A2::mouseMoveEvent (
   // Camera rotation
   if (current_mode == GLFW_KEY_O) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
-      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      float q = ((xPos - mouse_x_pos) / m_windowWidth) * 0.25 * M_PI;
       mat4 transform = mat4(
-        vec4( cos(q), 0.0f, sin(q), 0.0f ),
-        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
-        vec4( -sin(q), 0.0f, cos(q), 0.0f ),
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, cos(q), sin(q), 0.0f ),
+        vec4( 0.0f, -sin(q), cos(q), 0.0f ),
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_view = inverse(transform) * t_view;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
-      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      float q = ((xPos - mouse_x_pos) / m_windowWidth) * 0.25 * M_PI;
       mat4 transform = mat4(
-        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, cos(q), -sin(q), 0.0f ),
-        vec4( 0.0f, sin(q), cos(q), 0.0f ),
+        vec4( cos(q), 0.0f, -sin(q), 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( sin(q), 0.0f, cos(q), 0.0f ),
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_view = inverse(transform) * t_view;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
-      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      float q = ((xPos - mouse_x_pos) / m_windowWidth) * 0.25 * M_PI;
       mat4 transform = mat4(
-        vec4( cos(q), -sin(q), 0.0f, 0.0f ),
-        vec4( sin(q), cos(q), 0.0f, 0.0f ),
+        vec4( cos(q), sin(q), 0.0f, 0.0f ),
+        vec4( -sin(q), cos(q), 0.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
@@ -495,34 +499,34 @@ bool A2::mouseMoveEvent (
   // Camera translation
   if (current_mode == GLFW_KEY_N) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
-      float q = (xPos - mouse_x_pos);
+      float q = (xPos - mouse_x_pos) / (m_windowWidth*10);
       mat4 transform = mat4(
-        vec4( 1.0f, 0.0f, 0.0f, 0.1f ),
+        vec4( 1.0f, 0.0f, 0.0f, 0 ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+        vec4( q, 0.0f, 0.0f, 1.0f )
       );
        t_view = inverse(transform) * t_view;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
-      float q = (xPos - mouse_x_pos);
+      float q = (xPos - mouse_x_pos) / (m_windowWidth*10);
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, 1.0f, 0.0f, q ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+        vec4( 0.0f, q, 0.0f, 1.0f )
       );
       t_view = inverse(transform) * t_view;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
-      float q = (xPos - mouse_x_pos);
+      float q = (xPos - mouse_x_pos) / (m_windowWidth*10);
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, 1.0f, q ),
-        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, q, 1.0f )
       );
        t_view = inverse(transform) * t_view;
     }
@@ -531,32 +535,32 @@ bool A2::mouseMoveEvent (
   // Model rotation
   if (current_mode == GLFW_KEY_R) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
-      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      float q = ((xPos - mouse_x_pos) / m_windowWidth) * 0.5 * M_PI;
       mat4 transform = mat4(
-        vec4( cos(q), 0.0f, sin(q), 0.0f ),
-        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
-        vec4( -sin(q), 0.0f, cos(q), 0.0f ),
+        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, cos(q), sin(q), 0.0f ),
+        vec4( 0.0f, -sin(q), cos(q), 0.0f ),
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model *= transform;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
-      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      float q = ((xPos - mouse_x_pos) / m_windowWidth) * 0.5 * M_PI;
       mat4 transform = mat4(
-        vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, cos(q), -sin(q), 0.0f ),
-        vec4( 0.0f, sin(q), cos(q), 0.0f ),
+        vec4( cos(q), 0.0f, -sin(q), 0.0f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
+        vec4( sin(q), 0.0f, cos(q), 0.0f ),
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
       t_model *= transform;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
-      float q = (xPos - mouse_x_pos) / (100*2*M_PI);
+      float q = ((xPos - mouse_x_pos) / m_windowWidth) * 0.5 * M_PI;
       mat4 transform = mat4(
-        vec4( cos(q), -sin(q), 0.0f, 0.0f ),
-        vec4( sin(q), cos(q), 0.0f, 0.0f ),
+        vec4( cos(q), sin(q), 0.0f, 0.0f ),
+        vec4( -sin(q), cos(q), 0.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 0.0f, 1.0f )
       );
@@ -567,34 +571,34 @@ bool A2::mouseMoveEvent (
   // Model translation
   if (current_mode == GLFW_KEY_T) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
-      float q = (xPos - mouse_x_pos);
+      float q = (xPos - mouse_x_pos) / m_windowWidth * 10;
       mat4 transform = mat4(
-        vec4( 1.0f, 0.0f, 0.0f, 0.1f ),
+        vec4( 1.0f, 0.0f, 0.0f, 0 ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+        vec4( q, 0.0f, 0.0f, 1.0f )
       );
       t_model *= transform;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
-      float q = (xPos - mouse_x_pos);
+      float q = (xPos - mouse_x_pos) / m_windowWidth * 10;
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, 1.0f, 0.0f, 0.1f ),
+        vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+        vec4( 0.0f, q, 0.0f, 1.0f )
       );
       t_model *= transform;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
-      float q = (xPos - mouse_x_pos);
+      float q = (xPos - mouse_x_pos) / m_windowWidth * 10;
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, 1.0f, 0.1f ),
-        vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+        vec4( 0.0f, 0.0f, 1.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, q, 1.0f )
       );
       t_model *= transform;
     }
