@@ -56,6 +56,9 @@ protected:
   void applyModelTransformation();
   void applyViewingTransformation();
   void applyProjectionTransformation();
+  void buildAndClipLines();
+  std::vector<bool> generateOutCode(glm::vec4);
+  glm::vec2 normalizeVertex(glm::vec4);
 
   void initLineData();
 
@@ -87,11 +90,13 @@ protected:
   std::vector<glm::vec4> cube_model_coordinates;
   std::vector<glm::vec4> cube_world_coordinates;
   std::vector<glm::vec4> cube_view_coordinates;
+  std::vector<glm::vec4> cube_clip_coordinates;
   std::vector<glm::vec2> cube_normalized_device_coordinates;
 
   std::vector<glm::vec4> cube_gnomon_model_coordinates;
   std::vector<glm::vec4> cube_gnomon_world_coordinates;
   std::vector<glm::vec4> cube_gnomon_view_coordinates;
+  std::vector<glm::vec4> cube_gnomon_clip_coordinates;
   std::vector<glm::vec2> cube_gnomon_normalized_device_coordinates;
 
   std::vector<glm::vec4> world_gnomon_model_coordinates;
@@ -103,6 +108,9 @@ protected:
   std::vector<glm::vec4> f_world;
   std::vector<glm::vec4> f_view;
 
+  std::vector< std::pair< glm::vec4, glm::vec4 > > cube_lines;
+  std::vector< std::pair< glm::vec4, glm::vec4 > > cube_gnomon_lines;
+
   bool keys[1024];
   bool is_changing_viewport;
   int current_mode;
@@ -112,6 +120,10 @@ protected:
   float viewport_yb;
   float viewport_xr;
   float viewport_yt;
+  float left_bound;
+  float bottom_bound;;
+  float width_ratio;
+  float height_ratio;
   float near;
   float far;
   float fov;

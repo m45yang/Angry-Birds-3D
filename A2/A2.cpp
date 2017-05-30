@@ -211,6 +211,10 @@ void A2::initializeModelCoordinates()
   viewport_yb = -0.95;
   viewport_xr = 0.95;
   viewport_yt = 0.95;
+  width_ratio = (viewport_xr - viewport_xl)/2;
+  height_ratio = (viewport_yt - viewport_yb)/2;
+  left_bound = viewport_xl + (viewport_xr - viewport_xl)/2;
+  bottom_bound = viewport_yb + (viewport_yt - viewport_yb)/2;
 }
 
 //----------------------------------------------------------------------------------------
@@ -307,35 +311,152 @@ void A2::applyProjectionTransformation()
 {
   // Apply transformations to the cube coordinates
   vector<vec4>::iterator it;
-  cube_normalized_device_coordinates.resize(0);
-  cube_gnomon_normalized_device_coordinates.resize(0);
+  cube_clip_coordinates.resize(0);
+  cube_gnomon_clip_coordinates.resize(0);
   world_gnomon_normalized_device_coordinates.resize(0);
-  float width_ratio = (viewport_xr-viewport_xl) / 2;
-  float height_ratio = (viewport_yt-viewport_yb) / 2;
 
   for (it=cube_view_coordinates.begin(); it!=cube_view_coordinates.end(); it++) {
-    vec4 clip_coordinate = t_proj * (*it);
-    cube_normalized_device_coordinates.push_back(
-      vec2(
-        clip_coordinate.x/clip_coordinate.w,
-        clip_coordinate.y/clip_coordinate.w
-      )
-    );
+    cube_clip_coordinates.push_back(t_proj * (*it));
   }
 
   for (it=cube_gnomon_view_coordinates.begin(); it!=cube_gnomon_view_coordinates.end(); it++) {
-    vec4 clip_coordinate = t_proj * (*it);
-    cube_gnomon_normalized_device_coordinates.push_back(
-      vec2(
-        clip_coordinate.x/clip_coordinate.w,
-        clip_coordinate.y/clip_coordinate.w
-      )
-    );
+    cube_gnomon_clip_coordinates.push_back(t_proj * (*it));
   }
 
   for (it=world_gnomon_view_coordinates.begin(); it!=world_gnomon_view_coordinates.end(); it++) {
     world_gnomon_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
   }
+}
+
+//----------------------------------------------------------------------------------------
+void A2::buildAndClipLines()
+{
+  vector< pair< vec4, vec4 > >:: iterator it;
+  cube_lines.resize(0);
+  cube_normalized_device_coordinates.resize(0);
+  cube_gnomon_lines.resize(0);
+  cube_gnomon_normalized_device_coordinates.resize(0);
+
+  cube_lines.push_back(make_pair(cube_clip_coordinates[0], cube_clip_coordinates[1]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[2], cube_clip_coordinates[3]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[0], cube_clip_coordinates[2]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[1], cube_clip_coordinates[3]));
+
+  cube_lines.push_back(make_pair(cube_clip_coordinates[4], cube_clip_coordinates[5]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[6], cube_clip_coordinates[7]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[4], cube_clip_coordinates[6]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[5], cube_clip_coordinates[7]));
+
+  cube_lines.push_back(make_pair(cube_clip_coordinates[0], cube_clip_coordinates[4]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[2], cube_clip_coordinates[6]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[1], cube_clip_coordinates[5]));
+  cube_lines.push_back(make_pair(cube_clip_coordinates[3], cube_clip_coordinates[7]));
+
+  for (it=cube_lines.begin(); it!=cube_lines.end(); it++) {
+    // do clipping + normalization + viewport transformation
+    vector<bool> outcode_c1 = generateOutCode(it->first);
+    vector<bool> outcode_c2 = generateOutCode(it->second);
+    bool outcode_and = true;
+    bool outcode_or = false;
+
+    // combine bitcode values
+    for (int i=0; i<6; i++) {
+      outcode_and = outcode_and && outcode_c1[i] && outcode_c2[i];
+      outcode_or = outcode_or || outcode_c1[i] || outcode_c2[i];
+    }
+
+    // for (int i=0; i<outcode_c1.size(); i++) {
+    //   cout << outcode_c1[i];
+    // }
+    // cout << endl;
+
+    // cout << outcode_or << endl;
+
+    if (outcode_or == false) {
+      cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+      cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+    }
+    else if (outcode_and == true) {
+      continue;
+    }
+    else {
+      // full clip
+    }
+  }
+
+  cube_gnomon_lines.push_back(make_pair(cube_gnomon_clip_coordinates[0], cube_gnomon_clip_coordinates[1]));
+  cube_gnomon_lines.push_back(make_pair(cube_gnomon_clip_coordinates[0], cube_gnomon_clip_coordinates[2]));
+  cube_gnomon_lines.push_back(make_pair(cube_gnomon_clip_coordinates[0], cube_gnomon_clip_coordinates[3]));
+
+  for (it=cube_gnomon_lines.begin(); it!=cube_gnomon_lines.end(); it++) {
+    // do clipping + normalization + viewport transformation
+    vector<bool> outcode_c1 = generateOutCode(it->first);
+    vector<bool> outcode_c2 = generateOutCode(it->second);
+    bool outcode_and = true;
+    bool outcode_or = false;
+
+    // combine bitcode values
+    for (int i=0; i<6; i++) {
+      outcode_and = outcode_and && outcode_c1[i] && outcode_c2[i];
+      outcode_or = outcode_or || outcode_c1[i] || outcode_c2[i];
+    }
+
+    if (outcode_or == false) {
+      cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+      cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+    }
+    else if (outcode_and == true) {
+      continue;
+    }
+    else {
+      // full clip
+    }
+  }
+}
+
+//----------------------------------------------------------------------------------------
+vector<bool> A2::generateOutCode(vec4 p)
+{
+  vector<bool> outcode( 4, false );
+
+  if (p.w + p.x < 0) {
+    cout << "outcode1" << endl;
+    outcode[0] = true;
+  }
+  if (p.w - p.x < 0) {
+    cout << "outcode2" << endl;
+    outcode[1] = true;
+  }
+  if (p.w + p.y < 0) {
+    cout << "outcode3" << endl;
+    outcode[2] = true;
+  }
+  if (p.w - p.y < 0) {
+    cout << "outcode4" << endl;
+    outcode[3] = true;
+  }
+  // if (p.w + p.z < 0) {
+  //   cout << "outcode5" << endl;
+  //   outcode[4] = true;
+  // }
+  // if (p.w - p.z < 0) {
+  //   cout << "outcode6" << endl;
+  //   cout << p.w << endl;
+  //   cout << p.z << endl;
+  //   cout << p.w - p.z << endl;
+  //   outcode[5] = true;
+  // }
+
+  return outcode;
+}
+
+//---------------------------------------------------------------------------------------
+vec2 A2::normalizeVertex(vec4 p)
+{
+  float x = (width_ratio * p.x/p.w) + left_bound;
+  float y = (height_ratio * p.y/p.w) + bottom_bound;
+
+  return vec2(x, y);
 }
 
 
@@ -376,9 +497,11 @@ void A2::drawLine(
 void A2::appLogic()
 {
   // Place per frame, application logic here ...
+  vector<vec2>::iterator itv2;
   applyModelTransformation();
   applyViewingTransformation();
   applyProjectionTransformation();
+  buildAndClipLines();
 
   // Call at the beginning of frame, before drawing lines:
   initLineData();
@@ -391,28 +514,15 @@ void A2::appLogic()
   drawLine(vec2(viewport_xl, viewport_yt), vec2(viewport_xl, viewport_yb));
 
   setLineColour(vec3(1.0f, 0.7f, 0.8f));
-  drawLine(cube_normalized_device_coordinates[0], cube_normalized_device_coordinates[1]);
-  drawLine(cube_normalized_device_coordinates[2], cube_normalized_device_coordinates[3]);
-  drawLine(cube_normalized_device_coordinates[0], cube_normalized_device_coordinates[2]);
-  drawLine(cube_normalized_device_coordinates[1], cube_normalized_device_coordinates[3]);
-
-  drawLine(cube_normalized_device_coordinates[4], cube_normalized_device_coordinates[5]);
-  drawLine(cube_normalized_device_coordinates[6], cube_normalized_device_coordinates[7]);
-  drawLine(cube_normalized_device_coordinates[4], cube_normalized_device_coordinates[6]);
-  drawLine(cube_normalized_device_coordinates[5], cube_normalized_device_coordinates[7]);
-
-  drawLine(cube_normalized_device_coordinates[0], cube_normalized_device_coordinates[4]);
-  drawLine(cube_normalized_device_coordinates[2], cube_normalized_device_coordinates[6]);
-  drawLine(cube_normalized_device_coordinates[1], cube_normalized_device_coordinates[5]);
-  drawLine(cube_normalized_device_coordinates[3], cube_normalized_device_coordinates[7]);
+  for (itv2=cube_normalized_device_coordinates.begin(); itv2!=cube_normalized_device_coordinates.end(); itv2+=2) {
+    drawLine(*itv2, *(itv2+1));
+  }
 
   // Draw the cube's local gnomon
   setLineColour(vec3(0.2f, 1.0f, 1.0f));
-  drawLine(cube_gnomon_normalized_device_coordinates[0], cube_gnomon_normalized_device_coordinates[1]);
-  setLineColour(vec3(1.0f, 0.2f, 1.0f));
-  drawLine(cube_gnomon_normalized_device_coordinates[0], cube_gnomon_normalized_device_coordinates[2]);
-  setLineColour(vec3(1.0f, 1.0f, 0.2f));
-  drawLine(cube_gnomon_normalized_device_coordinates[0], cube_gnomon_normalized_device_coordinates[3]);
+  for (itv2=cube_gnomon_normalized_device_coordinates.begin(); itv2!=cube_gnomon_normalized_device_coordinates.end(); itv2+=2) {
+    drawLine(*itv2, *(itv2+1));
+  }
 
   // Draw the world gnomon
   setLineColour(vec3(0.0f, 0.0f, 0.0f));
@@ -839,6 +949,10 @@ bool A2::mouseButtonInputEvent (
         if (viewport_xr < viewport_xl) {
           swap(viewport_xl, viewport_xr);
         }
+        width_ratio = (viewport_xr - viewport_xl)/2;
+        height_ratio = (viewport_yt - viewport_yb)/2;
+        left_bound = viewport_xl + (viewport_xr - viewport_xl)/2;
+        bottom_bound = viewport_yb + (viewport_yt - viewport_yb)/2;
       }
     }
     if (button == GLFW_MOUSE_BUTTON_2) {
@@ -890,7 +1004,7 @@ bool A2::keyInputEvent (
     int action,
     int mods
 ) {
-  bool eventHandled(false);
+  bool eventHandled(true);
 
   if (action == GLFW_PRESS) {
     keys[current_mode] = false;
