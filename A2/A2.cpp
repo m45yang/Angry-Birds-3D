@@ -572,6 +572,18 @@ void A2::guiLogic()
     }
 
     ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
+    ImGui::Text( "Near %.1f", near );
+    ImGui::Text( "Far %.1f", far );
+
+    ImGui::RadioButton( "Rotate Model", &current_mode, GLFW_KEY_R );
+    ImGui::RadioButton( "Translate Model", &current_mode, GLFW_KEY_T );
+    ImGui::RadioButton( "Scale Model", &current_mode, GLFW_KEY_S );
+
+    ImGui::RadioButton( "Rotate View", &current_mode, GLFW_KEY_O );
+    ImGui::RadioButton( "Translate View", &current_mode, GLFW_KEY_N );
+    ImGui::RadioButton( "Perspective", &current_mode, GLFW_KEY_P );
+
+    ImGui::RadioButton( "Viewport Mode", &current_mode, GLFW_KEY_V );
 
   ImGui::End();
 }
@@ -1019,16 +1031,15 @@ bool A2::keyInputEvent (
   bool eventHandled(true);
 
   if (action == GLFW_PRESS) {
-    keys[current_mode] = false;
-    keys[key] = true;
     current_mode = key;
 
-    if (keys[GLFW_KEY_A]) {
-      keys[GLFW_KEY_A] = false;
-
+    if (key == GLFW_KEY_A) {
       initializeCoordinateFrames();
       initializeModelCoordinates();
       initializeTransformationMatrices();
+    }
+    else if (key == GLFW_KEY_Q) {
+      glfwSetWindowShouldClose(m_window, GL_TRUE);
     }
   }
 
