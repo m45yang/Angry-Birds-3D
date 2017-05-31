@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <bitset>
 
 // Set a global maximum number of vertices in order to pre-allocate VBO data
 // in one shot, rather than reallocating each frame.
@@ -58,7 +59,7 @@ protected:
   void applyProjectionTransformation();
   void buildAndClipLines();
   void performClipping(std::vector< std::pair< glm::vec4, glm::vec4> >, std::vector<glm::vec2>*);
-  std::vector<bool> generateOutCode(glm::vec4);
+  std::bitset<4> generateOutCode(glm::vec4);
   glm::vec2 normalizeVertex(glm::vec4);
 
   void initLineData();

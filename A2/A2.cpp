@@ -176,8 +176,8 @@ void A2::initializeCoordinateFrames()
   f_view.resize(0);
   f_view.push_back(vec4(1.0f, 0.0f, 0.0f, 0.0f));
   f_view.push_back(vec4(0.0f, 1.0f, 0.0f, 0.0f));
-  f_view.push_back(vec4(0.0f, 0.0f, 1.0f, 0.0f));
-  f_view.push_back(vec4(0.0f, 0.0f, 5.0f, 1.0f));
+  f_view.push_back(vec4(0.0f, 0.0f, -1.0f, 0.0f));
+  f_view.push_back(vec4(0.0f, 0.0f, -5.0f, 1.0f));
 }
 
 //----------------------------------------------------------------------------------------
@@ -202,8 +202,8 @@ void A2::initializeModelCoordinates()
 
   // Initialize the coordinates for the world gnomon
   world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.8f, 0.0f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.8f, 0.0f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(-0.8f, 0.0f, 0.0f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.0f, -0.8f, 0.0f, 1.0f) );
   world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.8f, 1.0f) );
 
   // Initialize viewport coordinates
@@ -261,7 +261,7 @@ void A2::initializeTransformationMatrices()
   t_proj = mat4(
     vec4( cos(fov/2)/sin(fov/2)/(m_windowHeight/m_windowWidth), 0.0f, 0.0f, 0.0f ),
     vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-    vec4( 0.0f, 0.0f, (far + near)/(far - near), 1.0f ),
+    vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
     vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
   );
 }
@@ -374,33 +374,15 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
   vector< pair< vec4, vec4> >::iterator it;
   for (it=lines.begin(); it!=lines.end(); it++) {
     // do clipping + normalization + viewport transformation
-    vector<bool> outcode_c1 = generateOutCode(it->first);
-    vector<bool> outcode_c2 = generateOutCode(it->second);
-    bool outcode_and = true;
-    bool outcode_or = false;
+    bitset<4> outcode_c1 = generateOutCode(it->first);
+    bitset<4> outcode_c2 = generateOutCode(it->second);
 
-    // combine bitcode values
-    for (int i=0; i<6; i++) {
-      outcode_and = outcode_and && outcode_c1[i] && outcode_c2[i];
-      outcode_or = outcode_or || outcode_c1[i] || outcode_c2[i];
-    }
-
-    if (outcode_or == false) {
+    if ((outcode_c1 | outcode_c2) == bitset<4>("0000")) {
       ndcs->push_back(normalizeVertex(it->first));
       ndcs->push_back(normalizeVertex(it->second));
     }
-    else if (outcode_and) {
-      continue;
-    }
-    else if (outcode_c1[0] && outcode_c2[0]) {
-      continue;
-    } else if (outcode_c1[1] && outcode_c2[1]) {
-      continue;
-    }
-    else if (outcode_c1[2] && outcode_c2[2]) {
-      continue;
-    }
-    else if (outcode_c1[3] && outcode_c2[3]) {
+    else if ((outcode_c1 & outcode_c2) != bitset<4>("1111")) {
+      cout << (outcode_c1 & outcode_c2) << endl;
       continue;
     }
     else {
@@ -468,9 +450,9 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
 }
 
 //----------------------------------------------------------------------------------------
-vector<bool> A2::generateOutCode(vec4 p)
+bitset<4> A2::generateOutCode(vec4 p)
 {
-  vector<bool> outcode( 4, false );
+  bitset<4> outcode;
 
   if (p.w + p.x < 0) {
     outcode[0] = true;
@@ -770,7 +752,7 @@ bool A2::mouseMoveEvent (
         t_proj = mat4(
           vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
           vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-          vec4( 0.0f, 0.0f, (far + near)/(far - near), 1.0f ),
+          vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
           vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
         );
       }
@@ -782,7 +764,7 @@ bool A2::mouseMoveEvent (
       t_proj = mat4(
         vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
         vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, (far + near)/(far - near), 1.0f ),
+        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
         vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
       );
     }
@@ -793,7 +775,7 @@ bool A2::mouseMoveEvent (
       t_proj = mat4(
         vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
         vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, (far + near)/(far - near), 1.0f ),
+        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
         vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
       );
     }
