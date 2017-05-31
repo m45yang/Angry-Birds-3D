@@ -757,28 +757,25 @@ bool A2::mouseMoveEvent (
       float q = ((xPos - mouse_x_pos) / m_windowWidth) * 10;
       if (far + q > near) {
         far += q;
+        t_proj = mat4(
+          vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+          vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
+          vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
+          vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
+        );
       }
-
-      t_proj = mat4(
-        vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
-        vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
-      );
     }
-
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
       float q = ((xPos - mouse_x_pos) / m_windowWidth) * 10;
       if (near + q > 0) {
         near += q;
+        t_proj = mat4(
+          vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+          vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
+          vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
+          vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
+        );
       }
-
-      t_proj = mat4(
-        vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
-        vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
-        vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
-      );
     }
   }
 
