@@ -202,9 +202,9 @@ void A2::initializeModelCoordinates()
 
   // Initialize the coordinates for the world gnomon
   world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.25f, 0.0f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.25f, 0.0f, 1.0f) );
-  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.25f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.8f, 0.0f, 0.0f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.8f, 0.0f, 1.0f) );
+  world_gnomon_model_coordinates.push_back( vec4(0.0f, 0.0f, 0.8f, 1.0f) );
 
   // Initialize viewport coordinates
   viewport_xl = -0.95;
@@ -324,7 +324,10 @@ void A2::applyProjectionTransformation()
   }
 
   for (it=world_gnomon_view_coordinates.begin(); it!=world_gnomon_view_coordinates.end(); it++) {
-    world_gnomon_normalized_device_coordinates.push_back(vec2(it->x/it->z, it->y/it->z));
+    float x = (width_ratio * it->x/it->z) + left_bound;
+    float y = (height_ratio * it->y/it->z) + bottom_bound;
+
+    world_gnomon_normalized_device_coordinates.push_back(vec2(x, y));
   }
 }
 
@@ -365,46 +368,48 @@ void A2::buildAndClipLines()
       outcode_or = outcode_or || outcode_c1[i] || outcode_c2[i];
     }
 
-    // for (int i=0; i<outcode_c1.size(); i++) {
-    //   cout << outcode_c1[i];
-    // }
-    // cout << endl;
-    // for (int i=0; i<outcode_c2.size(); i++) {
-    //   cout << outcode_c2[i];
-    // }
-    // cout << endl;
-
     if (outcode_or == false) {
       cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
       cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
     }
-    else if (outcode_and == true) {
+    else if (outcode_and) {
+      continue;
+    }
+    else if (outcode_c1[0] && outcode_c2[0]) {
+      continue;
+    } else if (outcode_c1[1] && outcode_c2[1]) {
+      continue;
+    }
+    else if (outcode_c1[2] && outcode_c2[2]) {
+      continue;
+    }
+    else if (outcode_c1[3] && outcode_c2[3]) {
       continue;
     }
     else {
       // Full clip x plane
-      if (outcode_c1[0] == true) {
+      if (outcode_c1[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[0] == true) {
+      if (outcode_c2[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c1[1] == true) {
+      if (outcode_c1[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[1] == true) {
+      if (outcode_c2[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
@@ -413,28 +418,28 @@ void A2::buildAndClipLines()
       }
 
       // Full clip y plane
-      if (outcode_c1[2] == true) {
+      if (outcode_c1[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[2] == true) {
+      if (outcode_c2[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c1[3] == true) {
+      if (outcode_c1[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[3] == true) {
+      if (outcode_c2[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
@@ -465,33 +470,44 @@ void A2::buildAndClipLines()
       cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
       cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
     }
-    else if (outcode_and == true) {
+    else if (outcode_and) {
+      continue;
+    }
+    else if (outcode_c1[0] && outcode_c2[0]) {
+      continue;
+    } else if (outcode_c1[1] && outcode_c2[1]) {
+      continue;
+    }
+    else if (outcode_c1[2] && outcode_c2[2]) {
+      continue;
+    }
+    else if (outcode_c1[3] && outcode_c2[3]) {
       continue;
     }
     else {
       // Full clip x plane
-      if (outcode_c1[0] == true) {
+      if (outcode_c1[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[0] == true) {
+      if (outcode_c2[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c1[1] == true) {
+      if (outcode_c1[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[1] == true) {
+      if (outcode_c2[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
@@ -500,28 +516,28 @@ void A2::buildAndClipLines()
       }
 
       // Full clip y plane
-      if (outcode_c1[2] == true) {
+      if (outcode_c1[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[2] == true) {
+      if (outcode_c2[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c1[3] == true) {
+      if (outcode_c1[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
         cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[3] == true) {
+      if (outcode_c2[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
