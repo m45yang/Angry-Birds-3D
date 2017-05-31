@@ -381,11 +381,11 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
     bitset<6> outcode_c1 = generateOutCode(it->first);
     bitset<6> outcode_c2 = generateOutCode(it->second);
 
-    if ((outcode_c1 | outcode_c2) == bitset<6>("0000")) {
+    if ((outcode_c1 | outcode_c2) == bitset<6>("000000")) {
       ndcs->push_back(normalizeVertex(it->first));
       ndcs->push_back(normalizeVertex(it->second));
     }
-    else if ((outcode_c1 & outcode_c2) != bitset<6>("0000")) {
+    else if ((outcode_c1 & outcode_c2) != bitset<6>("000000")) {
       continue;
     }
     else {
@@ -731,7 +731,7 @@ bool A2::mouseMoveEvent (
   // Camera translation
   if (current_mode == GLFW_KEY_N) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
-      float q = (xPos - mouse_x_pos) / (m_windowWidth*10);
+      float q = (xPos - mouse_x_pos) / (m_windowWidth);
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0 ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
@@ -742,7 +742,7 @@ bool A2::mouseMoveEvent (
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
-      float q = (xPos - mouse_x_pos) / (m_windowWidth*10);
+      float q = (xPos - mouse_x_pos) / (m_windowWidth);
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
@@ -753,7 +753,7 @@ bool A2::mouseMoveEvent (
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
-      float q = (xPos - mouse_x_pos) / (m_windowWidth*10);
+      float q = (xPos - mouse_x_pos) / (m_windowWidth);
       mat4 transform = mat4(
         vec4( 1.0f, 0.0f, 0.0f, 0.0f ),
         vec4( 0.0f, 1.0f, 0.0f, 0.0f ),
