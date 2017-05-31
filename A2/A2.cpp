@@ -247,22 +247,26 @@ void A2::initializeTransformationMatrices()
   t_model_rotation = mat4( 1.0f );
   t_model_translation = mat4( 1.0f );
 
-  t_view = mat4( 1.0f );
-  for (int i=0; i<4; i++) {
-    for (int j=0; j<3; j++) {
-      t_view[i][j] = dot( f_world[j], f_view[i] );
-    }
-    t_view[i][3] = dot( (f_world[3] - f_view[i]), f_view[i] );
-  }
+  vec3 eye( 0.0f, 0.0f, 5.0f );
+  vec3 z_axis( 0.0f, 0.0f, 1.0f );
+  vec3 x_axis( 1.0f, 0.0f, 0.0f );
+  vec3 y_axis( 0.0f, 1.0f, 0.0f );
 
-  near = 10.0f;
+  t_view = mat4(
+    vec4( x_axis.x, y_axis.x, z_axis.x, 0 ),
+    vec4( x_axis.y, y_axis.y, z_axis.y, 0 ),
+    vec4( x_axis.z, y_axis.z, z_axis.z, 0 ),
+    vec4(-dot( x_axis, eye ), -dot( y_axis, eye ), -dot( z_axis, eye ),  1 )
+  );
+
+  near = 1.0f;
   far = 100.0f;
   fov = radians( 30.0f );
   t_proj = mat4(
     vec4( cos(fov/2)/sin(fov/2)/(m_windowHeight/m_windowWidth), 0.0f, 0.0f, 0.0f ),
     vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
     vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
-    vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
+    vec4( 0.0f, 0.0f, -(2.0f * far * near)/(far - near), 0.0f )
   );
 }
 
@@ -374,14 +378,14 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
   vector< pair< vec4, vec4> >::iterator it;
   for (it=lines.begin(); it!=lines.end(); it++) {
     // do clipping + normalization + viewport transformation
-    bitset<4> outcode_c1 = generateOutCode(it->first);
-    bitset<4> outcode_c2 = generateOutCode(it->second);
+    bitset<6> outcode_c1 = generateOutCode(it->first);
+    bitset<6> outcode_c2 = generateOutCode(it->second);
 
-    if ((outcode_c1 | outcode_c2) == bitset<4>("0000")) {
+    if ((outcode_c1 | outcode_c2) == bitset<6>("0000")) {
       ndcs->push_back(normalizeVertex(it->first));
       ndcs->push_back(normalizeVertex(it->second));
     }
-    else if ((outcode_c1 & outcode_c2) != bitset<4>("0000")) {
+    else if ((outcode_c1 & outcode_c2) != bitset<6>("0000")) {
       continue;
     }
     else {
@@ -436,9 +440,9 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
 }
 
 //----------------------------------------------------------------------------------------
-bitset<4> A2::generateOutCode(vec4 p)
+bitset<6> A2::generateOutCode(vec4 p)
 {
-  bitset<4> outcode;
+  bitset<6> outcode;
 
   if (p.w + p.x < 0) {
     outcode[0] = true;
@@ -452,12 +456,12 @@ bitset<4> A2::generateOutCode(vec4 p)
   if (p.w - p.y < 0) {
     outcode[3] = true;
   }
-  // if (p.w + p.z < 0) {
-  //   outcode[4] = true;
-  // }
-  // if (p.w - p.z < 0) {
-  //   outcode[5] = true;
-  // }
+  if (p.w + p.z < 0) {
+    outcode[4] = true;
+  }
+  if (p.w - p.z < 0) {
+    outcode[5] = true;
+  }
 
   return outcode;
 }
@@ -757,25 +761,31 @@ bool A2::mouseMoveEvent (
       float q = ((xPos - mouse_x_pos) / m_windowWidth) * 10;
       if (far + q > near) {
         far += q;
-        t_proj = mat4(
-          vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
-          vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-          vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
-          vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
-        );
       }
+      else {
+        far = near;
+      }
+      t_proj = mat4(
+        vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
+        vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
+      );
     }
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
       float q = ((xPos - mouse_x_pos) / m_windowWidth) * 10;
-      if (near + q > 0) {
+      if (near + q > 0.0f) {
         near += q;
-        t_proj = mat4(
-          vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
-          vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-          vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
-          vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
-        );
       }
+      else {
+        near = 0.0f;
+      }
+      t_proj = mat4(
+        vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
+        vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
+      );
     }
   }
 
