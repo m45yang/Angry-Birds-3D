@@ -83,8 +83,7 @@ protected:
   glm::mat4 t_model_cube;
   glm::mat4 t_model_cube_gnomon;
   glm::mat4 t_model_scale;
-  glm::mat4 t_model_rotation;
-  glm::mat4 t_model_translation;
+  glm::mat4 t_model_rotation_and_translation;
 
   VertexData m_vertexData;
 
