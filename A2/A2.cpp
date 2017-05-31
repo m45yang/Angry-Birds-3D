@@ -260,7 +260,7 @@ void A2::initializeTransformationMatrices()
   );
 
   near = 1.0f;
-  far = 100.0f;
+  far = 10.0f;
   fov = radians( 30.0f );
   t_proj = mat4(
     vec4( cos(fov/2)/sin(fov/2)/(m_windowHeight/m_windowWidth), 0.0f, 0.0f, 0.0f ),
@@ -429,6 +429,28 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
       }
       else if (outcode_c2[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+      }
+
+      // Full clip z plane
+      if (outcode_c1[4]) {
+        float a = (it->first.w + it->first.z) / (it->first.w - it->second.w + it->first.z - it->second.z);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+      }
+      else if (outcode_c2[4]) {
+        float a = (it->first.w + it->first.z) / (it->first.w - it->second.w + it->first.z - it->second.z);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+      }
+      if (outcode_c1[5]) {
+        float a = (it->first.w - it->first.z) / (it->first.w - it->second.w + it->second.z - it->first.z);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+      }
+      else if (outcode_c2[5]) {
+        float a = (it->first.w - it->first.z) / (it->first.w - it->second.w + it->second.z - it->first.z);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
       }
@@ -763,7 +785,7 @@ bool A2::mouseMoveEvent (
         far += q;
       }
       else {
-        far = near;
+        far = near + 0.1f;
       }
       t_proj = mat4(
         vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
