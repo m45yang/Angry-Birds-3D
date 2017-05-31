@@ -381,8 +381,7 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
       ndcs->push_back(normalizeVertex(it->first));
       ndcs->push_back(normalizeVertex(it->second));
     }
-    else if ((outcode_c1 & outcode_c2) != bitset<4>("1111")) {
-      cout << (outcode_c1 & outcode_c2) << endl;
+    else if ((outcode_c1 & outcode_c2) != bitset<4>("0000")) {
       continue;
     }
     else {
@@ -391,29 +390,21 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[0]) {
+      else if (outcode_c2[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
       if (outcode_c1[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[1]) {
+      else if (outcode_c2[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
 
       // Full clip y plane
@@ -421,30 +412,25 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[2]) {
+      else if (outcode_c2[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
       if (outcode_c1[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->first = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
-      if (outcode_c2[3]) {
+      else if (outcode_c2[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
         it->second = clipped;
-        ndcs->push_back(normalizeVertex(it->first));
-        ndcs->push_back(normalizeVertex(it->second));
       }
+
+      ndcs->push_back(normalizeVertex(it->first));
+      ndcs->push_back(normalizeVertex(it->second));
     }
   }
 }
@@ -470,10 +456,6 @@ bitset<4> A2::generateOutCode(vec4 p)
   //   outcode[4] = true;
   // }
   // if (p.w - p.z < 0) {
-  //   cout << "outcode6" << endl;
-  //   cout << p.w << endl;
-  //   cout << p.z << endl;
-  //   cout << p.w - p.z << endl;
   //   outcode[5] = true;
   // }
 
