@@ -251,11 +251,11 @@ void A2::initializeTransformationMatrices()
     t_view[i][3] = dot( (f_world[3] - f_view[i]), f_view[i] );
   }
 
-  near = 1.0f;
+  near = 10.0f;
   far = 100.0f;
   fov = radians( 30.0f );
   t_proj = mat4(
-    vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+    vec4( cos(fov/2)/sin(fov/2)/(m_windowHeight/m_windowWidth), 0.0f, 0.0f, 0.0f ),
     vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
     vec4( 0.0f, 0.0f, (far + near)/(far - near), 1.0f ),
     vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
@@ -369,8 +369,10 @@ void A2::buildAndClipLines()
     //   cout << outcode_c1[i];
     // }
     // cout << endl;
-
-    // cout << outcode_or << endl;
+    // for (int i=0; i<outcode_c2.size(); i++) {
+    //   cout << outcode_c2[i];
+    // }
+    // cout << endl;
 
     if (outcode_or == false) {
       cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
@@ -380,7 +382,65 @@ void A2::buildAndClipLines()
       continue;
     }
     else {
-      // full clip
+      // Full clip x plane
+      if (outcode_c1[0] == true) {
+        float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[0] == true) {
+        float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c1[1] == true) {
+        float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[1] == true) {
+        float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+
+      // Full clip y plane
+      if (outcode_c1[2] == true) {
+        float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[2] == true) {
+        float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c1[3] == true) {
+        float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[3] == true) {
+        float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
     }
   }
 
@@ -409,7 +469,65 @@ void A2::buildAndClipLines()
       continue;
     }
     else {
-      // full clip
+      // Full clip x plane
+      if (outcode_c1[0] == true) {
+        float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[0] == true) {
+        float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c1[1] == true) {
+        float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[1] == true) {
+        float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+
+      // Full clip y plane
+      if (outcode_c1[2] == true) {
+        float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[2] == true) {
+        float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c1[3] == true) {
+        float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->first = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
+      if (outcode_c2[3] == true) {
+        float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
+        vec4 clipped = (1-a)*it->first + a*it->second;
+        it->second = clipped;
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->first));
+        cube_gnomon_normalized_device_coordinates.push_back(normalizeVertex(it->second));
+      }
     }
   }
 }
@@ -420,23 +538,18 @@ vector<bool> A2::generateOutCode(vec4 p)
   vector<bool> outcode( 4, false );
 
   if (p.w + p.x < 0) {
-    cout << "outcode1" << endl;
     outcode[0] = true;
   }
   if (p.w - p.x < 0) {
-    cout << "outcode2" << endl;
     outcode[1] = true;
   }
   if (p.w + p.y < 0) {
-    cout << "outcode3" << endl;
     outcode[2] = true;
   }
   if (p.w - p.y < 0) {
-    cout << "outcode4" << endl;
     outcode[3] = true;
   }
   // if (p.w + p.z < 0) {
-  //   cout << "outcode5" << endl;
   //   outcode[4] = true;
   // }
   // if (p.w - p.z < 0) {
