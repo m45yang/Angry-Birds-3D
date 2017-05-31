@@ -392,66 +392,90 @@ void A2::performClipping(vector< pair< vec4, vec4> > lines, vector<vec2> *ndcs)
       if (outcode_c1[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->first = clipped;
+        if (length(clipped - it->second) < length(it->first - it->second)) {
+          it->first = clipped;
+        }
       }
       else if (outcode_c2[0]) {
         float a = (it->first.w + it->first.x) / (it->first.w - it->second.w + it->first.x - it->second.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->second = clipped;
+        if (length(it->first - clipped) < length(it->first - it->second)) {
+          it->second = clipped;
+        }
       }
       if (outcode_c1[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->first = clipped;
+        if (length(clipped - it->second) < length(it->first - it->second)) {
+          it->first = clipped;
+        }
       }
       else if (outcode_c2[1]) {
         float a = (it->first.w - it->first.x) / (it->first.w - it->second.w + it->second.x - it->first.x);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->second = clipped;
+        if (length(it->first - clipped) < length(it->first - it->second)) {
+          it->second = clipped;
+        }
       }
 
       // Full clip y plane
       if (outcode_c1[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->first = clipped;
+        if (length(clipped - it->second) < length(it->first - it->second)) {
+          it->first = clipped;
+        }
       }
       else if (outcode_c2[2]) {
         float a = (it->first.w + it->first.y) / (it->first.w - it->second.w + it->first.y - it->second.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->second = clipped;
+        if (length(it->first - clipped) < length(it->first - it->second)) {
+          it->second = clipped;
+        }
       }
       if (outcode_c1[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->first = clipped;
+        if (length(clipped - it->second) < length(it->first - it->second)) {
+          it->first = clipped;
+        }
       }
       else if (outcode_c2[3]) {
         float a = (it->first.w - it->first.y) / (it->first.w - it->second.w + it->second.y - it->first.y);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->second = clipped;
+        if (length(it->first - clipped) < length(it->first - it->second)) {
+          it->second = clipped;
+        }
       }
 
       // Full clip z plane
       if (outcode_c1[4]) {
         float a = (it->first.w + it->first.z) / (it->first.w - it->second.w + it->first.z - it->second.z);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->first = clipped;
+        if (length(clipped - it->second) < length(it->first - it->second)) {
+          it->first = clipped;
+        }
       }
       else if (outcode_c2[4]) {
         float a = (it->first.w + it->first.z) / (it->first.w - it->second.w + it->first.z - it->second.z);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->second = clipped;
+        if (length(it->first - clipped) < length(it->first - it->second)) {
+          it->second = clipped;
+        }
       }
       if (outcode_c1[5]) {
         float a = (it->first.w - it->first.z) / (it->first.w - it->second.w + it->second.z - it->first.z);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->first = clipped;
+        if (length(clipped - it->second) < length(it->first - it->second)) {
+          it->first = clipped;
+        }
       }
       else if (outcode_c2[5]) {
         float a = (it->first.w - it->first.z) / (it->first.w - it->second.w + it->second.z - it->first.z);
         vec4 clipped = (1-a)*it->first + a*it->second;
-        it->second = clipped;
+        if (length(it->first - clipped) < length(it->first - it->second)) {
+          it->second = clipped;
+        }
       }
 
       ndcs->push_back(normalizeVertex(it->first));
@@ -769,13 +793,21 @@ bool A2::mouseMoveEvent (
       float q = ((xPos - mouse_x_pos) / m_windowWidth) * M_PI;
       if (degrees(fov + q) < 150 && degrees(fov + q) > 5) {
         fov += q;
-        t_proj = mat4(
-          vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
-          vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
-          vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
-          vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
-        );
       }
+      else if (degrees(fov + q) > 150) {
+        fov = radians( 150.0f );
+      }
+      else if (degrees(fov + q) < 5) {
+        fov = radians( 5.0f );
+      }
+
+      t_proj = mat4(
+        vec4( cos(fov/2)/sin(fov/2)/(m_windowWidth/m_windowHeight), 0.0f, 0.0f, 0.0f ),
+        vec4( 0.0f, cos(fov/2)/sin(fov/2), 0.0f, 0.0f ),
+        vec4( 0.0f, 0.0f, -(far + near)/(far - near), -1.0f ),
+        vec4( 0.0f, 0.0f, (-2.0f * far * near)/(far - near), 0.0f )
+      );
+
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
