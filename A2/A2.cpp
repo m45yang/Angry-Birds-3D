@@ -215,6 +215,10 @@ void A2::initializeModelCoordinates()
   height_ratio = (viewport_yt - viewport_yb)/2;
   left_bound = viewport_xl + (viewport_xr - viewport_xl)/2;
   bottom_bound = viewport_yb + (viewport_yt - viewport_yb)/2;
+
+  // Initialize mode
+  keys[GLFW_KEY_R] = true;
+  current_mode = GLFW_KEY_R;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1054,6 +1058,14 @@ bool A2::keyInputEvent (
     keys[current_mode] = false;
     keys[key] = true;
     current_mode = key;
+
+    if (keys[GLFW_KEY_A]) {
+      keys[GLFW_KEY_A] = false;
+
+      initializeCoordinateFrames();
+      initializeModelCoordinates();
+      initializeTransformationMatrices();
+    }
   }
 
   return eventHandled;
