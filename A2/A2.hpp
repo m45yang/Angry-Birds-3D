@@ -57,6 +57,7 @@ protected:
   void applyViewingTransformation();
   void applyProjectionTransformation();
   void buildAndClipLines();
+  void performClipping(std::vector< std::pair< glm::vec4, glm::vec4> >, std::vector<glm::vec2>*);
   std::vector<bool> generateOutCode(glm::vec4);
   glm::vec2 normalizeVertex(glm::vec4);
 
