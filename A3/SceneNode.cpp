@@ -102,6 +102,11 @@ void SceneNode::scale(const glm::vec3 & amount) {
 //---------------------------------------------------------------------------------------
 void SceneNode::translate(const glm::vec3& amount) {
 	trans = glm::translate(amount) * trans;
+
+	list<SceneNode*>::iterator it;
+	for (it=children.begin(); it!=children.end(); it++) {
+		(*it)->translate(amount);
+	}
 }
 
 
