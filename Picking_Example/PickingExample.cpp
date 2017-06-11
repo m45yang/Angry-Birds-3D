@@ -76,8 +76,8 @@ void PickingExample::init()
 
 	for( size_t idx = 0; idx < 100; ++idx ) {
 		glm::mat4 T = glm::translate( glm::mat4(), glm::vec3(
-			(distribution(generator) - 0.5) * 5.0, 
-			(distribution(generator) - 0.5) * 5.0, 
+			(distribution(generator) - 0.5) * 5.0,
+			(distribution(generator) - 0.5) * 5.0,
 			distribution(generator) * -5.0 - 5.0 ) );
 		glm::vec3 col( distribution(generator), distribution(generator), distribution(generator) );
 

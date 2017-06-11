@@ -84,6 +84,11 @@ void A3::init()
 
   initLightSources();
 
+  do_picking = false;
+
+  selected = -1;
+
+  current_mode = GLFW_KEY_J;
 
   // Exiting the current scope calls delete automatically on meshConsolidator freeing
   // all vertex data resources.  This is fine since we already copied this data to
@@ -271,18 +276,18 @@ void A3::uploadCommonSceneUniforms() {
     glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
     CHECK_GL_ERRORS;
 
+    location = m_shader.getUniformLocation("picking");
+    glUniform1i( location, do_picking ? 1 : 0 );
 
     //-- Set LightSource uniform for the scene:
-    {
+    if (!do_picking) {
       location = m_shader.getUniformLocation("light.position");
       glUniform3fv(location, 1, value_ptr(m_light.position));
       location = m_shader.getUniformLocation("light.rgbIntensity");
       glUniform3fv(location, 1, value_ptr(m_light.rgbIntensity));
       CHECK_GL_ERRORS;
-    }
 
     //-- Set background light ambient intensity
-    {
       location = m_shader.getUniformLocation("ambientIntensity");
       vec3 ambientIntensity(0.05f);
       glUniform3fv(location, 1, value_ptr(ambientIntensity));
@@ -328,7 +333,8 @@ void A3::guiLogic()
 
 
     // Add more gui elements here here ...
-
+    ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
+    ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
 
     // Create Button, and check if it was clicked:
     if( ImGui::Button( "Quit Application" ) ) {
@@ -345,17 +351,30 @@ void A3::guiLogic()
 static void updateShaderUniforms(
     const ShaderProgram & shader,
     const GeometryNode & node,
-    const glm::mat4 & viewMatrix
+    const glm::mat4 & viewMatrix,
+    unsigned int node_id,
+    bool do_picking,
+    const glm::vec3& col
 ) {
 
   shader.enable();
-  {
-    //-- Set ModelView matrix:
-    GLint location = shader.getUniformLocation("ModelView");
-    mat4 modelView = viewMatrix * node.trans;
-    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
-    CHECK_GL_ERRORS;
 
+  //-- Set ModelView matrix:
+  GLint location = shader.getUniformLocation("ModelView");
+  mat4 modelView = viewMatrix * node.trans;
+  glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
+  CHECK_GL_ERRORS;
+
+  if (do_picking) {
+    float r = float(node_id&0xff) / 255.0f;
+    float g = float((node_id>>8)&0xff) / 255.0f;
+    float b = float((node_id>>16)&0xff) / 255.0f;
+
+    location = shader.getUniformLocation("material.kd");
+    glUniform3f( location, r, g, b );
+    CHECK_GL_ERRORS;
+  }
+  else {
     //-- Set NormMatrix:
     location = shader.getUniformLocation("NormalMatrix");
     mat3 normalMatrix = glm::transpose(glm::inverse(mat3(modelView)));
@@ -365,7 +384,7 @@ static void updateShaderUniforms(
 
     //-- Set Material values:
     location = shader.getUniformLocation("material.kd");
-    vec3 kd = node.material.kd;
+    vec3 kd = col;
     glUniform3fv(location, 1, value_ptr(kd));
     CHECK_GL_ERRORS;
     location = shader.getUniformLocation("material.ks");
@@ -375,8 +394,8 @@ static void updateShaderUniforms(
     location = shader.getUniformLocation("material.shininess");
     glUniform1f(location, node.material.shininess);
     CHECK_GL_ERRORS;
-
   }
+
   shader.disable();
 
 }
@@ -416,7 +435,20 @@ void A3::renderNode(const SceneNode &node) {
     GeometryNode transformedGeometryNode = GeometryNode(*geometryNode);
     transformedGeometryNode.set_transform(newTransform);
 
-    updateShaderUniforms(m_shader, transformedGeometryNode, m_view);
+    vec3 col = transformedGeometryNode.material.kd;
+    // If this node is selected, assign the selected color
+    if( selected == node.m_nodeId ) {
+      col = glm::vec3( 1.0, 1.0, 0.0 );
+    }
+
+    updateShaderUniforms(
+      m_shader,
+      transformedGeometryNode,
+      m_view,
+      node.m_nodeId,
+      do_picking,
+      col
+    );
 
     // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
     BatchInfo batchInfo = m_batchInfoMap[transformedGeometryNode.meshId];
@@ -556,7 +588,68 @@ bool A3::mouseButtonInputEvent (
 ) {
   bool eventHandled(false);
 
-  // Fill in with event handling code...
+  if (actions == GLFW_PRESS && !ImGui::IsMouseHoveringAnyWindow()) {
+
+    // Joints mode
+    if (current_mode == GLFW_KEY_J) {
+      if (button == GLFW_MOUSE_BUTTON_1) {
+        double xpos, ypos;
+        glfwGetCursorPos( m_window, &xpos, &ypos );
+        do_picking = true;
+
+        uploadCommonSceneUniforms();
+        glClearColor(1.0, 1.0, 1.0, 1.0 );
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+        glClearColor(0.35, 0.35, 0.35, 1.0);
+
+        draw();
+
+        CHECK_GL_ERRORS;
+
+        // Ugly -- FB coordinates might be different than Window coordinates
+        // (e.g., on a retina display).  Must compensate.
+        xpos *= double(m_framebufferWidth) / double(m_windowWidth);
+        // WTF, don't know why I have to measure y relative to the bottom of
+        // the window in this case.
+        ypos = m_windowHeight - ypos;
+        ypos *= double(m_framebufferHeight) / double(m_windowHeight);
+
+        GLubyte buffer[ 4 ] = { 0, 0, 0, 0 };
+        // A bit ugly -- don't want to swap the just-drawn false colours
+        // to the screen, so read from the back buffer.
+        glReadBuffer( GL_BACK );
+        // Actually read the pixel at the mouse location.
+        glReadPixels( int(xpos), int(ypos), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
+        CHECK_GL_ERRORS;
+
+        // Reassemble the object ID.
+        unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
+
+        selected = what;
+        do_picking = false;
+
+        CHECK_GL_ERRORS;
+      }
+      if (button == GLFW_MOUSE_BUTTON_2) {
+
+      }
+      if (button == GLFW_MOUSE_BUTTON_3) {
+
+      }
+    }
+
+  }
+
+  if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
+    if (button == GLFW_MOUSE_BUTTON_1) {
+    }
+    if (button == GLFW_MOUSE_BUTTON_2) {
+
+    }
+    if (button == GLFW_MOUSE_BUTTON_3) {
+
+    }
+  }
 
   return eventHandled;
 }

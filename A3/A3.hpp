@@ -70,6 +70,12 @@ protected:
   GLint m_arc_positionAttribLocation;
   ShaderProgram m_shader_arcCircle;
 
+  // -- GL resources for picking geometry:
+  GLuint m_vao_pickingMeshData;
+  GLuint m_vbo_pickingVertexPositions;
+  GLint m_picking_positionAttribLocation;
+  ShaderProgram m_shader_picking;
+
   // BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
   // object. Each BatchInfo object contains an index offset and the number of indices
   // required to render the mesh with identifier MeshId.
@@ -78,6 +84,10 @@ protected:
   std::string m_luaSceneFile;
 
   std::shared_ptr<SceneNode> m_rootNode;
+
+  bool do_picking;
+  unsigned int selected;
+  int current_mode;
 
 private:
   static std::stack<glm::mat4> matrixStack;
