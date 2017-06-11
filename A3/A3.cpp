@@ -388,26 +388,28 @@ static void updateShaderUniforms(
 void A3::draw() {
 
   glEnable( GL_DEPTH_TEST );
+  glEnable( GL_CULL_FACE );
+  glCullFace( GL_BACK );
+
   renderSceneGraph(*m_rootNode);
 
-
   glDisable( GL_DEPTH_TEST );
+  glDisable( GL_CULL_FACE );
+
   renderArcCircle();
 }
 
 void A3::renderNode(const SceneNode &node) {
-  // Mult matrix stack
-  mat4 newTransform;
-  if (matrixStack.empty()) {
-    newTransform = node.trans;
+  if (node.m_nodeType == NodeType::SceneNode) {
+    // Mult matrix stack
+    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top();
     matrixStack.push(newTransform);
   }
-  else {
-    newTransform = matrixStack.top() * node.trans;
+  else if (node.m_nodeType == NodeType::GeometryNode) {
+    // Mult matrix stack
+    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
     matrixStack.push(newTransform);
-  }
 
-  if (node.m_nodeType == NodeType::GeometryNode) {
     // Cast the SceneNode as a GeometryNode, deep copy it and apply the
     // individual model transformation on the node
     const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
@@ -419,10 +421,36 @@ void A3::renderNode(const SceneNode &node) {
     // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
     BatchInfo batchInfo = m_batchInfoMap[transformedGeometryNode.meshId];
 
-    //-- Now render the mesh:
+    // Render the mesh:
     m_shader.enable();
     glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
     m_shader.disable();
+  }
+  else if (node.m_nodeType == NodeType::JointNode) {
+    // Cast the SceneNode as a JointNode
+    const JointNode * jointNode = static_cast<const JointNode *>(&node);
+    double angleX = JointNode::jointNodeX[jointNode->m_nodeId];
+    double angleY = JointNode::jointNodeY[jointNode->m_nodeId];
+
+    if (angleX > jointNode->m_joint_x.max) {
+      angleX = jointNode->m_joint_x.max;
+    }
+    else if (angleX < jointNode->m_joint_x.min) {
+      angleX = jointNode->m_joint_x.min;
+    }
+
+    if (angleY > jointNode->m_joint_y.max) {
+      angleY = jointNode->m_joint_y.max;
+    }
+    else if (angleX < jointNode->m_joint_y.min) {
+      angleY = jointNode->m_joint_y.min;
+    }
+
+    JointNode transformedJointNode = JointNode(*jointNode);
+    transformedJointNode.rotate('x', angleX);
+    transformedJointNode.rotate('y', angleY);
+
+    matrixStack.push(matrixStack.top() * transformedJointNode.trans);
   }
 
   for (const SceneNode * child : node.children) {

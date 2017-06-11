@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SceneNode.hpp"
+#include <map>
 
 class JointNode : public SceneNode {
 public:
@@ -16,4 +17,7 @@ public:
 
 
   JointRange m_joint_x, m_joint_y;
+
+  static std::map<unsigned int, double > jointNodeX;
+  static std::map<unsigned int, double > jointNodeY;
 };
