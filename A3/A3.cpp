@@ -623,7 +623,11 @@ bool A3::mouseButtonInputEvent (
         // Reassemble the object ID.
         unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
 
-        SceneNode::selected[what] = !SceneNode::selected[what];
+        if (SceneNode::nodesWithJoints[what] != -1) {
+          SceneNode::selected[what] = !SceneNode::selected[what];
+          SceneNode::selected[SceneNode::nodesWithJoints[what]] = !SceneNode::selected[SceneNode::nodesWithJoints[what]];
+        }
+
         do_picking = false;
 
         CHECK_GL_ERRORS;

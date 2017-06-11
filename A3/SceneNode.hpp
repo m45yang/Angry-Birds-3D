@@ -32,6 +32,7 @@ public:
     void set_transform(const glm::mat4& m);
 
     void add_child(SceneNode* child);
+    void add_parent(SceneNode* parent);
 
     void remove_child(SceneNode* child);
 
@@ -54,6 +55,9 @@ public:
     NodeType m_nodeType;
     std::string m_name;
     unsigned int m_nodeId;
+
+    // A list of all SceneNodes indexed by m_NodeId
+    static std::vector<unsigned int> nodesWithJoints;
 
     // The SceneNodes that are selected.
     static std::vector<bool> selected;
