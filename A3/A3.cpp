@@ -86,8 +86,6 @@ void A3::init()
 
   do_picking = false;
 
-  selected = -1;
-
   current_mode = GLFW_KEY_J;
 
   // Exiting the current scope calls delete automatically on meshConsolidator freeing
@@ -437,7 +435,7 @@ void A3::renderNode(const SceneNode &node) {
 
     vec3 col = transformedGeometryNode.material.kd;
     // If this node is selected, assign the selected color
-    if( selected == node.m_nodeId ) {
+    if( SceneNode::selected[node.m_nodeId] ) {
       col = glm::vec3( 1.0, 1.0, 0.0 );
     }
 
@@ -625,7 +623,7 @@ bool A3::mouseButtonInputEvent (
         // Reassemble the object ID.
         unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
 
-        selected = what;
+        SceneNode::selected[what] = !SceneNode::selected[what];
         do_picking = false;
 
         CHECK_GL_ERRORS;

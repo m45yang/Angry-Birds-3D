@@ -8,6 +8,7 @@
 #include <stack>
 #include <string>
 #include <iostream>
+#include <vector>
 
 enum class NodeType {
     SceneNode,
@@ -54,6 +55,8 @@ public:
     std::string m_name;
     unsigned int m_nodeId;
 
+    // The SceneNodes that are selected.
+    static std::vector<bool> selected;
 
 private:
     // The number of SceneNode instances.

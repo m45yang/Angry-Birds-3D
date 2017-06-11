@@ -14,6 +14,7 @@ using namespace glm;
 
 // Static class variable
 unsigned int SceneNode::nodeInstanceCount = 0;
+vector<bool> SceneNode::selected;
 
 //---------------------------------------------------------------------------------------
 SceneNode::SceneNode(const std::string& name)
@@ -23,7 +24,7 @@ SceneNode::SceneNode(const std::string& name)
   isSelected(false),
   m_nodeId(nodeInstanceCount++)
 {
-
+  selected.push_back(false);
 }
 
 //---------------------------------------------------------------------------------------
