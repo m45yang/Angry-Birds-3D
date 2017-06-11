@@ -24,7 +24,7 @@ public:
 
     virtual ~SceneNode();
 
-    int totalSceneNodes() const;
+    static int totalSceneNodes();
 
     const glm::mat4& get_transform() const;
     const glm::mat4& get_inverse() const;
@@ -59,8 +59,8 @@ public:
     // A list of all SceneNodes indexed by m_NodeId
     static std::vector<unsigned int> nodesWithJoints;
 
-    // The SceneNodes that are selected.
-    static std::vector<bool> selected;
+    // The GeometryNodes that are selected.
+    static std::vector<bool> selectedGeometryNodes;
 
 private:
     // The number of SceneNode instances.

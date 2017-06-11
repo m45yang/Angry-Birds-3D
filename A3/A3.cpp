@@ -30,7 +30,9 @@ A3::A3(const std::string & luaSceneFile)
     m_vbo_vertexPositions(0),
     m_vbo_vertexNormals(0),
     m_vao_arcCircle(0),
-    m_vbo_arcCircle(0)
+    m_vbo_arcCircle(0),
+    mouse_x_pos(0.0f),
+    mouse_y_pos(0.0f)
 {
 
 }
@@ -435,7 +437,7 @@ void A3::renderNode(const SceneNode &node) {
 
     vec3 col = transformedGeometryNode.material.kd;
     // If this node is selected, assign the selected color
-    if( SceneNode::selected[node.m_nodeId] ) {
+    if( SceneNode::selectedGeometryNodes[node.m_nodeId] ) {
       col = glm::vec3( 1.0, 1.0, 0.0 );
     }
 
@@ -464,16 +466,20 @@ void A3::renderNode(const SceneNode &node) {
 
     if (angleX > jointNode->m_joint_x.max) {
       angleX = jointNode->m_joint_x.max;
+      JointNode::jointNodeX[jointNode->m_nodeId] = jointNode->m_joint_x.max;
     }
     else if (angleX < jointNode->m_joint_x.min) {
       angleX = jointNode->m_joint_x.min;
+      JointNode::jointNodeX[jointNode->m_nodeId] = jointNode->m_joint_x.min;
     }
 
     if (angleY > jointNode->m_joint_y.max) {
       angleY = jointNode->m_joint_y.max;
+      JointNode::jointNodeY[jointNode->m_nodeId] = jointNode->m_joint_y.max;
     }
-    else if (angleX < jointNode->m_joint_y.min) {
+    else if (angleY < jointNode->m_joint_y.min) {
       angleY = jointNode->m_joint_y.min;
+      JointNode::jointNodeY[jointNode->m_nodeId] = jointNode->m_joint_y.min;
     }
 
     JointNode transformedJointNode = JointNode(*jointNode);
@@ -570,7 +576,37 @@ bool A3::mouseMoveEvent (
 ) {
   bool eventHandled(false);
 
-  // Fill in with event handling code...
+  // Joints rotation
+  if (current_mode == GLFW_KEY_J) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
+      float diff = (yPos - mouse_y_pos)*100/m_windowHeight;
+
+      vector<bool>::iterator it;
+      for (it=SceneNode::selectedGeometryNodes.begin(); it!=SceneNode::selectedGeometryNodes.end(); it++) {
+        int index = it - SceneNode::selectedGeometryNodes.begin();
+        int jointNodeIndex = SceneNode::nodesWithJoints[index];
+        if (*it && (jointNodeIndex != -1)) {
+          JointNode::jointNodeX[jointNodeIndex] += diff;
+        }
+      }
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
+      float diff = (xPos - mouse_x_pos)*100/m_windowHeight;
+
+      vector<bool>::iterator it;
+      for (it=SceneNode::selectedGeometryNodes.begin(); it!=SceneNode::selectedGeometryNodes.end(); it++) {
+        int index = it - SceneNode::selectedGeometryNodes.begin();
+        int jointNodeIndex = SceneNode::nodesWithJoints[index];
+        if (*it && (jointNodeIndex != -1)) {
+          JointNode::jointNodeY[jointNodeIndex] += diff;
+        }
+      }
+    }
+  }
+
+  mouse_x_pos = xPos;
+  mouse_y_pos = yPos;
 
   return eventHandled;
 }
@@ -623,9 +659,9 @@ bool A3::mouseButtonInputEvent (
         // Reassemble the object ID.
         unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
 
-        if (SceneNode::nodesWithJoints[what] != -1) {
-          SceneNode::selected[what] = !SceneNode::selected[what];
-          SceneNode::selected[SceneNode::nodesWithJoints[what]] = !SceneNode::selected[SceneNode::nodesWithJoints[what]];
+        // Only mark the geometry node as selected if it is connected to a joint
+        if (what < SceneNode::totalSceneNodes() && SceneNode::nodesWithJoints[what] != -1) {
+          SceneNode::selectedGeometryNodes[what] = !SceneNode::selectedGeometryNodes[what];
         }
 
         do_picking = false;
@@ -633,10 +669,10 @@ bool A3::mouseButtonInputEvent (
         CHECK_GL_ERRORS;
       }
       if (button == GLFW_MOUSE_BUTTON_2) {
-
+        keys[GLFW_MOUSE_BUTTON_2] = true;
       }
       if (button == GLFW_MOUSE_BUTTON_3) {
-
+        keys[GLFW_MOUSE_BUTTON_3] = true;
       }
     }
 
@@ -644,12 +680,13 @@ bool A3::mouseButtonInputEvent (
 
   if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
     if (button == GLFW_MOUSE_BUTTON_1) {
+
     }
     if (button == GLFW_MOUSE_BUTTON_2) {
-
+      keys[GLFW_MOUSE_BUTTON_2] = false;
     }
     if (button == GLFW_MOUSE_BUTTON_3) {
-
+      keys[GLFW_MOUSE_BUTTON_3] = false;
     }
   }
 

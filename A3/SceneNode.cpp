@@ -15,7 +15,7 @@ using namespace glm;
 // Static class variable
 unsigned int SceneNode::nodeInstanceCount = 0;
 vector<unsigned int> SceneNode::nodesWithJoints;
-vector<bool> SceneNode::selected;
+vector<bool> SceneNode::selectedGeometryNodes;
 
 //---------------------------------------------------------------------------------------
 SceneNode::SceneNode(const std::string& name)
@@ -25,7 +25,7 @@ SceneNode::SceneNode(const std::string& name)
   isSelected(false),
   m_nodeId(nodeInstanceCount++)
 {
-  selected.push_back(false);
+  selectedGeometryNodes.push_back(false);
   nodesWithJoints.push_back(-1);
 }
 
@@ -111,7 +111,7 @@ void SceneNode::translate(const glm::vec3& amount) {
 
 
 //---------------------------------------------------------------------------------------
-int SceneNode::totalSceneNodes() const {
+int SceneNode::totalSceneNodes() {
   return nodeInstanceCount;
 }
 

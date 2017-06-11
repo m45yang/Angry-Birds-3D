@@ -85,9 +85,13 @@ protected:
 
   std::shared_ptr<SceneNode> m_rootNode;
 
+
   bool do_picking;
-  unsigned int selected;
+  bool keys[1024];
+  float mouse_x_pos;
+  float mouse_y_pos;
   int current_mode;
+  unsigned int selected;
 
 private:
   static std::stack<glm::mat4> matrixStack;
