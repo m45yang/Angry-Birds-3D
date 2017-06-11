@@ -16,6 +16,7 @@ using namespace std;
 using namespace glm;
 
 static bool show_gui = true;
+stack<mat4> A3::matrixStack;
 
 const size_t CIRCLE_PTS = 48;
 
@@ -394,6 +395,43 @@ void A3::draw() {
   renderArcCircle();
 }
 
+void A3::renderNode(const SceneNode &node) {
+  // Mult matrix stack
+  mat4 newTransform;
+  if (matrixStack.empty()) {
+    newTransform = node.trans;
+    matrixStack.push(newTransform);
+  }
+  else {
+    newTransform = matrixStack.top() * node.trans;
+    matrixStack.push(newTransform);
+  }
+
+  if (node.m_nodeType == NodeType::GeometryNode) {
+    // Cast the SceneNode as a GeometryNode, deep copy it and apply the
+    // individual model transformation on the node
+    const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
+    GeometryNode transformedGeometryNode = GeometryNode(*geometryNode);
+    transformedGeometryNode.set_transform(newTransform);
+
+    updateShaderUniforms(m_shader, transformedGeometryNode, m_view);
+
+    // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
+    BatchInfo batchInfo = m_batchInfoMap[transformedGeometryNode.meshId];
+
+    //-- Now render the mesh:
+    m_shader.enable();
+    glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+    m_shader.disable();
+  }
+
+  for (const SceneNode * child : node.children) {
+    renderNode(*child);
+  }
+
+  matrixStack.pop();
+}
+
 //----------------------------------------------------------------------------------------
 void A3::renderSceneGraph(const SceneNode & root) {
 
@@ -413,24 +451,7 @@ void A3::renderSceneGraph(const SceneNode & root) {
   // could put a set of mutually recursive functions in this class, which
   // walk down the tree from nodes of different types.
 
-  for (const SceneNode * node : root.children) {
-
-    if (node->m_nodeType != NodeType::GeometryNode)
-      continue;
-
-    const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
-
-    updateShaderUniforms(m_shader, *geometryNode, m_view);
-
-
-    // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
-    BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
-
-    //-- Now render the mesh:
-    m_shader.enable();
-    glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-    m_shader.disable();
-  }
+  renderNode(root);
 
   glBindVertexArray(0);
   CHECK_GL_ERRORS;

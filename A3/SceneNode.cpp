@@ -15,7 +15,6 @@ using namespace glm;
 // Static class variable
 unsigned int SceneNode::nodeInstanceCount = 0;
 
-
 //---------------------------------------------------------------------------------------
 SceneNode::SceneNode(const std::string& name)
   : m_name(name),
@@ -102,11 +101,6 @@ void SceneNode::scale(const glm::vec3 & amount) {
 //---------------------------------------------------------------------------------------
 void SceneNode::translate(const glm::vec3& amount) {
   trans = glm::translate(amount) * trans;
-
-  list<SceneNode*>::iterator it;
-  for (it=children.begin(); it!=children.end(); it++) {
-    (*it)->translate(amount);
-  }
 }
 
 
