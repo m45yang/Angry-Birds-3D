@@ -57,7 +57,7 @@ public:
     unsigned int m_nodeId;
 
     // A list of all SceneNodes indexed by m_NodeId
-    static std::vector<unsigned int> nodesWithJoints;
+    static std::vector<unsigned int> geometryNodesToJoints;
 
     // The GeometryNodes that are selected.
     static std::vector<bool> selectedGeometryNodes;

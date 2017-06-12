@@ -17,6 +17,7 @@ using namespace glm;
 
 static bool show_gui = true;
 stack<mat4> A3::matrixStack;
+vector< map < unsigned int, pair< double, double > > > A3::jointsAngleStack;
 
 const size_t CIRCLE_PTS = 48;
 
@@ -32,7 +33,8 @@ A3::A3(const std::string & luaSceneFile)
     m_vao_arcCircle(0),
     m_vbo_arcCircle(0),
     mouse_x_pos(0.0f),
-    mouse_y_pos(0.0f)
+    mouse_y_pos(0.0f),
+    joints_angle_stack_index(-1)
 {
 
 }
@@ -85,6 +87,8 @@ void A3::init()
   initViewMatrix();
 
   initLightSources();
+
+  pushJointsAngleStack();
 
   do_picking = false;
 
@@ -265,6 +269,57 @@ void A3::initLightSources() {
   // World-space position
   m_light.position = vec3(-2.0f, 5.0f, 0.5f);
   m_light.rgbIntensity = vec3(0.8f); // White light
+}
+
+//----------------------------------------------------------------------------------------
+void traverseAndAddJointsToStack(
+  const SceneNode & node,
+  map < unsigned int, pair< double, double > > &jointsAngleMap
+) {
+  // Traverse hierarchical data structure and add all joints to the stack
+  if (node.m_nodeType == NodeType::JointNode) {
+    // Add angles to map if node is a JointNode
+    jointsAngleMap[node.m_nodeId] = make_pair(
+      JointNode::jointNodeX[node.m_nodeId],
+      JointNode::jointNodeY[node.m_nodeId]
+    );
+  }
+
+  for (const SceneNode * child : node.children) {
+    traverseAndAddJointsToStack(*child, jointsAngleMap);
+  }
+}
+
+//----------------------------------------------------------------------------------------
+void A3::pushJointsAngleStack() {
+  // Traverse hierarchical data structure and add all joints to the stack
+  map < unsigned int, pair< double, double > > jointsAngleMap;
+  traverseAndAddJointsToStack(*m_rootNode, jointsAngleMap);
+
+  if (joints_angle_stack_index < jointsAngleStack.size() - 1) {
+    jointsAngleStack.erase(jointsAngleStack.begin() + joints_angle_stack_index + 1, jointsAngleStack.end());
+  }
+
+  jointsAngleStack.push_back(jointsAngleMap);
+  joints_angle_stack_index++;
+}
+
+//----------------------------------------------------------------------------------------
+void A3::moveJointsAngleStackIndex(int amount) {
+  if (joints_angle_stack_index + amount >= 0 && joints_angle_stack_index + amount < jointsAngleStack.size()) {
+    joints_angle_stack_index += amount;
+    map < unsigned int, pair< double, double > > jointsAngleMap = jointsAngleStack[joints_angle_stack_index];
+    map < unsigned int, pair< double, double > >::iterator it;
+
+    for (it=jointsAngleMap.begin(); it!=jointsAngleMap.end(); it++) {
+      unsigned int nodeId = it->first;
+      double angleX = it->second.first;
+      double angleY = it->second.second;
+
+      JointNode::jointNodeX[nodeId] = angleX;
+      JointNode::jointNodeY[nodeId] = angleY;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -609,7 +664,7 @@ bool A3::mouseMoveEvent (
       vector<bool>::iterator it;
       for (it=SceneNode::selectedGeometryNodes.begin(); it!=SceneNode::selectedGeometryNodes.end(); it++) {
         int index = it - SceneNode::selectedGeometryNodes.begin();
-        int jointNodeIndex = SceneNode::nodesWithJoints[index];
+        int jointNodeIndex = SceneNode::geometryNodesToJoints[index];
         if (*it && (jointNodeIndex != -1)) {
           JointNode::jointNodeY[jointNodeIndex] += diff;
         }
@@ -622,7 +677,7 @@ bool A3::mouseMoveEvent (
       vector<bool>::iterator it;
       for (it=SceneNode::selectedGeometryNodes.begin(); it!=SceneNode::selectedGeometryNodes.end(); it++) {
         int index = it - SceneNode::selectedGeometryNodes.begin();
-        int jointNodeIndex = SceneNode::nodesWithJoints[index];
+        int jointNodeIndex = SceneNode::geometryNodesToJoints[index];
         if (*it && (jointNodeIndex != -1)) {
           JointNode::jointNodeX[jointNodeIndex] += diff;
         }
@@ -697,7 +752,7 @@ bool A3::mouseButtonInputEvent (
         unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
 
         // Only mark the geometry node as selected if it is connected to a joint
-        if (what < SceneNode::totalSceneNodes() && SceneNode::nodesWithJoints[what] != -1) {
+        if (what < SceneNode::totalSceneNodes() && SceneNode::geometryNodesToJoints[what] != -1) {
           SceneNode::selectedGeometryNodes[what] = !SceneNode::selectedGeometryNodes[what];
         }
 
@@ -718,6 +773,13 @@ bool A3::mouseButtonInputEvent (
     }
     if (button == GLFW_MOUSE_BUTTON_3) {
       keys[GLFW_MOUSE_BUTTON_3] = false;
+    }
+
+    // Joints mode
+    if (current_mode == GLFW_KEY_J) {
+      if (button == GLFW_MOUSE_BUTTON_2 || button == GLFW_MOUSE_BUTTON_3) {
+        pushJointsAngleStack();
+      }
     }
   }
 
@@ -767,6 +829,15 @@ bool A3::keyInputEvent (
     if( key == GLFW_KEY_M ) {
       show_gui = !show_gui;
       eventHandled = true;
+    }
+
+    if (current_mode == GLFW_KEY_J) {
+      if (key == GLFW_KEY_U) {
+        moveJointsAngleStackIndex(-1);
+      }
+      if (key == GLFW_KEY_R) {
+        moveJointsAngleStackIndex(1);
+      }
     }
   }
   // Fill in with event handling code...

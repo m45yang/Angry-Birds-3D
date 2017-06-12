@@ -8,6 +8,7 @@
 #include "SceneNode.hpp"
 
 #include <glm/glm.hpp>
+#include <map>
 #include <memory>
 
 struct LightSource {
@@ -44,6 +45,8 @@ protected:
   void mapVboDataToVertexShaderInputLocations();
   void initViewMatrix();
   void initLightSources();
+  void pushJointsAngleStack();
+  void moveJointsAngleStackIndex(int amount);
 
   void initPerspectiveMatrix();
   void uploadCommonSceneUniforms();
@@ -91,8 +94,12 @@ protected:
   float mouse_x_pos;
   float mouse_y_pos;
   int current_mode;
+  int joints_angle_stack_index;
   unsigned int selected;
 
 private:
   static std::stack<glm::mat4> matrixStack;
+
+  // A stack containing all joint rotations in order
+  static std::vector< std::map < unsigned int, std::pair< double, double > > > jointsAngleStack;
 };

@@ -18,6 +18,6 @@ public:
 
   JointRange m_joint_x, m_joint_y;
 
-  static std::map<unsigned int, double > jointNodeX;
-  static std::map<unsigned int, double > jointNodeY;
+  static std::map< unsigned int, double > jointNodeX;
+  static std::map< unsigned int, double > jointNodeY;
 };
