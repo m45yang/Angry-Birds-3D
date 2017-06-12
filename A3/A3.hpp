@@ -42,6 +42,7 @@ protected:
   void enableVertexShaderInputSlots();
   void uploadVertexDataToVbos(const MeshConsolidator & meshConsolidator);
   void mapVboDataToVertexShaderInputLocations();
+  void initModelMatrix();
   void initViewMatrix();
   void initLightSources();
 
@@ -51,6 +52,7 @@ protected:
   void renderNode(const SceneNode &node);
   void renderArcCircle();
 
+  glm::mat4 m_model;
   glm::mat4 m_perpsective;
   glm::mat4 m_view;
 

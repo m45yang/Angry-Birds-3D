@@ -84,6 +84,8 @@ void A3::init()
 
   initViewMatrix();
 
+  initModelMatrix();
+
   initLightSources();
 
   do_picking = false;
@@ -247,6 +249,12 @@ void A3::mapVboDataToVertexShaderInputLocations()
 }
 
 //----------------------------------------------------------------------------------------
+void A3::initModelMatrix()
+{
+  m_model = mat4();
+}
+
+//----------------------------------------------------------------------------------------
 void A3::initPerspectiveMatrix()
 {
   float aspect = ((float)m_windowWidth) / m_windowHeight;
@@ -256,7 +264,7 @@ void A3::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A3::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f),
+  m_view = glm::lookAt(vec3(0.0f, 0.0f, -5.0f), vec3(0.0f, 0.0f, -1.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -515,7 +523,9 @@ void A3::renderSceneGraph(const SceneNode & root) {
   // could put a set of mutually recursive functions in this class, which
   // walk down the tree from nodes of different types.
 
+  matrixStack.push(m_model);
   renderNode(root);
+  matrixStack.pop();
 
   glBindVertexArray(0);
   CHECK_GL_ERRORS;
@@ -575,10 +585,48 @@ bool A3::mouseMoveEvent (
     double yPos
 ) {
   bool eventHandled(false);
+  // Position/Orientation
+  if (current_mode == GLFW_KEY_P) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
+      float xDiff = (mouse_x_pos - xPos)*5/m_windowHeight;
+      float yDiff = (mouse_y_pos - yPos)*5/m_windowHeight;
+
+      vec3 amount(xDiff, yDiff, 0.0f);
+      mat4 transform = translate(mat4(), amount);
+
+      m_model = transform * m_model;
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
+      // Trackball stuff
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
+      float yDiff = (mouse_y_pos - yPos)*5/m_windowHeight;
+
+      vec3 amount(0.0f, 0.0f, yDiff);
+      mat4 transform = translate(mat4(), amount);
+
+      m_model = transform * m_model;
+    }
+  }
 
   // Joints rotation
   if (current_mode == GLFW_KEY_J) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
+      float diff = (xPos - mouse_x_pos)*100/m_windowWidth;
+
+      vector<bool>::iterator it;
+      for (it=SceneNode::selectedGeometryNodes.begin(); it!=SceneNode::selectedGeometryNodes.end(); it++) {
+        int index = it - SceneNode::selectedGeometryNodes.begin();
+        int jointNodeIndex = SceneNode::nodesWithJoints[index];
+        if (*it && (jointNodeIndex != -1)) {
+          JointNode::jointNodeY[jointNodeIndex] += diff;
+        }
+      }
+    }
+
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
       float diff = (yPos - mouse_y_pos)*100/m_windowHeight;
 
       vector<bool>::iterator it;
@@ -591,18 +639,7 @@ bool A3::mouseMoveEvent (
       }
     }
 
-    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
-      float diff = (xPos - mouse_x_pos)*100/m_windowHeight;
 
-      vector<bool>::iterator it;
-      for (it=SceneNode::selectedGeometryNodes.begin(); it!=SceneNode::selectedGeometryNodes.end(); it++) {
-        int index = it - SceneNode::selectedGeometryNodes.begin();
-        int jointNodeIndex = SceneNode::nodesWithJoints[index];
-        if (*it && (jointNodeIndex != -1)) {
-          JointNode::jointNodeY[jointNodeIndex] += diff;
-        }
-      }
-    }
   }
 
   mouse_x_pos = xPos;
@@ -623,10 +660,20 @@ bool A3::mouseButtonInputEvent (
   bool eventHandled(false);
 
   if (actions == GLFW_PRESS && !ImGui::IsMouseHoveringAnyWindow()) {
+    if (button == GLFW_MOUSE_BUTTON_1) {
+      keys[GLFW_MOUSE_BUTTON_1] = true;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_2) {
+      keys[GLFW_MOUSE_BUTTON_2] = true;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_3) {
+      keys[GLFW_MOUSE_BUTTON_3] = true;
+    }
 
     // Joints mode
     if (current_mode == GLFW_KEY_J) {
       if (button == GLFW_MOUSE_BUTTON_1) {
+
         double xpos, ypos;
         glfwGetCursorPos( m_window, &xpos, &ypos );
         do_picking = true;
@@ -668,19 +715,13 @@ bool A3::mouseButtonInputEvent (
 
         CHECK_GL_ERRORS;
       }
-      if (button == GLFW_MOUSE_BUTTON_2) {
-        keys[GLFW_MOUSE_BUTTON_2] = true;
-      }
-      if (button == GLFW_MOUSE_BUTTON_3) {
-        keys[GLFW_MOUSE_BUTTON_3] = true;
-      }
     }
 
   }
 
   if (actions == GLFW_RELEASE && !ImGui::IsMouseHoveringAnyWindow()) {
     if (button == GLFW_MOUSE_BUTTON_1) {
-
+      keys[GLFW_MOUSE_BUTTON_1] = false;
     }
     if (button == GLFW_MOUSE_BUTTON_2) {
       keys[GLFW_MOUSE_BUTTON_2] = false;
