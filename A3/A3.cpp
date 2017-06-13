@@ -34,7 +34,9 @@ A3::A3(const std::string & luaSceneFile)
     m_vbo_arcCircle(0),
     mouse_x_pos(0.0f),
     mouse_y_pos(0.0f),
-    z_buffer(false),
+    cull_front(false),
+    cull_back(false),
+    z_buffer(true),
     trackball_circle_size(0.5f),
     joints_angle_stack_index(-1)
 {
@@ -407,6 +409,9 @@ void A3::guiLogic()
     ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
     ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
     ImGui::RadioButton( "Circle", &current_mode, GLFW_KEY_C );
+
+    ImGui::Checkbox( "Backface culling", &cull_back );
+    ImGui::Checkbox( "Frontface culling", &cull_front );
     ImGui::Checkbox( "Z Buffer", &z_buffer );
 
     // Create Button, and check if it was clicked:
@@ -482,15 +487,28 @@ void A3::draw() {
   if (z_buffer) {
     glEnable( GL_DEPTH_TEST );
   }
-  glEnable( GL_CULL_FACE );
-  glCullFace( GL_BACK );
+
+  if (cull_front || cull_back) {
+    glEnable( GL_CULL_FACE );
+  }
+  if (cull_front && cull_back) {
+    glCullFace( GL_FRONT_AND_BACK );
+  }
+  else if (cull_front) {
+    glCullFace( GL_FRONT );
+  }
+  else if (cull_back) {
+    glCullFace( GL_BACK );
+  }
 
   renderSceneGraph(*m_rootNode);
 
   if (z_buffer) {
     glDisable( GL_DEPTH_TEST );
   }
-  glDisable( GL_CULL_FACE );
+  if (cull_front || cull_back) {
+    glDisable( GL_CULL_FACE );
+  }
 
   renderArcCircle();
 }
@@ -965,6 +983,12 @@ bool A3::keyInputEvent (
     }
     else if (key == GLFW_KEY_Z) {
       z_buffer = !z_buffer;
+    }
+    else if (key == GLFW_KEY_B) {
+      cull_back = !cull_back;
+    }
+    else if (key == GLFW_KEY_F) {
+      cull_front = !cull_front;
     }
     else {
       current_mode = key;

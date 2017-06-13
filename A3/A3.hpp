@@ -93,6 +93,8 @@ protected:
   std::shared_ptr<SceneNode> m_rootNode;
 
 
+  bool cull_front;
+  bool cull_back;
   bool do_picking;
   bool z_buffer;
   bool keys[1024];
