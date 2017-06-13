@@ -400,52 +400,62 @@ void A3::guiLogic()
 
   static bool showDebugWindow(true);
   ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+  windowFlags |= ImGuiWindowFlags_MenuBar;
   float opacity(0.5f);
 
-  ImGui::Begin("Menu", &showDebugWindow, ImVec2(100,100), opacity,
-      windowFlags);
+  ImGui::Begin("Assignment 3", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
 
-    // Application Menu
-    if (ImGui::CollapsingHeader("Application menu")) {
-      if (ImGui::Button("Reset Position")) {
-        m_model_translation = mat4();
+    if (ImGui::BeginMenuBar())
+    {
+      if (ImGui::BeginMenu("Application"))
+      {
+        ImGui::MenuItem("Main menu bar");
+        if (ImGui::MenuItem("Reset Position")) {
+          m_model_translation = mat4();
+        }
+        if (ImGui::MenuItem("Reset Orientation")) {
+          m_model_rotation = mat4();
+        }
+        if (ImGui::MenuItem("Reset Joints")) {
+          clearJointsAngleStack();
+        }
+        if (ImGui::MenuItem("Reset All")) {
+          initModelMatrices();
+          clearJointsAngleStack();
+        }
+        if ( ImGui::MenuItem( "Quit Application" ) ) {
+          glfwSetWindowShouldClose(m_window, GL_TRUE);
+        }
+
+        ImGui::EndMenu();
       }
-      if (ImGui::Button("Reset Orientation")) {
-        m_model_rotation = mat4();
+
+      if (ImGui::BeginMenu("Edit"))
+      {
+        if (ImGui::MenuItem("Undo")) {
+          moveJointsAngleStackIndex(-1);
+        }
+        if( ImGui::MenuItem( "Redo" ) ) {
+          moveJointsAngleStackIndex(1);
+        }
+
+        ImGui::EndMenu();
       }
-      if (ImGui::Button("Reset Joints")) {
-        clearJointsAngleStack();
+
+      if (ImGui::BeginMenu("Options")) {
+        ImGui::MenuItem( "Circle", NULL, &draw_trackball_circle );
+        ImGui::MenuItem( "Z Buffer", NULL, &z_buffer );
+        ImGui::MenuItem( "Backface culling", NULL, &cull_back );
+        ImGui::MenuItem( "Frontface culling", NULL, &cull_front );
+
+        ImGui::EndMenu();
       }
-      if (ImGui::Button("Reset All")) {
-        initModelMatrices();
-        clearJointsAngleStack();
-      }
-      if( ImGui::Button( "Quit Application" ) ) {
-        glfwSetWindowShouldClose(m_window, GL_TRUE);
-      }
+
+      ImGui::EndMenuBar();
     }
 
-    if (ImGui::CollapsingHeader("Edit")) {
-      if (ImGui::Button("Undo")) {
-        moveJointsAngleStackIndex(-1);
-      }
-      if( ImGui::Button( "Redo" ) ) {
-        moveJointsAngleStackIndex(1);
-      }
-    }
-
-
-    if (ImGui::CollapsingHeader("Options")) {
-      ImGui::Checkbox( "Circle", &draw_trackball_circle );
-      ImGui::Checkbox( "Z Buffer", &z_buffer );
-      ImGui::Checkbox( "Backface culling", &cull_back );
-      ImGui::Checkbox( "Frontface culling", &cull_front );
-
-      ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
-      ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
-    }
-
-
+    ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
+    ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
 
     ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
