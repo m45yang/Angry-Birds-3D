@@ -823,7 +823,7 @@ bool A3::keyInputEvent (
     int action,
     int mods
 ) {
-  bool eventHandled(false);
+  bool eventHandled(true);
 
   if( action == GLFW_PRESS ) {
     if( key == GLFW_KEY_M ) {
