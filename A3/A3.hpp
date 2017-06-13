@@ -43,6 +43,7 @@ protected:
   void enableVertexShaderInputSlots();
   void uploadVertexDataToVbos(const MeshConsolidator & meshConsolidator);
   void mapVboDataToVertexShaderInputLocations();
+  void initModelMatrices();
   void initViewMatrix();
   void initLightSources();
   void clearJointsAngleStack();
@@ -57,6 +58,8 @@ protected:
 
   glm::mat4 m_perpsective;
   glm::mat4 m_view;
+  glm::mat4 m_model_rotation;
+  glm::mat4 m_model_translation;
 
   LightSource m_light;
 
