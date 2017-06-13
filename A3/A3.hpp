@@ -94,6 +94,7 @@ protected:
 
 
   bool do_picking;
+  bool z_buffer;
   bool keys[1024];
   float mouse_x_pos;
   float mouse_y_pos;

@@ -34,6 +34,7 @@ A3::A3(const std::string & luaSceneFile)
     m_vbo_arcCircle(0),
     mouse_x_pos(0.0f),
     mouse_y_pos(0.0f),
+    z_buffer(false),
     trackball_circle_size(0.5f),
     joints_angle_stack_index(-1)
 {
@@ -406,6 +407,7 @@ void A3::guiLogic()
     ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
     ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
     ImGui::RadioButton( "Circle", &current_mode, GLFW_KEY_C );
+    ImGui::Checkbox( "Z Buffer", &z_buffer );
 
     // Create Button, and check if it was clicked:
     if( ImGui::Button( "Quit Application" ) ) {
@@ -477,13 +479,17 @@ static void updateShaderUniforms(
  */
 void A3::draw() {
 
-  glEnable( GL_DEPTH_TEST );
+  if (z_buffer) {
+    glEnable( GL_DEPTH_TEST );
+  }
   glEnable( GL_CULL_FACE );
   glCullFace( GL_BACK );
 
   renderSceneGraph(*m_rootNode);
 
-  glDisable( GL_DEPTH_TEST );
+  if (z_buffer) {
+    glDisable( GL_DEPTH_TEST );
+  }
   glDisable( GL_CULL_FACE );
 
   renderArcCircle();
@@ -951,20 +957,19 @@ bool A3::keyInputEvent (
     else if ( key == GLFW_KEY_Q ) {
       glfwSetWindowShouldClose(m_window, GL_TRUE);
     }
-    else if (key != GLFW_KEY_R && key != GLFW_KEY_U) {
+    else if (key == GLFW_KEY_U) {
+      moveJointsAngleStackIndex(-1);
+    }
+    else if (key == GLFW_KEY_R) {
+      moveJointsAngleStackIndex(1);
+    }
+    else if (key == GLFW_KEY_Z) {
+      z_buffer = !z_buffer;
+    }
+    else {
       current_mode = key;
     }
-
-    if (current_mode == GLFW_KEY_J) {
-      if (key == GLFW_KEY_U) {
-        moveJointsAngleStackIndex(-1);
-      }
-      if (key == GLFW_KEY_R) {
-        moveJointsAngleStackIndex(1);
-      }
-    }
   }
-  // Fill in with event handling code...
 
   return eventHandled;
 }
