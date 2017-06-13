@@ -571,23 +571,8 @@ void A3::renderSceneGraph(const SceneNode & root) {
   // Bind the VAO once here, and reuse for all GeometryNode rendering below.
   glBindVertexArray(m_vao_meshData);
 
-  // This is emphatically *not* how you should be drawing the scene graph in
-  // your final implementation.  This is a non-hierarchical demonstration
-  // in which we assume that there is a list of GeometryNodes living directly
-  // underneath the root node, and that we can draw them in a loop.  It's
-  // just enough to demonstrate how to get geometry and materials out of
-  // a GeometryNode and onto the screen.
-
-  // You'll want to turn this into recursive code that walks over the tree.
-  // You can do that by putting a method in SceneNode, overridden in its
-  // subclasses, that renders the subtree rooted at every node.  Or you
-  // could put a set of mutually recursive functions in this class, which
-  // walk down the tree from nodes of different types.
-
-  matrixStack.push(m_model_rotation);
-  matrixStack.push(m_model_translation);
+  matrixStack.push(m_model_translation * m_model_rotation);
   renderNode(root);
-  matrixStack.pop();
   matrixStack.pop();
 
   glBindVertexArray(0);
@@ -614,6 +599,90 @@ void A3::renderArcCircle() {
 
   glBindVertexArray(0);
   CHECK_GL_ERRORS;
+}
+
+vec3 vCalcRotVec(float fNewX, float fNewY,
+                 float fOldX, float fOldY,
+                 float fDiameter) {
+   long  nXOrigin, nYOrigin;
+   float fNewVecX, fNewVecY, fNewVecZ,        /* Vector corresponding to new mouse location */
+         fOldVecX, fOldVecY, fOldVecZ,        /* Vector corresponding to old mouse location */
+         fLength;
+
+   fNewVecX    = fNewX * 2.0 / fDiameter;
+   fNewVecY    = fNewY * 2.0 / fDiameter;
+   fNewVecZ    = (1.0 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
+
+   if (fNewVecZ < 0.0) {
+      fLength = sqrt(1.0 - fNewVecZ);
+      fNewVecZ  = 0.0;
+      fNewVecX /= fLength;
+      fNewVecY /= fLength;
+   } else {
+      fNewVecZ = sqrt(fNewVecZ);
+   }
+
+   fOldVecX    = fOldX * 2.0 / fDiameter;
+   fOldVecY    = fOldY * 2.0 / fDiameter;
+   fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
+
+   if (fOldVecZ < 0.0) {
+      fLength = sqrt(1.0 - fOldVecZ);
+      fOldVecZ  = 0.0;
+      fOldVecX /= fLength;
+      fOldVecY /= fLength;
+   } else {
+      fOldVecZ = sqrt(fOldVecZ);
+   }
+
+   vec3 fVec;
+   fVec[0] = fOldVecY * fNewVecZ - fNewVecY * fOldVecZ;
+   fVec[1] = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
+   fVec[2] = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
+
+   return fVec;
+}
+
+mat4 vAxisRotMatrix(float fVecX, float fVecY, float fVecZ) {
+    float fRadians, fInvLength, fNewVecX, fNewVecY, fNewVecZ;
+    mat4 mNewMat;
+
+    fRadians = sqrt(fVecX * fVecX + fVecY * fVecY + fVecZ * fVecZ);
+
+    if (fRadians > -0.000001 && fRadians < 0.000001) {
+        return mNewMat;
+    }
+
+    fInvLength = 1 / fRadians;
+    fNewVecX   = fVecX * fInvLength;
+    fNewVecY   = fVecY * fInvLength;
+    fNewVecZ   = fVecZ * fInvLength;
+
+    double dSinAlpha = sin(fRadians);
+    double dCosAlpha = cos(fRadians);
+    double dT = 1 - dCosAlpha;
+
+    mNewMat[0][0] = dCosAlpha + fNewVecX*fNewVecX*dT;
+    mNewMat[0][1] = fNewVecX*fNewVecY*dT + fNewVecZ*dSinAlpha;
+    mNewMat[0][2] = fNewVecX*fNewVecZ*dT - fNewVecY*dSinAlpha;
+    mNewMat[0][3] = 0;
+
+    mNewMat[1][0] = fNewVecX*fNewVecY*dT - dSinAlpha*fNewVecZ;
+    mNewMat[1][1] = dCosAlpha + fNewVecY*fNewVecY*dT;
+    mNewMat[1][2] = fNewVecY*fNewVecZ*dT + dSinAlpha*fNewVecX;
+    mNewMat[1][3] = 0;
+
+    mNewMat[2][0] = fNewVecZ*fNewVecX*dT + dSinAlpha*fNewVecY;
+    mNewMat[2][1] = fNewVecZ*fNewVecY*dT - dSinAlpha*fNewVecX;
+    mNewMat[2][2] = dCosAlpha + fNewVecZ*fNewVecZ*dT;
+    mNewMat[2][3] = 0;
+
+    mNewMat[3][0] = 0;
+    mNewMat[3][1] = 0;
+    mNewMat[3][2] = 0;
+    mNewMat[3][3] = 1;
+
+    return mNewMat;
 }
 
 //----------------------------------------------------------------------------------------
@@ -657,11 +726,22 @@ bool A3::mouseMoveEvent (
       vec3 amount(xDiff*5, yDiff*5, 0.0f);
       mat4 transform = translate(mat4(), amount);
 
-      m_model_translation = transform * m_model_translation;
+      m_model_translation *= transform;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
       // Trackball stuff
+      float diamater = m_framebufferHeight > m_framebufferWidth ? m_framebufferWidth/2 : m_framebufferHeight/2;
+      vec3 rotation = vCalcRotVec(
+        xPos - m_framebufferWidth/2,
+        yPos - m_framebufferHeight/2,
+        mouse_x_pos - m_framebufferWidth/2,
+        mouse_y_pos - m_framebufferHeight/2,
+        diamater
+      );
+      mat4 transform = vAxisRotMatrix(rotation[0], rotation[1], rotation[2]);
+
+      m_model_rotation *= transform;
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_3]) {
@@ -670,7 +750,7 @@ bool A3::mouseMoveEvent (
       vec3 amount(0.0f, 0.0f, yDiff*5);
       mat4 transform = translate(mat4(), amount);
 
-      m_model_translation = transform * m_model_translation;
+      m_model_translation *= transform;
     }
   }
 

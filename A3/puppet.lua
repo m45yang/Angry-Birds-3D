@@ -1,7 +1,6 @@
 -- puppet.lua
 
 rootnode = gr.node('root')
--- rootnode:rotate('y', -90.0)
 rootnode:scale( 0.25, 0.25, 0.25 )
 rootnode:translate(0.0, 0.0, -1.0)
 
