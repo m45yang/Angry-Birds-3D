@@ -37,6 +37,7 @@ A3::A3(const std::string & luaSceneFile)
     cull_front(false),
     cull_back(false),
     draw_trackball_circle(false),
+    show_trackball_circle(true),
     z_buffer(true),
     trackball_circle_size(0.5f),
     joints_angle_stack_index(-1)
@@ -443,7 +444,8 @@ void A3::guiLogic()
       }
 
       if (ImGui::BeginMenu("Options")) {
-        ImGui::MenuItem( "Circle", NULL, &draw_trackball_circle );
+        ImGui::MenuItem( "Show Trackball Circle", NULL, &show_trackball_circle );
+        ImGui::MenuItem( "Draw Trackball Circle", NULL, &draw_trackball_circle );
         ImGui::MenuItem( "Z Buffer", NULL, &z_buffer );
         ImGui::MenuItem( "Backface culling", NULL, &cull_back );
         ImGui::MenuItem( "Frontface culling", NULL, &cull_front );
@@ -548,7 +550,9 @@ void A3::draw() {
     glDisable( GL_CULL_FACE );
   }
 
-  renderArcCircle();
+  if (show_trackball_circle || draw_trackball_circle) {
+    renderArcCircle();
+  }
 }
 
 void A3::renderNode(const SceneNode &node) {

@@ -97,6 +97,7 @@ protected:
   bool cull_back;
   bool do_picking;
   bool draw_trackball_circle;
+  bool show_trackball_circle;
   bool z_buffer;
   bool keys[1024];
   float mouse_x_pos;
