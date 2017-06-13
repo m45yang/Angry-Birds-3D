@@ -36,6 +36,7 @@ A3::A3(const std::string & luaSceneFile)
     mouse_y_pos(0.0f),
     cull_front(false),
     cull_back(false),
+    draw_trackball_circle(false),
     z_buffer(true),
     trackball_circle_size(0.5f),
     joints_angle_stack_index(-1)
@@ -401,23 +402,50 @@ void A3::guiLogic()
   ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
   float opacity(0.5f);
 
-  ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity,
+  ImGui::Begin("Menu", &showDebugWindow, ImVec2(100,100), opacity,
       windowFlags);
 
-
-    // Add more gui elements here here ...
-    ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
-    ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
-    ImGui::RadioButton( "Circle", &current_mode, GLFW_KEY_C );
-
-    ImGui::Checkbox( "Backface culling", &cull_back );
-    ImGui::Checkbox( "Frontface culling", &cull_front );
-    ImGui::Checkbox( "Z Buffer", &z_buffer );
-
-    // Create Button, and check if it was clicked:
-    if( ImGui::Button( "Quit Application" ) ) {
-      glfwSetWindowShouldClose(m_window, GL_TRUE);
+    // Application Menu
+    if (ImGui::CollapsingHeader("Application menu")) {
+      if (ImGui::Button("Reset Position")) {
+        m_model_translation = mat4();
+      }
+      if (ImGui::Button("Reset Orientation")) {
+        m_model_rotation = mat4();
+      }
+      if (ImGui::Button("Reset Joints")) {
+        clearJointsAngleStack();
+      }
+      if (ImGui::Button("Reset All")) {
+        initModelMatrices();
+        clearJointsAngleStack();
+      }
+      if( ImGui::Button( "Quit Application" ) ) {
+        glfwSetWindowShouldClose(m_window, GL_TRUE);
+      }
     }
+
+    if (ImGui::CollapsingHeader("Edit")) {
+      if (ImGui::Button("Undo")) {
+        moveJointsAngleStackIndex(-1);
+      }
+      if( ImGui::Button( "Redo" ) ) {
+        moveJointsAngleStackIndex(1);
+      }
+    }
+
+
+    if (ImGui::CollapsingHeader("Options")) {
+      ImGui::Checkbox( "Circle", &draw_trackball_circle );
+      ImGui::Checkbox( "Z Buffer", &z_buffer );
+      ImGui::Checkbox( "Backface culling", &cull_back );
+      ImGui::Checkbox( "Frontface culling", &cull_front );
+
+      ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
+      ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
+    }
+
+
 
     ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
@@ -810,7 +838,7 @@ bool A3::mouseMoveEvent (
   }
 
   // Draw trackball circle
-  if (current_mode == GLFW_KEY_C) {
+  if (draw_trackball_circle) {
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
       float sizeY = -(yPos - trackball_draw_start_y)/m_framebufferHeight;
       float sizeX = (xPos - trackball_draw_start_x)/m_framebufferWidth;
@@ -893,7 +921,7 @@ bool A3::mouseButtonInputEvent (
         CHECK_GL_ERRORS;
       }
     }
-    else if (current_mode == GLFW_KEY_C) {
+    else if (draw_trackball_circle) {
       trackball_draw_start_x = mouse_x_pos;
       trackball_draw_start_y = mouse_y_pos;
     }
@@ -966,10 +994,17 @@ bool A3::keyInputEvent (
       show_gui = !show_gui;
       eventHandled = true;
     }
+    else if ( key == GLFW_KEY_I ) {
+      m_model_rotation = mat4();
+    }
     else if ( key == GLFW_KEY_O ) {
-      initModelMatrices();
+      m_model_translation = mat4();
     }
     else if ( key == GLFW_KEY_N ) {
+      clearJointsAngleStack();
+    }
+    else if ( key == GLFW_KEY_A ) {
+      initModelMatrices();
       clearJointsAngleStack();
     }
     else if ( key == GLFW_KEY_Q ) {
