@@ -1,0 +1,9 @@
+Compilation
+Build the skeleton code and run it
+cd A3
+premake4 gmake
+make
+./A3 puppet.lua
+
+Manual
+- Assignment did not specify shortcut for toggling on/off displaying trackball, so only a menu item was added to do so. Also, an assumption made in the implementation was to display the trackball when drawing, even if display trackball is toggled off.
