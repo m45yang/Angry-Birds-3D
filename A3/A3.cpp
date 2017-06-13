@@ -291,6 +291,13 @@ void traverseAndAddJointsToStack(
 }
 
 //----------------------------------------------------------------------------------------
+void A3::clearJointsAngleStack() {
+  // Traverse hierarchical data structure and add all joints to the stack
+  jointsAngleStack.erase(jointsAngleStack.begin() + 1, jointsAngleStack.end());
+  moveJointsAngleStackIndex(-joints_angle_stack_index);
+}
+
+//----------------------------------------------------------------------------------------
 void A3::pushJointsAngleStack() {
   // Traverse hierarchical data structure and add all joints to the stack
   map < unsigned int, pair< double, double > > jointsAngleMap;
@@ -829,6 +836,12 @@ bool A3::keyInputEvent (
     if( key == GLFW_KEY_M ) {
       show_gui = !show_gui;
       eventHandled = true;
+    }
+    else if ( key == GLFW_KEY_N ) {
+      clearJointsAngleStack();
+    }
+    else if (key != GLFW_KEY_R && key != GLFW_KEY_U) {
+      current_mode = key;
     }
 
     if (current_mode == GLFW_KEY_J) {

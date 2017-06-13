@@ -45,6 +45,7 @@ protected:
   void mapVboDataToVertexShaderInputLocations();
   void initViewMatrix();
   void initLightSources();
+  void clearJointsAngleStack();
   void pushJointsAngleStack();
   void moveJointsAngleStackIndex(int amount);
 
