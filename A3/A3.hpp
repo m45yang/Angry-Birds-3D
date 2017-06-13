@@ -97,6 +97,9 @@ protected:
   bool keys[1024];
   float mouse_x_pos;
   float mouse_y_pos;
+  float trackball_draw_start_x;
+  float trackball_draw_start_y;
+  float trackball_circle_size;
   int current_mode;
   int joints_angle_stack_index;
   unsigned int selected;

@@ -34,6 +34,7 @@ A3::A3(const std::string & luaSceneFile)
     m_vbo_arcCircle(0),
     mouse_x_pos(0.0f),
     mouse_y_pos(0.0f),
+    trackball_circle_size(0.5f),
     joints_angle_stack_index(-1)
 {
 
@@ -404,6 +405,7 @@ void A3::guiLogic()
     // Add more gui elements here here ...
     ImGui::RadioButton( "Joints", &current_mode, GLFW_KEY_J );
     ImGui::RadioButton( "Position/Orientation", &current_mode, GLFW_KEY_P );
+    ImGui::RadioButton( "Circle", &current_mode, GLFW_KEY_C );
 
     // Create Button, and check if it was clicked:
     if( ImGui::Button( "Quit Application" ) ) {
@@ -589,9 +591,9 @@ void A3::renderArcCircle() {
     float aspect = float(m_framebufferWidth)/float(m_framebufferHeight);
     glm::mat4 M;
     if( aspect > 1.0 ) {
-      M = glm::scale( glm::mat4(), glm::vec3( 0.5/aspect, 0.5, 1.0 ) );
+      M = glm::scale( glm::mat4(), glm::vec3( trackball_circle_size/aspect, trackball_circle_size, 1.0 ) );
     } else {
-      M = glm::scale( glm::mat4(), glm::vec3( 0.5, 0.5*aspect, 1.0 ) );
+      M = glm::scale( glm::mat4(), glm::vec3( trackball_circle_size, trackball_circle_size*aspect, 1.0 ) );
     }
     glUniformMatrix4fv( m_location, 1, GL_FALSE, value_ptr( M ) );
     glDrawArrays( GL_LINE_LOOP, 0, CIRCLE_PTS );
@@ -730,8 +732,8 @@ bool A3::mouseMoveEvent (
     }
 
     if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_2]) {
-      // Trackball stuff
-      float diamater = m_framebufferHeight > m_framebufferWidth ? m_framebufferWidth/2 : m_framebufferHeight/2;
+      // Trackball rotation
+      float diamater = m_framebufferHeight > m_framebufferWidth ? m_framebufferWidth*trackball_circle_size : m_framebufferHeight*trackball_circle_size;
       vec3 rotation = vCalcRotVec(
         xPos - m_framebufferWidth/2,
         yPos - m_framebufferHeight/2,
@@ -781,8 +783,16 @@ bool A3::mouseMoveEvent (
         }
       }
     }
+  }
 
+  // Draw trackball circle
+  if (current_mode == GLFW_KEY_C) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && keys[GLFW_MOUSE_BUTTON_1]) {
+      float sizeY = -(yPos - trackball_draw_start_y)/m_framebufferHeight;
+      float sizeX = (xPos - trackball_draw_start_x)/m_framebufferWidth;
 
+      trackball_circle_size = sizeX > sizeY ? sizeX : sizeY;
+    }
   }
 
   mouse_x_pos = xPos;
@@ -858,6 +868,10 @@ bool A3::mouseButtonInputEvent (
 
         CHECK_GL_ERRORS;
       }
+    }
+    else if (current_mode == GLFW_KEY_C) {
+      trackball_draw_start_x = mouse_x_pos;
+      trackball_draw_start_y = mouse_y_pos;
     }
 
   }
