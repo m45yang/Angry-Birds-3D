@@ -154,7 +154,7 @@ hips:scale(0.35, 0.1, 0.1)
 hips:translate(0.0, -0.95, 0.0)
 hips:set_material(white)
 
-hips_left_up_leg = gr.joint('hips_left_up_leg', {-180.0, 0.0, 75.0}, {-10.0, 0.0, 10.0})
+hips_left_up_leg = gr.joint('hips_left_up_leg', {-120.0, 0.0, 75.0}, {-10.0, 0.0, 10.0})
 hips:add_child(hips_left_up_leg)
 
 left_up_leg = gr.mesh('sphere', 'left_up_leg')
@@ -171,7 +171,7 @@ left_knee:scale(0.09, 0.09, 0.09)
 left_knee:translate(0.0, -0.85, 0.0)
 left_knee:set_material(white)
 
-left_knee_left_low_leg = gr.joint('left_knee_left_low_leg', {-35.0,  0.0, 150.0}, {-10.0, 0.0, 10.0})
+left_knee_left_low_leg = gr.joint('left_knee_left_low_leg', {-15.0,  0.0, 150.0}, {-10.0, 0.0, 10.0})
 left_knee:add_child(left_knee_left_low_leg)
 
 left_low_leg = gr.mesh('sphere', 'left_low_leg')
@@ -181,17 +181,24 @@ left_low_leg:scale(0.1, 0.4, 0.08)
 left_low_leg:translate(0.0, -3.5, 0.0)
 left_low_leg:set_material(white)
 
-left_low_leg_left_foot = gr.joint('left_low_leg_left_foot', {-180.0, 0.0, 75.0}, {0.0, 50.0, 110.0})
-left_low_leg:add_child(left_low_leg_left_foot)
+left_ankle = gr.mesh('sphere', 'left_ankle')
+left_low_leg:add_child(left_ankle)
+left_ankle:scale(1.0/0.1, 1.0/0.4, 1.0/0.08)
+left_ankle:scale(0.05, 0.05, 0.05)
+left_ankle:translate(0.0, -0.75, 0.0)
+left_ankle:set_material(white)
+
+left_ankle_left_foot = gr.joint('left_ankle_left_foot', {0.0, 0.0, 0.0}, {0.0, 50.0, 110.0})
+left_ankle:add_child(left_ankle_left_foot)
 
 left_foot = gr.mesh('sphere', 'left_foot')
-left_low_leg_left_foot:add_child(left_foot)
-left_foot:scale(1.0/0.1, 1.0/0.4, 1.0/0.08)
-left_foot:scale(0.3, 0.1, 0.08)
-left_foot:translate(-1.5, -0.8, 0.0)
+left_ankle_left_foot:add_child(left_foot)
+left_foot:scale(1.0/0.05, 1.0/0.05, 1.0/0.05)
+left_foot:scale(0.25, 0.1, 0.08)
+left_foot:translate(-3.0, -0.8, 0.0)
 left_foot:set_material(white)
 
-hips_right_up_leg = gr.joint('hips_right_up_leg', {-180.0, 0.0, 75.0}, {-10.0, 0.0, 10.0})
+hips_right_up_leg = gr.joint('hips_right_up_leg', {-120.0, 0.0, 75.0}, {-10.0, 0.0, 10.0})
 hips:add_child(hips_right_up_leg)
 
 right_up_leg = gr.mesh('sphere', 'right_up_leg')
@@ -208,7 +215,7 @@ right_knee:scale(0.09, 0.09, 0.09)
 right_knee:translate(0.0, -0.85, 0.0)
 right_knee:set_material(white)
 
-right_knee_right_low_leg = gr.joint('right_knee_right_low_leg', {-35.0,  0.0, 150.0}, {-10.0, 0.0, 10.0})
+right_knee_right_low_leg = gr.joint('right_knee_right_low_leg', {-15.0,  0.0, 150.0}, {-10.0, 0.0, 10.0})
 right_knee:add_child(right_knee_right_low_leg)
 
 right_low_leg = gr.mesh('sphere', 'right_low_leg')
@@ -218,15 +225,21 @@ right_low_leg:scale(0.1, 0.4, 0.08)
 right_low_leg:translate(0.0, -0.35, 0.0)
 right_low_leg:set_material(white)
 
-right_low_leg_right_foot = gr.joint('right_low_leg_right_foot', {-180.0, 0.0, 75.0}, {80.0, 140.0, 190.0})
-right_low_leg:add_child(right_low_leg_right_foot)
+right_ankle = gr.mesh('sphere', 'right_ankle')
+right_low_leg:add_child(right_ankle)
+right_ankle:scale(1.0/0.1, 1.0/0.4, 1.0/0.08)
+right_ankle:scale(0.05, 0.05, 0.05)
+right_ankle:translate(0.0, -0.75, 0.0)
+right_ankle:set_material(white)
+
+right_ankle_right_foot = gr.joint('right_ankle_right_foot', {0.0, 0.0, 0.0}, {80.0, 130.0, 180.0})
+right_ankle:add_child(right_ankle_right_foot)
 
 right_foot = gr.mesh('sphere', 'right_foot')
-right_low_leg_right_foot:add_child(right_foot)
-right_foot:scale(1.0/0.1, 1.0/0.4, 1.0/0.08)
-right_foot:scale(0.3, 0.1, 0.08)
-right_foot:translate(-1.5, -0.8, 0.0)
+right_ankle_right_foot:add_child(right_foot)
+right_foot:scale(1.0/0.05, 1.0/0.05, 1.0/0.05)
+right_foot:scale(0.25, 0.1, 0.08)
+right_foot:translate(-3.0, -0.8, 0.0)
 right_foot:set_material(white)
-
 
 return rootnode
