@@ -6,6 +6,7 @@
 #include "cs488-framework/MeshConsolidator.hpp"
 
 #include "SceneNode.hpp"
+#include "trackball.hpp"
 
 #include <glm/glm.hpp>
 #include <map>
