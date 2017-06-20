@@ -2,6 +2,17 @@
 
 #include "A4.hpp"
 
+using namespace std;
+using namespace glm;
+
+void traverseScene(SceneNode* root)
+{
+  // Do some action
+  for (SceneNode* child: root->children) {
+    traverseScene(child);
+  }
+}
+
 void A4_Render(
     // What to render
     SceneNode * root,
@@ -10,33 +21,31 @@ void A4_Render(
     Image & image,
 
     // Viewing parameters
-    const glm::vec3 & eye,
-    const glm::vec3 & view,
-    const glm::vec3 & up,
+    const vec3 & eye,
+    const vec3 & view,
+    const vec3 & up,
     double fovy,
 
     // Lighting parameters
-    const glm::vec3 & ambient,
-    const std::list<Light *> & lights
+    const vec3 & ambient,
+    const list<Light *> & lights
 ) {
 
-  // Fill in raytracing code here...
-
-  std::cout << "Calling A4_Render(\n" <<
+  cout << "Calling A4_Render(\n" <<
       "\t" << *root <<
           "\t" << "Image(width:" << image.width() << ", height:" << image.height() << ")\n"
-          "\t" << "eye:  " << glm::to_string(eye) << std::endl <<
-      "\t" << "view: " << glm::to_string(view) << std::endl <<
-      "\t" << "up:   " << glm::to_string(up) << std::endl <<
-      "\t" << "fovy: " << fovy << std::endl <<
-          "\t" << "ambient: " << glm::to_string(ambient) << std::endl <<
-      "\t" << "lights{" << std::endl;
+          "\t" << "eye:  " << to_string(eye) << endl <<
+      "\t" << "view: " << to_string(view) << endl <<
+      "\t" << "up:   " << to_string(up) << endl <<
+      "\t" << "fovy: " << fovy << endl <<
+          "\t" << "ambient: " << to_string(ambient) << endl <<
+      "\t" << "lights{" << endl;
 
   for(const Light * light : lights) {
-    std::cout << "\t\t" <<  *light << std::endl;
+    cout << "\t\t" <<  *light << endl;
   }
-  std::cout << "\t}" << std::endl;
-  std:: cout <<")" << std::endl;
+  cout << "\t}" << endl;
+  cout <<")" << endl;
 
   size_t h = image.height();
   size_t w = image.width();

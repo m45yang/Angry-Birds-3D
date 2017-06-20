@@ -6,6 +6,8 @@
 #include "Light.hpp"
 #include "Image.hpp"
 
+void traverseScene(SceneNode* root);
+
 void A4_Render(
     // What to render
     SceneNode * root,
