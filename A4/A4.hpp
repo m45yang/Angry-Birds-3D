@@ -5,6 +5,7 @@
 #include "SceneNode.hpp"
 #include "Light.hpp"
 #include "Image.hpp"
+#include "Ray.hpp"
 
 void traverseScene(SceneNode* root);
 

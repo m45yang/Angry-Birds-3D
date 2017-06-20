@@ -50,8 +50,29 @@ void A4_Render(
   size_t h = image.height();
   size_t w = image.width();
 
+  mat4 T_1 = translate(mat4(), vec3(-float(w)/2, float(h)/2, 1.0f));
+
+  float t = 2*tan(fovy/2);
+  float s = float(w)/float(h) * t;
+  mat4 S_2 = scale(mat4(), vec3(-t/h, t/h, 1.0f));
+
+  vec3 view_n = normalize(view);
+  vec3 u = normalize(cross(up, view_n));
+  vec3 v = cross(view_n, u);
+  mat4 R_3(
+    vec4( u, 0.0f ),
+    vec4( v, 0.0f ),
+    vec4( view_n, 0.0f ),
+    vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+  );
+
+  mat4 T_4 = translate(mat4(), vec3(eye.x, eye.y, eye.z));
+
   for (uint y = 0; y < h; ++y) {
     for (uint x = 0; x < w; ++x) {
+      vec4 point(x, y, 0.0f, 1.0f);
+      point = T_1 * point;
+
       // Red: increasing from top to bottom
       image(x, y, 0) = (double)y / h;
       // Green: increasing from left to right
