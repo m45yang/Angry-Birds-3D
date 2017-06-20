@@ -71,7 +71,7 @@ void A4_Render(
   for (uint y = 0; y < h; ++y) {
     for (uint x = 0; x < w; ++x) {
       vec4 point(x, y, 0.0f, 1.0f);
-      point = T_1 * point;
+      point = T_4 * R_3 * S_2 * T_1 * point;
 
       // Red: increasing from top to bottom
       image(x, y, 0) = (double)y / h;
