@@ -6,10 +6,9 @@ using namespace std;
 using namespace glm;
 
 
-bool intersect(Ray r, float *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, const SceneNode & node)
+bool intersect(Ray r, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, double *shine, const SceneNode & node)
 {
   bool isIntersect = false;
-  // cerr << node.m_name << endl;
   const GeometryNode * geometryNode = dynamic_cast<const GeometryNode *>(&node);
 
   if (geometryNode) {
@@ -22,28 +21,23 @@ bool intersect(Ray r, float *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, 
     if (nonhierSphere) {
       vec3 position = nonhierSphere->getPosition();
       double radius = nonhierSphere->getRadius();
-
       double A = dot(uv-r.origin, uv-r.origin);
-      double B = 2*dot(uv-r.origin, r.origin-position);
+      double B = dot(uv-r.origin, r.origin-position) * 2;
       double C = dot(r.origin-position, r.origin-position) - radius*radius;
       double roots[2];
       size_t numRoots = quadraticRoots(A, B, C, roots);
 
-      if (numRoots == 0) {
-        // No intersection
-      }
-      else if (numRoots == 1) {
-        // Ray tangent to sphere
-      }
-      else if (numRoots == 2) {
+      if (numRoots == 2) {
         // Ray intersects sphere, test for closer point
+        double new_t = roots[0] < roots[1] ? roots[0] : roots[1];
         isIntersect = true;
-        double new_t = roots[0] ? roots[0] < roots[1] : roots[1];
-        if (*t == -1.0f || new_t < *t) {
+        if (*t == -1.0 || new_t < *t) {
           *t = new_t;
-          *N = r.origin + (*t)*r.direction - position;
+          *N = normalize(r.origin + (*t)*r.direction - position);
           *kd = phongMaterial->getKd();
           *ks = phongMaterial->getKs();
+          *shine = phongMaterial->getShininess();
+          *ke = (*kd)/5;
         }
       }
     }
@@ -56,56 +50,69 @@ bool intersect(Ray r, float *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, 
   }
 
   for (SceneNode* child : node.children) {
-    isIntersect = intersect(r, t, N, uv, kd, ks, ke, *child) || isIntersect;
+    bool result = intersect(r, t, N, uv, kd, ks, ke, shine, *child);
+    isIntersect = isIntersect || result;
   }
 
   return isIntersect;
 }
 
-vec3 directLight(vec3 p, vec3 N, vec3 uv, const SceneNode & root, const list<Light *> & lights)
+vec3 directLight(
+  vec3 p,
+  vec3 N,
+  vec3 uv,
+  vec3 v,
+  vec3 kd,
+  vec3 ks,
+  double shine,
+  const SceneNode & root,
+  const list<Light *> & lights
+)
 {
-  vec3 kd, ks, ke, col;
-  vec3 light(0, 0, 0);
-  float t;
+  vec3 ke, col, reflected, light;
+  vec3 combinedLights(0, 0, 0);
+  double t, r;
   list<Light*> unobstructedLights;
   list<Light *>::const_iterator it1;
-  list<Light *>::iterator it2;
 
   for (it1=lights.begin(); it1!=lights.end(); it1++) {
-    t = -1.0f;
-    Ray r = Ray(p, (*it1)->position-p);
-    if (!intersect(r, &t, &N, uv, &kd, &ks, &ke, root)) {
-      unobstructedLights.push_back(*it1);
+    t = -1.0;
+    Ray ray = Ray((*it1)->position, p - (*it1)->position);
+
+    if (!intersect(ray, &t, &N, uv, &kd, &ks, &ke, &shine, root)) {
+      light = (*it1)->position - p;
+      r = length(light);
+      light = normalize(light);
+      reflected = normalize(-light + 2*dot(light, N)*N);
+      vec3 specular = kd + ks*(pow(dot(reflected, v), shine))/(dot(N,light));
+      combinedLights[0] += specular[0] * (*it1)->colour[0] * dot(light, N) / ((*it1)->falloff[0] + (*it1)->falloff[1]*r + (*it1)->falloff[2]*pow(r,2));
+      combinedLights[1] += specular[1] * (*it1)->colour[1] * dot(light, N) / ((*it1)->falloff[0] + (*it1)->falloff[1]*r + (*it1)->falloff[2]*pow(r,2));
+      combinedLights[2] += specular[2] * (*it1)->colour[2] * dot(light, N) / ((*it1)->falloff[0] + (*it1)->falloff[1]*r + (*it1)->falloff[2]*pow(r,2));
     }
   }
 
-  for (it2=unobstructedLights.begin(); it2!=unobstructedLights.end(); it2++) {
-    light[0] += (*it2)->colour[0] / ((*it2)->falloff[0] + (*it2)->falloff[1] + (*it2)->falloff[2]);
-    light[1] += (*it2)->colour[1] / ((*it2)->falloff[0] + (*it2)->falloff[1] + (*it2)->falloff[2]);
-    light[2] += (*it2)->colour[2] / ((*it2)->falloff[0] + (*it2)->falloff[1] + (*it2)->falloff[2]);
-  }
-
-  return light;
+  return combinedLights;
 }
 
-vec3 rayColor(Ray r, vec3 uv, int hits, const SceneNode & root, const list<Light *> & lights)
+vec3 rayColor(Ray r, vec3 uv, vec3 ambient, int hits, const SceneNode & root, const list<Light *> & lights)
 {
   vec3 kd, ks, ke, col, N, p;
-  float t = -1.0f;
+  double t = -1.0;
+  double shine = 1.0;
 
-  if (intersect(r, &t, &N, uv, &kd, &ks, &ke, root)) {
-    col = kd;
-    p = uv + t*r.direction;
+  if (intersect(r, &t, &N, uv, &kd, &ks, &ke, &shine, root)) {
+    col = kd + ke*ambient;
+    p = r.origin + t*r.direction;
     if (kd != vec3(0,0,0)) {
       // Compute direct light
-      vec3 light = directLight(p, N, uv, root, lights);
-      col[0] = kd[0] * light[0];
-      col[1] = kd[1] * light[1];
-      col[2] = kd[2] * light[2];
+      vec3 light = directLight(p, N, uv, normalize(r.origin-p), kd, ks, shine, root, lights);
+      col[0] = kd[0]*(ke[0]*ambient[0] + light[0]);
+      col[1] = kd[1]*(ke[1]*ambient[1] + light[1]);
+      col[2] = kd[2]*(ke[2]*ambient[2] + light[2]);
     }
   }
   else {
-    return vec3(0.0f, 0.0f, 0.0f);
+    return vec3(0.0, 0.0, 0.0);
   }
 
   return col;
@@ -148,20 +155,20 @@ void A4_Render(
   size_t h = image.height();
   size_t w = image.width();
 
-  mat4 T_1 = translate(mat4(), vec3(-float(w)/2, -float(h)/2, 1.0f));
+  mat4 T_1 = translate(mat4(), vec3(-double(w)/2, -double(h)/2, 1.0));
 
-  float t = 2*tan(radians(fovy/2));
-  float s = float(w)/float(h) * t;
-  mat4 S_2 = scale(mat4(), vec3(-s/w, t/h, 1.0f));
+  double t = 2*tan(radians(fovy/2));
+  double s = double(w)/double(h) * t;
+  mat4 S_2 = scale(mat4(), vec3(-s/w, t/h, 1.0));
 
   vec3 view_n = normalize(view);
   vec3 u = normalize(cross(up, view_n));
   vec3 v = cross(view_n, u);
   mat4 R_3(
-    vec4( u, 0.0f ),
-    vec4( v, 0.0f ),
-    vec4( view_n, 0.0f ),
-    vec4( 0.0f, 0.0f, 0.0f, 1.0f )
+    vec4( u, 0.0 ),
+    vec4( v, 0.0 ),
+    vec4( view_n, 0.0 ),
+    vec4( 0.0, 0.0, 0.0, 1.0 )
   );
 
   mat4 T_4 = translate(mat4(), eye);
@@ -169,7 +176,7 @@ void A4_Render(
   for (uint y = 0; y < h; ++y) {
     for (uint x = 0; x < w; ++x) {
       // Transform point to world space
-      vec4 point(x, y, 0.0f, 1.0f);
+      vec4 point(x, y, 0.0, 1.0);
       point = T_4 * R_3 * S_2 * T_1 * point;
       vec3 direction = vec3(point.x, point.y, point.z) - eye;
 
@@ -177,7 +184,7 @@ void A4_Render(
       Ray ray = Ray(eye, direction);
 
       // Get the color for the ray
-      vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), 0, *root, lights);
+      vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), ambient, 0, *root, lights);
 
       // Red
       image(x, y, 0) = color.x;

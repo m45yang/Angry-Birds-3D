@@ -10,11 +10,21 @@
 #include "Ray.hpp"
 #include "polyroots.hpp"
 
-bool intersect(Ray r, float *t, glm::vec3 *N, glm::vec3 uv, glm::vec3 *kd, glm::vec3 *ks, glm::vec3 *ke, const SceneNode & node);
+bool intersect(Ray r, double *t, glm::vec3 *N, glm::vec3 uv, glm::vec3 *kd, glm::vec3 *ks, glm::vec3 *ke, double *shine, const SceneNode & node);
 
-glm::vec3 directLight(glm::vec3 p, glm::vec3 N, glm::vec3 uv, const SceneNode & root, const std::list<Light *> & lights);
+glm::vec3 directLight(
+  glm::vec3 p,
+  glm::vec3 N,
+  glm::vec3 uv,
+  glm::vec3 v,
+  glm::vec3 kd,
+  glm::vec3 ks,
+  double shine,
+  const SceneNode & root,
+  const std::list<Light *> & lights
+);
 
-glm::vec3 rayColor(Ray r, glm::vec3 uv, int hits, const SceneNode & root, const std::list<Light *> & lights);
+glm::vec3 rayColor(Ray r, glm::vec3 uv, glm::vec3 ambient, int hits, const SceneNode & root, const std::list<Light *> & lights);
 
 void A4_Render(
     // What to render
