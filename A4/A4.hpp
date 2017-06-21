@@ -11,7 +11,19 @@
 #include "Ray.hpp"
 #include "polyroots.hpp"
 
-bool intersect(Ray ray, double *t, glm::vec3 *N, glm::vec3 uv, glm::vec3 *kd, glm::vec3 *ks, glm::vec3 *ke, double *shine, const SceneNode & node);
+bool triangleIntersect(Ray ray, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 uv);
+
+bool intersect(
+  Ray ray,
+  double *t,
+  glm::vec3 *N,
+  glm::vec3 uv,
+  glm::vec3 *kd,
+  glm::vec3 *ks,
+  glm::vec3 *ke,
+  double *shine,
+  const SceneNode & node
+);
 
 glm::vec3 directLight(
   glm::vec3 p,

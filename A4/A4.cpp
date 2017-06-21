@@ -5,8 +5,60 @@
 using namespace std;
 using namespace glm;
 
+bool triangleIntersect(Ray ray, vec3 p0, vec3 p1, vec3 p2, vec3 uv)
+{
+  vec3 x, y, z, r;
+  mat3 d, d0, d1, d2;
+  double det, det0, det1, det2;
+  double beta, gamma;
 
-bool intersect(Ray ray, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, double *shine, const SceneNode & node)
+  x = vec3(p1.x-p0.x, p2.x-p0.x, uv.x-ray.origin.x);
+  y = vec3(p1.y-p0.y, p2.y-p0.y, uv.y-ray.origin.y);
+  z = vec3(p1.z-p0.z, p2.z-p0.z, uv.z-ray.origin.z);
+  r = vec3(ray.origin.x-p0.x, ray.origin.y-p0.y, ray.origin.z-p0.z);
+
+  d = mat3(
+    vec3(x[0], y[0], z[0]),
+    vec3(x[1], y[1], z[1]),
+    vec3(x[2], y[2], z[2])
+  );
+  det = determinant(d);
+  d0 = mat3(
+    r,
+    vec3(x[1], y[1], z[1]),
+    vec3(x[2], y[2], z[2])
+  );
+  det0 = determinant(d0);
+  d1 = mat3(
+    vec3(x[0], y[0], z[0]),
+    r,
+    vec3(x[2], y[2], z[2])
+  );
+  det1 = determinant(d1);
+  d2 = mat3(
+    vec3(x[0], y[0], z[0]),
+    vec3(x[1], y[1], z[1]),
+    r
+  );
+  det2 = determinant(d2);
+
+  beta = det0/det;
+  gamma = det1/det;
+
+  return (beta >= 0 && gamma >= 0 && beta + gamma <= 1);
+}
+
+bool intersect(
+  Ray ray,
+  double *t,
+  vec3 *N,
+  vec3 uv,
+  vec3 *kd,
+  vec3 *ks,
+  vec3 *ke,
+  double *shine,
+  const SceneNode & node
+)
 {
   bool isIntersect = false;
   double new_t;
@@ -38,7 +90,7 @@ bool intersect(Ray ray, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *k
           *kd = phongMaterial->getKd();
           *ks = phongMaterial->getKs();
           *shine = phongMaterial->getShininess();
-          *ke = (*kd)/2;
+          *ke = (*kd)/4;
         }
       }
     }
@@ -63,40 +115,7 @@ bool intersect(Ray ray, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *k
         p1 = mesh->m_vertices[it->v2];
         p2 = mesh->m_vertices[it->v3];
 
-        x = vec3(p1.x-p0.x, p2.x-p0.x, uv.x-ray.origin.x);
-        y = vec3(p1.y-p0.y, p2.y-p0.y, uv.y-ray.origin.y);
-        z = vec3(p1.z-p0.z, p2.z-p0.z, uv.z-ray.origin.z);
-        r = vec3(ray.origin.x-p0.x, ray.origin.y-p0.y, ray.origin.z-p0.z);
-
-        d = mat3(
-          vec3(x[0], y[0], z[0]),
-          vec3(x[1], y[1], z[1]),
-          vec3(x[2], y[2], z[2])
-        );
-        det = determinant(d);
-        d0 = mat3(
-          r,
-          vec3(x[1], y[1], z[1]),
-          vec3(x[2], y[2], z[2])
-        );
-        det0 = determinant(d0);
-        d1 = mat3(
-          vec3(x[0], y[0], z[0]),
-          r,
-          vec3(x[2], y[2], z[2])
-        );
-        det1 = determinant(d1);
-        d2 = mat3(
-          vec3(x[0], y[0], z[0]),
-          vec3(x[1], y[1], z[1]),
-          r
-        );
-        det2 = determinant(d2);
-
-        beta = det0/det;
-        gamma = det1/det;
-
-        if (beta >= 0 && gamma >= 0 && beta + gamma <= 1) {
+        if (triangleIntersect(ray, p0, p1, p2, uv)) {
           isIntersect = true;
           new_t = det2/det;
           if (*t == -1.0 || new_t < *t) {
@@ -104,7 +123,7 @@ bool intersect(Ray ray, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *k
             *kd = phongMaterial->getKd();
             *ks = phongMaterial->getKs();
             *shine = phongMaterial->getShininess();
-            *ke = (*kd)/2;
+            *ke = (*kd)/4;
           }
         }
       }
