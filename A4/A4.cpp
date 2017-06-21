@@ -41,6 +41,7 @@ bool intersect(Ray r, float *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, 
         double new_t = roots[0] ? roots[0] < roots[1] : roots[1];
         if (*t == -1.0f || new_t < *t) {
           *t = new_t;
+          *N = r.origin + (*t)*r.direction - position;
           *kd = phongMaterial->getKd();
           *ks = phongMaterial->getKs();
         }
@@ -55,23 +56,52 @@ bool intersect(Ray r, float *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, 
   }
 
   for (SceneNode* child : node.children) {
-    isIntersect = isIntersect || intersect(r, t, N, uv, kd, ks, ke, *child);
+    isIntersect = intersect(r, t, N, uv, kd, ks, ke, *child) || isIntersect;
   }
 
   return isIntersect;
 }
 
-vec3 rayColor(Ray r, vec3 uv, int hits, const SceneNode & root)
+vec3 directLight(vec3 p, vec3 N, vec3 uv, const SceneNode & root, const list<Light *> & lights)
+{
+  vec3 kd, ks, ke, col;
+  vec3 light(0, 0, 0);
+  float t;
+  list<Light*> unobstructedLights;
+  list<Light *>::const_iterator it1;
+  list<Light *>::iterator it2;
+
+  for (it1=lights.begin(); it1!=lights.end(); it1++) {
+    t = -1.0f;
+    Ray r = Ray(p, (*it1)->position-p);
+    if (!intersect(r, &t, &N, uv, &kd, &ks, &ke, root)) {
+      unobstructedLights.push_back(*it1);
+    }
+  }
+
+  for (it2=unobstructedLights.begin(); it2!=unobstructedLights.end(); it2++) {
+    light[0] += (*it2)->colour[0] / ((*it2)->falloff[0] + (*it2)->falloff[1] + (*it2)->falloff[2]);
+    light[1] += (*it2)->colour[1] / ((*it2)->falloff[0] + (*it2)->falloff[1] + (*it2)->falloff[2]);
+    light[2] += (*it2)->colour[2] / ((*it2)->falloff[0] + (*it2)->falloff[1] + (*it2)->falloff[2]);
+  }
+
+  return light;
+}
+
+vec3 rayColor(Ray r, vec3 uv, int hits, const SceneNode & root, const list<Light *> & lights)
 {
   vec3 kd, ks, ke, col, N, p;
   float t = -1.0f;
 
   if (intersect(r, &t, &N, uv, &kd, &ks, &ke, root)) {
     col = kd;
-    p = r.origin + t*r.direction;
+    p = uv + t*r.direction;
     if (kd != vec3(0,0,0)) {
       // Compute direct light
-
+      vec3 light = directLight(p, N, uv, root, lights);
+      col[0] = kd[0] * light[0];
+      col[1] = kd[1] * light[1];
+      col[2] = kd[2] * light[2];
     }
   }
   else {
@@ -147,7 +177,7 @@ void A4_Render(
       Ray ray = Ray(eye, direction);
 
       // Get the color for the ray
-      vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), 0, *root);
+      vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), 0, *root, lights);
 
       // Red
       image(x, y, 0) = color.x;

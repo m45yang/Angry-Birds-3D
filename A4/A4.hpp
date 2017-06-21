@@ -12,7 +12,9 @@
 
 bool intersect(Ray r, float *t, glm::vec3 *N, glm::vec3 uv, glm::vec3 *kd, glm::vec3 *ks, glm::vec3 *ke, const SceneNode & node);
 
-glm::vec3 rayColor(Ray r, glm::vec3 uv, int hits, const SceneNode & root);
+glm::vec3 directLight(glm::vec3 p, glm::vec3 N, glm::vec3 uv, const SceneNode & root, const std::list<Light *> & lights);
+
+glm::vec3 rayColor(Ray r, glm::vec3 uv, int hits, const SceneNode & root, const std::list<Light *> & lights);
 
 void A4_Render(
     // What to render
