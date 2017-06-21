@@ -5,12 +5,80 @@
 using namespace std;
 using namespace glm;
 
-void traverseScene(SceneNode* root)
+
+bool intersect(Ray r, float *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, const SceneNode & node)
 {
-  // Do some action
-  for (SceneNode* child: root->children) {
-    traverseScene(child);
+  bool isIntersect = false;
+  // cerr << node.m_name << endl;
+  const GeometryNode * geometryNode = dynamic_cast<const GeometryNode *>(&node);
+
+  if (geometryNode) {
+    Primitive * primitive = geometryNode->m_primitive;
+    Material * material = geometryNode->m_material;
+    PhongMaterial * phongMaterial = dynamic_cast<PhongMaterial *>(material);
+
+    // Do sphere intersection if object is a sphere
+    NonhierSphere * nonhierSphere = dynamic_cast<NonhierSphere*>(primitive);
+    if (nonhierSphere) {
+      vec3 position = nonhierSphere->getPosition();
+      double radius = nonhierSphere->getRadius();
+
+      double A = dot(uv-r.origin, uv-r.origin);
+      double B = 2*dot(uv-r.origin, r.origin-position);
+      double C = dot(r.origin-position, r.origin-position) - radius*radius;
+      double roots[2];
+      size_t numRoots = quadraticRoots(A, B, C, roots);
+
+      if (numRoots == 0) {
+        // No intersection
+      }
+      else if (numRoots == 1) {
+        // Ray tangent to sphere
+      }
+      else if (numRoots == 2) {
+        // Ray intersects sphere, test for closer point
+        isIntersect = true;
+        double new_t = roots[0] ? roots[0] < roots[1] : roots[1];
+        if (*t == -1.0f || new_t < *t) {
+          *t = new_t;
+          *kd = phongMaterial->getKd();
+          *ks = phongMaterial->getKs();
+        }
+      }
+    }
+
+    // Do box intersection if object is a box
+    NonhierBox * nonhierBox = dynamic_cast<NonhierBox*>(primitive);
+    if (nonhierBox) {
+
+    }
   }
+
+  for (SceneNode* child : node.children) {
+    isIntersect = isIntersect || intersect(r, t, N, uv, kd, ks, ke, *child);
+  }
+
+  return isIntersect;
+}
+
+vec3 rayColor(Ray r, vec3 uv, int hits, const SceneNode & root)
+{
+  vec3 kd, ks, ke, col, N, p;
+  float t = -1.0f;
+
+  if (intersect(r, &t, &N, uv, &kd, &ks, &ke, root)) {
+    col = kd;
+    p = r.origin + t*r.direction;
+    if (kd != vec3(0,0,0)) {
+      // Compute direct light
+
+    }
+  }
+  else {
+    return vec3(0.0f, 0.0f, 0.0f);
+  }
+
+  return col;
 }
 
 void A4_Render(
@@ -50,11 +118,11 @@ void A4_Render(
   size_t h = image.height();
   size_t w = image.width();
 
-  mat4 T_1 = translate(mat4(), vec3(-float(w)/2, float(h)/2, 1.0f));
+  mat4 T_1 = translate(mat4(), vec3(-float(w)/2, -float(h)/2, 1.0f));
 
-  float t = 2*tan(fovy/2);
+  float t = 2*tan(radians(fovy/2));
   float s = float(w)/float(h) * t;
-  mat4 S_2 = scale(mat4(), vec3(-t/h, t/h, 1.0f));
+  mat4 S_2 = scale(mat4(), vec3(-s/w, t/h, 1.0f));
 
   vec3 view_n = normalize(view);
   vec3 u = normalize(cross(up, view_n));
@@ -66,20 +134,27 @@ void A4_Render(
     vec4( 0.0f, 0.0f, 0.0f, 1.0f )
   );
 
-  mat4 T_4 = translate(mat4(), vec3(eye.x, eye.y, eye.z));
+  mat4 T_4 = translate(mat4(), eye);
 
   for (uint y = 0; y < h; ++y) {
     for (uint x = 0; x < w; ++x) {
+      // Transform point to world space
       vec4 point(x, y, 0.0f, 1.0f);
       point = T_4 * R_3 * S_2 * T_1 * point;
+      vec3 direction = vec3(point.x, point.y, point.z) - eye;
 
-      // Red: increasing from top to bottom
-      image(x, y, 0) = (double)y / h;
-      // Green: increasing from left to right
-      image(x, y, 1) = (double)x / w;
-      // Blue: in lower-left and upper-right corners
-      image(x, y, 2) = ((y < h/2 && x < w/2)
-              || (y >= h/2 && x >= w/2)) ? 1.0 : 0.0;
+      // Send a ray through each pixel
+      Ray ray = Ray(eye, direction);
+
+      // Get the color for the ray
+      vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), 0, *root);
+
+      // Red
+      image(x, y, 0) = color.x;
+      // Green
+      image(x, y, 1) = color.y;
+      // Blue
+      image(x, y, 2) = color.z;
     }
   }
 

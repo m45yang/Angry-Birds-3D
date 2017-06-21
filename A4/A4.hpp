@@ -2,12 +2,17 @@
 
 #include <glm/glm.hpp>
 
+#include "GeometryNode.hpp"
 #include "SceneNode.hpp"
 #include "Light.hpp"
 #include "Image.hpp"
+#include "PhongMaterial.hpp"
 #include "Ray.hpp"
+#include "polyroots.hpp"
 
-void traverseScene(SceneNode* root);
+bool intersect(Ray r, float *t, glm::vec3 *N, glm::vec3 uv, glm::vec3 *kd, glm::vec3 *ks, glm::vec3 *ke, const SceneNode & node);
+
+glm::vec3 rayColor(Ray r, glm::vec3 uv, int hits, const SceneNode & root);
 
 void A4_Render(
     // What to render
