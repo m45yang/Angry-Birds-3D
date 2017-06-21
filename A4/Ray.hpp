@@ -6,5 +6,4 @@ public:
 
   glm::vec3 origin;
   glm::vec3 direction;
-  float tMin, tMax;
 };

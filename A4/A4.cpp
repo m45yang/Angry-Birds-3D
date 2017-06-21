@@ -193,7 +193,7 @@ vec3 rayColor(Ray r, vec3 uv, vec3 ambient, int hits, const SceneNode & root, co
     }
   }
   else {
-    return vec3(0.0, 0.0, 0.0);
+    return vec3(-1, -1, -1);
   }
 
   return col;
@@ -266,6 +266,11 @@ void A4_Render(
 
       // Get the color for the ray
       vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), ambient, 0, *root, lights);
+
+      if (color == vec3(-1, -1, -1)) {
+        int ind = (x+y)%5;
+        color = vec3(ind*0.2*(x/w), ind*0.2*(y/h), ind*0.2*(x/y+1));
+      }
 
       // Red
       image(x, y, 0) = color.x;
