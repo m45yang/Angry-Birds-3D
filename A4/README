@@ -1,0 +1,9 @@
+Compilation
+cd A4
+premake4 gmake
+make
+./A4 <path to lua script>
+
+Manual
+- No additional features implemented, did not have enough time
+- Added progress bar to show how much of the image has been rendered

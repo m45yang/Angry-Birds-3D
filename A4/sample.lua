@@ -34,6 +34,6 @@ scene_root:add_child(steldodec)
 
 white_light = gr.light({0.0, 0.0, 799.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 
-gr.render(scene_root, 'sample.png', 512, 512,
+gr.render(scene_root, 'sample.png', 500, 500,
     {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
     {0.3, 0.3, 0.3}, {white_light})
