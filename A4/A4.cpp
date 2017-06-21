@@ -6,9 +6,10 @@ using namespace std;
 using namespace glm;
 
 
-bool intersect(Ray r, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, double *shine, const SceneNode & node)
+bool intersect(Ray ray, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke, double *shine, const SceneNode & node)
 {
   bool isIntersect = false;
+  double new_t;
   const GeometryNode * geometryNode = dynamic_cast<const GeometryNode *>(&node);
 
   if (geometryNode) {
@@ -21,23 +22,23 @@ bool intersect(Ray r, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke,
     if (nonhierSphere) {
       vec3 position = nonhierSphere->getPosition();
       double radius = nonhierSphere->getRadius();
-      double A = dot(uv-r.origin, uv-r.origin);
-      double B = dot(uv-r.origin, r.origin-position) * 2;
-      double C = dot(r.origin-position, r.origin-position) - radius*radius;
+      double A = dot(uv-ray.origin, uv-ray.origin);
+      double B = dot(uv-ray.origin, ray.origin-position) * 2;
+      double C = dot(ray.origin-position, ray.origin-position) - radius*radius;
       double roots[2];
       size_t numRoots = quadraticRoots(A, B, C, roots);
 
       if (numRoots == 2) {
         // Ray intersects sphere, test for closer point
-        double new_t = roots[0] < roots[1] ? roots[0] : roots[1];
+        new_t = roots[0] < roots[1] ? roots[0] : roots[1];
         isIntersect = true;
         if (*t == -1.0 || new_t < *t) {
           *t = new_t;
-          *N = normalize(r.origin + (*t)*r.direction - position);
+          *N = normalize(ray.origin + (*t)*ray.direction - position);
           *kd = phongMaterial->getKd();
           *ks = phongMaterial->getKs();
           *shine = phongMaterial->getShininess();
-          *ke = (*kd)/5;
+          *ke = (*kd)/2;
         }
       }
     }
@@ -47,10 +48,71 @@ bool intersect(Ray r, double *t, vec3 *N, vec3 uv, vec3 *kd, vec3 *ks, vec3 *ke,
     if (nonhierBox) {
 
     }
+
+    // Do box intersection if object is a mesh
+    Mesh * mesh = dynamic_cast<Mesh*>(primitive);
+    if (mesh) {
+      vector<Triangle>::iterator it;
+      vec3 p0, p1, p2, x, y, z, r;
+      mat3 d, d0, d1, d2;
+      double det, det0, det1, det2;
+      double beta, gamma;
+
+      for(it=mesh->m_faces.begin(); it!=mesh->m_faces.end(); it++) {
+        p0 = mesh->m_vertices[it->v1];
+        p1 = mesh->m_vertices[it->v2];
+        p2 = mesh->m_vertices[it->v3];
+
+        x = vec3(p1.x-p0.x, p2.x-p0.x, uv.x-ray.origin.x);
+        y = vec3(p1.y-p0.y, p2.y-p0.y, uv.y-ray.origin.y);
+        z = vec3(p1.z-p0.z, p2.z-p0.z, uv.z-ray.origin.z);
+        r = vec3(ray.origin.x-p0.x, ray.origin.y-p0.y, ray.origin.z-p0.z);
+
+        d = mat3(
+          vec3(x[0], y[0], z[0]),
+          vec3(x[1], y[1], z[1]),
+          vec3(x[2], y[2], z[2])
+        );
+        det = determinant(d);
+        d0 = mat3(
+          r,
+          vec3(x[1], y[1], z[1]),
+          vec3(x[2], y[2], z[2])
+        );
+        det0 = determinant(d0);
+        d1 = mat3(
+          vec3(x[0], y[0], z[0]),
+          r,
+          vec3(x[2], y[2], z[2])
+        );
+        det1 = determinant(d1);
+        d2 = mat3(
+          vec3(x[0], y[0], z[0]),
+          vec3(x[1], y[1], z[1]),
+          r
+        );
+        det2 = determinant(d2);
+
+        beta = det0/det;
+        gamma = det1/det;
+
+        if (beta >= 0 && gamma >= 0 && beta + gamma <= 1) {
+          isIntersect = true;
+          new_t = det2/det;
+          if (*t == -1.0 || new_t < *t) {
+            *N = normalize(triangleNormal(p0, p1, p2));
+            *kd = phongMaterial->getKd();
+            *ks = phongMaterial->getKs();
+            *shine = phongMaterial->getShininess();
+            *ke = (*kd)/2;
+          }
+        }
+      }
+    }
   }
 
   for (SceneNode* child : node.children) {
-    bool result = intersect(r, t, N, uv, kd, ks, ke, shine, *child);
+    bool result = intersect(ray, t, N, uv, kd, ks, ke, shine, *child);
     isIntersect = isIntersect || result;
   }
 
@@ -73,21 +135,21 @@ vec3 directLight(
   vec3 combinedLights(0, 0, 0);
   double t, r;
   list<Light*> unobstructedLights;
-  list<Light *>::const_iterator it1;
+  list<Light *>::const_iterator it;
 
-  for (it1=lights.begin(); it1!=lights.end(); it1++) {
+  for (it=lights.begin(); it!=lights.end(); it++) {
     t = -1.0;
-    Ray ray = Ray((*it1)->position, p - (*it1)->position);
+    Ray ray = Ray((*it)->position, p - (*it)->position);
 
     if (!intersect(ray, &t, &N, uv, &kd, &ks, &ke, &shine, root)) {
-      light = (*it1)->position - p;
+      light = (*it)->position - p;
       r = length(light);
       light = normalize(light);
       reflected = normalize(-light + 2*dot(light, N)*N);
       vec3 specular = kd + ks*(pow(dot(reflected, v), shine))/(dot(N,light));
-      combinedLights[0] += specular[0] * (*it1)->colour[0] * dot(light, N) / ((*it1)->falloff[0] + (*it1)->falloff[1]*r + (*it1)->falloff[2]*pow(r,2));
-      combinedLights[1] += specular[1] * (*it1)->colour[1] * dot(light, N) / ((*it1)->falloff[0] + (*it1)->falloff[1]*r + (*it1)->falloff[2]*pow(r,2));
-      combinedLights[2] += specular[2] * (*it1)->colour[2] * dot(light, N) / ((*it1)->falloff[0] + (*it1)->falloff[1]*r + (*it1)->falloff[2]*pow(r,2));
+      combinedLights[0] += specular[0] * (*it)->colour[0] * dot(light, N) / ((*it)->falloff[0] + (*it)->falloff[1]*r + (*it)->falloff[2]*pow(r,2));
+      combinedLights[1] += specular[1] * (*it)->colour[1] * dot(light, N) / ((*it)->falloff[0] + (*it)->falloff[1]*r + (*it)->falloff[2]*pow(r,2));
+      combinedLights[2] += specular[2] * (*it)->colour[2] * dot(light, N) / ((*it)->falloff[0] + (*it)->falloff[1]*r + (*it)->falloff[2]*pow(r,2));
     }
   }
 
