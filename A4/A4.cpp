@@ -254,6 +254,11 @@ void A4_Render(
 
   mat4 T_4 = translate(mat4(), eye);
 
+  int count = 0;
+  int done = 0;
+
+  cout << "Processing..." << endl;
+
   for (uint y = 0; y < h; ++y) {
     for (uint x = 0; x < w; ++x) {
       // Transform point to world space
@@ -268,8 +273,13 @@ void A4_Render(
       vec3 color = rayColor(ray, vec3(point.x, point.y, point.z), ambient, 0, *root, lights);
 
       if (color == vec3(-1, -1, -1)) {
-        int ind = (x+y)%5;
-        color = vec3(ind*0.2*(x/w), ind*0.2*(y/h), ind*0.2*(x/y+1));
+        color = vec3(0.1, 0.0, 0.05);
+        if (y < h/2 - 2) {
+          color = vec3(0.8, 0.6-double(y)/double(h), 0.1);
+        }
+        else if (y > h/2 + 2) {
+          color = vec3(0.1, 0.8*(double(y/h)-0.5) , 0.05);
+        }
       }
 
       // Red
@@ -279,6 +289,12 @@ void A4_Render(
       // Blue
       image(x, y, 2) = color.z;
     }
+    if (count == h/10) {
+      done += 10;
+      cout << done << "% done" << endl;
+      count = 0;
+    }
+    count ++;
   }
 
 }
