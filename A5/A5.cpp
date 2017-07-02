@@ -65,8 +65,7 @@ void A3::init()
   // class.
   unique_ptr<MeshConsolidator> meshConsolidator (new MeshConsolidator{
       getAssetFilePath("cube.obj"),
-      getAssetFilePath("sphere.obj"),
-      getAssetFilePath("suzanne.obj")
+      getAssetFilePath("sphere.obj")
   });
 
 
@@ -77,8 +76,6 @@ void A3::init()
   uploadVertexDataToVbos(*meshConsolidator);
 
   mapVboDataToVertexShaderInputLocations();
-
-  initModelMatrices();
 
   initPerspectiveMatrix();
 
@@ -201,12 +198,6 @@ void A3::initPerspectiveMatrix()
 }
 
 //----------------------------------------------------------------------------------------
-void A3::initModelMatrices() {
-  m_model_rotation = mat4();
-  m_model_translation = mat4();
-}
-
-//----------------------------------------------------------------------------------------
 void A3::initViewMatrix() {
   m_view = glm::lookAt(vec3(0.0f, 0.0f, 5.0f), vec3(0.0f, 0.0f, -1.0f),
       vec3(0.0f, 1.0f, 0.0f));
@@ -215,7 +206,7 @@ void A3::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void A3::initLightSources() {
   // World-space position
-  m_light.position = vec3(-2.0f, 5.0f, 0.5f);
+  m_light.position = vec3(0.0f, 5.0f, 0.5f);
   m_light.rgbIntensity = vec3(0.8f); // White light
 }
 
@@ -284,7 +275,6 @@ void A3::guiLogic()
       {
         ImGui::MenuItem("Main menu bar");
         if (ImGui::MenuItem("Reset All")) {
-          initModelMatrices();
         }
         if ( ImGui::MenuItem( "Quit Application" ) ) {
           glfwSetWindowShouldClose(m_window, GL_TRUE);
@@ -360,7 +350,7 @@ void A3::draw() {
 void A3::renderNode(const SceneNode &node) {
   if (node.m_nodeType == NodeType::SceneNode) {
     // Mult matrix stack
-    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top();
+    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
     matrixStack.push(newTransform);
   }
   else if (node.m_nodeType == NodeType::GeometryNode) {
@@ -438,9 +428,7 @@ void A3::renderSceneGraph(const SceneNode & root) {
   // Bind the VAO once here, and reuse for all GeometryNode rendering below.
   glBindVertexArray(m_vao_meshData);
 
-  matrixStack.push(m_model_translation * m_model_rotation);
   renderNode(root);
-  matrixStack.pop();
 
   glBindVertexArray(0);
   CHECK_GL_ERRORS;
