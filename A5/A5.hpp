@@ -47,15 +47,11 @@ protected:
   void initModelMatrices();
   void initViewMatrix();
   void initLightSources();
-  void clearJointsAngleStack();
-  void pushJointsAngleStack();
-  void moveJointsAngleStackIndex(int amount);
 
   void initPerspectiveMatrix();
   void uploadCommonSceneUniforms();
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
-  void renderArcCircle();
 
   glm::mat4 m_perpsective;
   glm::mat4 m_view;
@@ -72,18 +68,6 @@ protected:
   GLint m_normalAttribLocation;
   ShaderProgram m_shader;
 
-  //-- GL resources for trackball circle geometry:
-  GLuint m_vbo_arcCircle;
-  GLuint m_vao_arcCircle;
-  GLint m_arc_positionAttribLocation;
-  ShaderProgram m_shader_arcCircle;
-
-  // -- GL resources for picking geometry:
-  GLuint m_vao_pickingMeshData;
-  GLuint m_vbo_pickingVertexPositions;
-  GLint m_picking_positionAttribLocation;
-  ShaderProgram m_shader_picking;
-
   // BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
   // object. Each BatchInfo object contains an index offset and the number of indices
   // required to render the mesh with identifier MeshId.
@@ -93,26 +77,11 @@ protected:
 
   std::shared_ptr<SceneNode> m_rootNode;
 
-
-  bool cull_front;
-  bool cull_back;
-  bool do_picking;
-  bool draw_trackball_circle;
-  bool show_trackball_circle;
-  bool z_buffer;
-  bool keys[1024];
-  float mouse_x_pos;
-  float mouse_y_pos;
-  float trackball_draw_start_x;
-  float trackball_draw_start_y;
-  float trackball_circle_size;
-  int current_mode;
-  int joints_angle_stack_index;
-  unsigned int selected;
+  int m_current_mode;
+  bool m_keys[1024];
+  float m_mouse_x_pos;
+  float m_mouse_y_pos;
 
 private:
   static std::stack<glm::mat4> matrixStack;
-
-  // A stack containing all joint rotations in order
-  static std::vector< std::map < unsigned int, std::pair< double, double > > > jointsAngleStack;
 };
