@@ -7,7 +7,7 @@
 
 #include "GeometryNode.hpp"
 #include "SceneNode.hpp"
-#include "trackball.hpp"
+#include "SkyBox.hpp"
 
 #include <glm/glm.hpp>
 #include <map>
@@ -55,7 +55,7 @@ protected:
   void renderNode(const SceneNode &node);
   void loadTexture(const char* textureFilePath);
 
-  glm::mat4 m_perpsective;
+  glm::mat4 m_perspective;
   glm::mat4 m_view;
 
   LightSource m_light;
@@ -82,6 +82,7 @@ protected:
   float m_mouse_x_pos;
   float m_mouse_y_pos;
   unsigned int m_num_textures;
+  std::shared_ptr<SkyBox> m_skybox;
 
 private:
   static std::stack<glm::mat4> matrixStack;

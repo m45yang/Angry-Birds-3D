@@ -177,6 +177,6 @@ wall1 = gr.mesh('cube', 'wall1', 1)
 rootnode:add_child(wall1)
 wall1:set_material(red)
 wall1:scale(5.0, 5.0, 3.0)
-wall1:translate(0.0, 5.0, 0.0)
+wall1:translate(5.0, 5.0, 4.0)
 
 return rootnode

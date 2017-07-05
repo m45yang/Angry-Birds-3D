@@ -90,6 +90,20 @@ void A3::init()
   // Load texture 1
   loadTexture("Assets/container.jpg");
 
+  m_skybox = std::shared_ptr<SkyBox>(new SkyBox);
+
+  vector<std::string> faces = {
+      "Assets/right.jpg",
+      "Assets/left.jpg",
+      "Assets/top.jpg",
+      "Assets/bottom.jpg",
+      "Assets/back.jpg",
+      "Assets/front.jpg"
+  };
+
+  // Load cube map
+  m_skybox->loadCubeMap(faces);
+
   // Exiting the current scope calls delete automatically on meshConsolidator freeing
   // all vertex data resources.  This is fine since we already copied this data to
   // VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
@@ -201,7 +215,7 @@ void A3::mapVboDataToVertexShaderInputLocations()
 void A3::initPerspectiveMatrix()
 {
   float aspect = ((float)m_windowWidth) / m_windowHeight;
-  m_perpsective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
+  m_perspective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
 }
 
 //----------------------------------------------------------------------------------------
@@ -223,7 +237,7 @@ void A3::uploadCommonSceneUniforms() {
   {
     //-- Set Perpsective matrix uniform for the scene:
     GLint location = m_shader.getUniformLocation("Perspective");
-    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
+    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
     CHECK_GL_ERRORS;
 
     //-- Set LightSource uniform for the scene:
@@ -274,7 +288,7 @@ void A3::guiLogic()
   windowFlags |= ImGuiWindowFlags_MenuBar;
   float opacity(0.5f);
 
-  ImGui::Begin("Assignment 3", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
+  ImGui::Begin("Assignment 5", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
 
     if (ImGui::BeginMenuBar())
     {
@@ -331,10 +345,12 @@ void A3::updateShaderUniforms(
       vec3 kd = node.material.kd;
       glUniform3fv( location, 1, value_ptr(kd) );
       CHECK_GL_ERRORS;
+
       location = m_shader.getUniformLocation("material.ks");
       vec3 ks = node.material.ks;
       glUniform3fv( location, 1, value_ptr(ks) );
       CHECK_GL_ERRORS;
+
       location = m_shader.getUniformLocation("material.shininess");
       glUniform1f( location, node.material.shininess) ;
       CHECK_GL_ERRORS;
@@ -342,6 +358,7 @@ void A3::updateShaderUniforms(
     else if (node.texture <= m_num_textures) {
       glUniform1i( location, 1 );
       glBindTexture( GL_TEXTURE_2D, node.texture );
+      CHECK_GL_ERRORS;
     }
 
   }
