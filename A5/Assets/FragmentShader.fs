@@ -1,5 +1,8 @@
 #version 330
 
+uniform bool apply_texture;
+uniform sampler2D ourTexture;
+
 struct LightSource {
     vec3 position;
     vec3 rgbIntensity;
@@ -53,5 +56,10 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 }
 
 void main() {
-    fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+    if (apply_texture) {
+        fragColour = texture(ourTexture, vec2(fs_in.position_ES.x, fs_in.position_ES.y));
+    }
+    else {
+        fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+    }
 }

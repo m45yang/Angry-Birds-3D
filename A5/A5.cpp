@@ -7,6 +7,9 @@ using namespace std;
 #include "GeometryNode.hpp"
 #include "JointNode.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include <imgui/imgui.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -31,7 +34,8 @@ A3::A3(const std::string & luaSceneFile)
     m_vbo_vertexNormals(0),
     m_current_mode(GLFW_KEY_A),
     m_mouse_x_pos(0.0f),
-    m_mouse_y_pos(0.0f)
+    m_mouse_y_pos(0.0f),
+    m_num_textures(0)
 {
 
 }
@@ -82,6 +86,9 @@ void A3::init()
   initViewMatrix();
 
   initLightSources();
+
+  // Load texture 1
+  loadTexture("Assets/container.jpg");
 
   // Exiting the current scope calls delete automatically on meshConsolidator freeing
   // all vertex data resources.  This is fine since we already copied this data to
@@ -295,41 +302,50 @@ void A3::guiLogic()
 
 //----------------------------------------------------------------------------------------
 // Update mesh specific shader uniforms:
-static void updateShaderUniforms(
-    const ShaderProgram & shader,
-    const GeometryNode & node,
-    const glm::mat4 & viewMatrix
+void A3::updateShaderUniforms(
+    const GeometryNode & node
 ) {
 
-  shader.enable();
+  m_shader.enable();
   {
     //-- Set ModelView matrix:
-    GLint location = shader.getUniformLocation("ModelView");
-    mat4 modelView = viewMatrix * node.trans;
-    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
+    GLint location = m_shader.getUniformLocation("ModelView");
+    mat4 modelView = m_view * node.trans;
+    glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
     CHECK_GL_ERRORS;
 
     //-- Set NormMatrix:
-    location = shader.getUniformLocation("NormalMatrix");
+    location = m_shader.getUniformLocation("NormalMatrix");
     mat3 normalMatrix = glm::transpose(glm::inverse(mat3(modelView)));
-    glUniformMatrix3fv(location, 1, GL_FALSE, value_ptr(normalMatrix));
+    glUniformMatrix3fv( location, 1, GL_FALSE, value_ptr(normalMatrix)) ;
     CHECK_GL_ERRORS;
 
-    //-- Set Material values:
-    location = shader.getUniformLocation("material.kd");
-    vec3 kd = node.material.kd;
-    glUniform3fv(location, 1, value_ptr(kd));
-    CHECK_GL_ERRORS;
-    location = shader.getUniformLocation("material.ks");
-    vec3 ks = node.material.ks;
-    glUniform3fv(location, 1, value_ptr(ks));
-    CHECK_GL_ERRORS;
-    location = shader.getUniformLocation("material.shininess");
-    glUniform1f(location, node.material.shininess);
-    CHECK_GL_ERRORS;
+    location = m_shader.getUniformLocation("apply_texture");
+
+    if (node.texture == 0) {
+      // Disable textures
+      glUniform1i( location, 0 );
+
+      //-- Set Material values:
+      location = m_shader.getUniformLocation("material.kd");
+      vec3 kd = node.material.kd;
+      glUniform3fv( location, 1, value_ptr(kd) );
+      CHECK_GL_ERRORS;
+      location = m_shader.getUniformLocation("material.ks");
+      vec3 ks = node.material.ks;
+      glUniform3fv( location, 1, value_ptr(ks) );
+      CHECK_GL_ERRORS;
+      location = m_shader.getUniformLocation("material.shininess");
+      glUniform1f( location, node.material.shininess) ;
+      CHECK_GL_ERRORS;
+    }
+    else if (node.texture <= m_num_textures) {
+      glUniform1i( location, 1 );
+      glBindTexture( GL_TEXTURE_2D, node.texture );
+    }
 
   }
-  shader.disable();
+  m_shader.disable();
 
 }
 
@@ -370,11 +386,7 @@ void A3::renderNode(const SceneNode &node) {
       col = glm::vec3( 1.0, 1.0, 0.0 );
     }
 
-    updateShaderUniforms(
-      m_shader,
-      transformedGeometryNode,
-      m_view
-    );
+    updateShaderUniforms( transformedGeometryNode );
 
     // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
     BatchInfo batchInfo = m_batchInfoMap[transformedGeometryNode.meshId];
@@ -431,6 +443,38 @@ void A3::renderSceneGraph(const SceneNode & root) {
   renderNode(root);
 
   glBindVertexArray(0);
+  CHECK_GL_ERRORS;
+}
+
+//----------------------------------------------------------------------------------------
+void A3::loadTexture(const char* textureFilePath) {
+
+  // Create a new texture object and bind it to the buffer
+  unsigned int texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  // Set the texture wrapping/filtering options (on the currently bound texture object)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  // Load and generate the texture
+  int width, height, nrChannels;
+  unsigned char *data = stbi_load(textureFilePath, &width, &height, &nrChannels, 0);
+  if (data)
+  {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+      glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  else
+  {
+      cout << "Failed to load texture" << endl;
+  }
+  m_num_textures++;
+  stbi_image_free(data);
+
   CHECK_GL_ERRORS;
 }
 

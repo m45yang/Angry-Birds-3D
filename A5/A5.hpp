@@ -5,6 +5,7 @@
 #include "cs488-framework/ShaderProgram.hpp"
 #include "cs488-framework/MeshConsolidator.hpp"
 
+#include "GeometryNode.hpp"
 #include "SceneNode.hpp"
 #include "trackball.hpp"
 
@@ -49,8 +50,10 @@ protected:
 
   void initPerspectiveMatrix();
   void uploadCommonSceneUniforms();
+  void updateShaderUniforms(const GeometryNode & node);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
+  void loadTexture(const char* textureFilePath);
 
   glm::mat4 m_perpsective;
   glm::mat4 m_view;
@@ -78,6 +81,7 @@ protected:
   bool m_keys[1024];
   float m_mouse_x_pos;
   float m_mouse_y_pos;
+  unsigned int m_num_textures;
 
 private:
   static std::stack<glm::mat4> matrixStack;
