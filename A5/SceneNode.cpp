@@ -109,7 +109,6 @@ void SceneNode::translate(const glm::vec3& amount) {
   trans = glm::translate(amount) * trans;
 }
 
-
 //---------------------------------------------------------------------------------------
 int SceneNode::totalSceneNodes() {
   return nodeInstanceCount;

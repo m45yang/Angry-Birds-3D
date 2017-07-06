@@ -220,7 +220,7 @@ void A3::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A3::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 0.0f, 5.0f), vec3(0.0f, 0.0f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 3.0f, 5.0f), vec3(0.0f, 1.5f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -262,9 +262,22 @@ void A3::uploadCommonSceneUniforms() {
  */
 void A3::appLogic()
 {
-  // Place per frame, application logic here ...
+  updateTransformations(*m_rootNode);
 
   uploadCommonSceneUniforms();
+}
+
+//----------------------------------------------------------------------------------------
+void A3::updateTransformations(SceneNode &node)
+{
+  if (node.m_nodeType == NodeType::PhysicsNode) {
+    const PhysicsNode * physicsNode = static_cast<const PhysicsNode *>(&node);
+    node.translate(physicsNode->velocity);
+  }
+
+  for (SceneNode * child : node.children) {
+    updateTransformations(*child);
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -415,6 +428,11 @@ void A3::renderNode(const SceneNode &node) {
     m_shader.enable();
     glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
     m_shader.disable();
+  }
+  else if (node.m_nodeType == NodeType::PhysicsNode) {
+    // Mult matrix stack
+    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
+    matrixStack.push(newTransform);
   }
   else if (node.m_nodeType == NodeType::JointNode) {
     // Cast the SceneNode as a JointNode

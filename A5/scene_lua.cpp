@@ -43,6 +43,7 @@
 #include "lua488.hpp"
 #include "JointNode.hpp"
 #include "GeometryNode.hpp"
+#include "PhysicsNode.hpp"
 
 // Uncomment the following line to enable debugging messages
 //#define GRLUA_ENABLE_DEBUG
@@ -137,24 +138,43 @@ int gr_joint_cmd(lua_State* L)
 
   return 1;
 }
+
+extern "C"
+int gr_physics_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+
+  const char* name = luaL_checkstring(L, 1);
+
+  data->node = new PhysicsNode(name);
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 extern "C"
 int gr_mesh_cmd(lua_State* L)
 {
-	GRLUA_DEBUG_CALL;
+  GRLUA_DEBUG_CALL;
 
-	gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
-	data->node = 0;
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
 
-	const char* meshId = luaL_checkstring(L, 1);
-	const char* name = luaL_checkstring(L, 2);
+  const char* meshId = luaL_checkstring(L, 1);
+  const char* name = luaL_checkstring(L, 2);
   unsigned int texture = luaL_checknumber(L, 3);
 
-	data->node = new GeometryNode(meshId, name, texture);
+  data->node = new GeometryNode(meshId, name, texture);
 
-	luaL_getmetatable(L, "gr.node");
-	lua_setmetatable(L, -2);
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
 
-	return 1;
+  return 1;
 }
 
 
@@ -187,12 +207,12 @@ int gr_material_cmd(lua_State* L)
   }
   double shininess = luaL_checknumber(L, 3);
 
-	data->material = new Material();
-	for(int i(0); i < 3; ++i) {
-		data->material->kd[i] = kd[i];
-		data->material->ks[i] = ks[i];
-	}
-	data->material->shininess = shininess;
+  data->material = new Material();
+  for(int i(0); i < 3; ++i) {
+    data->material->kd[i] = kd[i];
+    data->material->ks[i] = ks[i];
+  }
+  data->material->shininess = shininess;
 
   luaL_newmetatable(L, "gr.material");
   lua_setmetatable(L, -2);
@@ -237,10 +257,10 @@ int gr_node_set_material_cmd(lua_State* L)
   gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
   luaL_argcheck(L, matdata != 0, 2, "Material expected");
 
-	Material * material = matdata->material;
-	self->material.kd = material->kd;
-	self->material.ks = material->ks;
-	self->material.shininess = material->shininess;
+  Material * material = matdata->material;
+  self->material.kd = material->kd;
+  self->material.ks = material->ks;
+  self->material.shininess = material->shininess;
 
   return 0;
 }
@@ -315,6 +335,29 @@ int gr_node_rotate_cmd(lua_State* L)
   return 0;
 }
 
+// Set a node's material
+extern "C"
+int gr_node_set_velocity_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  PhysicsNode* self = dynamic_cast<PhysicsNode*>(selfdata->node);
+  luaL_argcheck(L, self != 0, 1, "Physics node expected");
+
+  double values[3];
+
+  for (int i = 0; i < 3; i++) {
+    values[i] = luaL_checknumber(L, i + 2);
+  }
+
+  self->set_velocity(glm::vec3(values[0], values[1], values[2]));
+
+  return 0;
+}
+
 // Garbage collection function for lua.
 extern "C"
 int gr_node_gc_cmd(lua_State* L)
@@ -344,6 +387,7 @@ static const luaL_Reg grlib_functions[] = {
   {"joint", gr_joint_cmd},
   {"mesh", gr_mesh_cmd},
   {"material", gr_material_cmd},
+  {"physics", gr_physics_cmd},
   {0, 0}
 };
 
@@ -366,6 +410,7 @@ static const luaL_Reg grlib_node_methods[] = {
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},
+  {"set_velocity", gr_node_set_velocity_cmd},
   {0, 0}
 };
 

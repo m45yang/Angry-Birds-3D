@@ -7,6 +7,7 @@
 
 #include "GeometryNode.hpp"
 #include "SceneNode.hpp"
+#include "PhysicsNode.hpp"
 #include "SkyBox.hpp"
 
 #include <glm/glm.hpp>
@@ -47,10 +48,11 @@ protected:
   void mapVboDataToVertexShaderInputLocations();
   void initViewMatrix();
   void initLightSources();
-
   void initPerspectiveMatrix();
+
   void uploadCommonSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
+  void updateTransformations(SceneNode &node);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
   void renderSkyBox();

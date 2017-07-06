@@ -13,7 +13,8 @@
 enum class NodeType {
     SceneNode,
     GeometryNode,
-    JointNode
+    JointNode,
+    PhysicsNode
 };
 
 class SceneNode {
