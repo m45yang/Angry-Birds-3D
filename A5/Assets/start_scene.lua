@@ -159,7 +159,7 @@ bird_belly:translate(0.0, -0.14, 0.06)
 -- Scene arrangement
 rootnode = gr.node('root')
 rootnode:scale( 0.25, 0.25, 0.25 )
-rootnode:translate(0.0, 0.0, -1.0)
+-- rootnode:translate(0.0, 0.0, -1.0)
 
 pig1 = gr.node('pig1')
 rootnode:add_child(pig1)

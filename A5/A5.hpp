@@ -53,6 +53,7 @@ protected:
   void updateShaderUniforms(const GeometryNode & node);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
+  void renderSkyBox();
   void loadTexture(const char* textureFilePath);
 
   glm::mat4 m_perspective;

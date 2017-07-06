@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cs488-framework/CS488Window.hpp"
 #include "cs488-framework/ShaderProgram.hpp"
 
 #include <iostream>
@@ -11,14 +12,62 @@ public:
   SkyBox();
   virtual ~SkyBox();
 
-  void renderSkyBox();
   void loadCubeMap(std::vector<std::string> faces);
+  void enableVertexShaderInputSlots();
+  void uploadVertexDataToVbos();
+  void mapVboDataToVertexShaderInputLocations();
+  void draw();
 
   //-- GL resources for skybox data
-  GLuint m_vbo_skybox;
-  GLuint m_vao_skybox;
-  GLint m_skybox_positionAttribLocation;
-  ShaderProgram m_shader_skybox;
+  GLuint m_vbo;
+  GLuint m_vao;
+  GLint m_positionAttribLocation;
+  ShaderProgram m_shader;
 
   unsigned int m_cubeTextureID;
+
+private:
+  std::vector<float> m_skyboxVertices {
+    -50.0f,  50.0f, -50.0f,
+    -50.0f, -50.0f, -50.0f,
+    50.0f, -50.0f, -50.0f,
+     50.0f, -50.0f, -50.0f,
+     50.0f,  50.0f, -50.0f,
+    -50.0f,  50.0f, -50.0f,
+
+    -50.0f, -50.0f,  50.0f,
+    -50.0f, -50.0f, -50.0f,
+    -50.0f,  50.0f, -50.0f,
+    -50.0f,  50.0f, -50.0f,
+    -50.0f,  50.0f,  50.0f,
+    -50.0f, -50.0f,  50.0f,
+
+     50.0f, -50.0f, -50.0f,
+     50.0f, -50.0f,  50.0f,
+     50.0f,  50.0f,  50.0f,
+     50.0f,  50.0f,  50.0f,
+     50.0f,  50.0f, -50.0f,
+     50.0f, -50.0f, -50.0f,
+
+    -50.0f, -50.0f,  50.0f,
+    -50.0f,  50.0f,  50.0f,
+     50.0f,  50.0f,  50.0f,
+     50.0f,  50.0f,  50.0f,
+     50.0f, -50.0f,  50.0f,
+    -50.0f, -50.0f,  50.0f,
+
+    -50.0f,  50.0f, -50.0f,
+     50.0f,  50.0f, -50.0f,
+     50.0f,  50.0f,  50.0f,
+     50.0f,  50.0f,  50.0f,
+    -50.0f,  50.0f,  50.0f,
+    -50.0f,  50.0f, -50.0f,
+
+    -50.0f, -50.0f, -50.0f,
+    -50.0f, -50.0f,  50.0f,
+     50.0f, -50.0f, -50.0f,
+     50.0f, -50.0f, -50.0f,
+    -50.0f, -50.0f,  50.0f,
+     50.0f, -50.0f,  50.0f
+  };
 };

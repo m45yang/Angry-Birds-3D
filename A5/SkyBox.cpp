@@ -4,31 +4,24 @@
 #include "stb_image.h"
 
 using namespace std;
+using namespace glm;
 
 //---------------------------------------------------------------------------------------
 SkyBox::SkyBox() {
-  m_shader_skybox.generateProgramObject();
-  m_shader_skybox.attachVertexShader( "Assets/skybox_VertexShader.vs" );
-  m_shader_skybox.attachFragmentShader( "Assets/skybox_FragmentShader.fs" );
-  m_shader_skybox.link();
+  m_shader.generateProgramObject();
+  m_shader.attachVertexShader( "Assets/skybox_VertexShader.vs" );
+  m_shader.attachFragmentShader( "Assets/skybox_FragmentShader.fs" );
+  m_shader.link();
+
+  glGenVertexArrays(1, &m_vao);
+  enableVertexShaderInputSlots();
+  uploadVertexDataToVbos();
+  mapVboDataToVertexShaderInputLocations();
 }
 
 //---------------------------------------------------------------------------------------
 SkyBox::~SkyBox() {
 
-}
-
-//----------------------------------------------------------------------------------------
-void SkyBox::renderSkyBox() {
-  glGenBuffers(1, &m_vbo_skybox);
-
-  glBindBuffer(GL_ARRAY_BUFFER, m_vbo_skybox);
-
-  // glBufferData(GL_ARRAY_BUFFER, meshConsolidator.getNumVertexPositionBytes(),
-      // meshConsolidator.getVertexPositionDataPtr(), GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  CHECK_GL_ERRORS;
 }
 
 //----------------------------------------------------------------------------------------
@@ -62,4 +55,44 @@ void SkyBox::loadCubeMap(vector<string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     m_cubeTextureID = texture;
+}
+
+//----------------------------------------------------------------------------------------
+void SkyBox::enableVertexShaderInputSlots()
+{
+  {
+    glBindVertexArray(m_vao);
+
+    m_positionAttribLocation = m_shader.getAttribLocation("position");
+    glEnableVertexAttribArray(m_positionAttribLocation);
+
+    CHECK_GL_ERRORS;
+  }
+
+  glBindVertexArray(0);
+}
+
+//----------------------------------------------------------------------------------------
+void SkyBox::uploadVertexDataToVbos() {
+  glGenBuffers(1, &m_vbo);
+
+  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+
+  glBufferData(GL_ARRAY_BUFFER, m_skyboxVertices.size()*sizeof(float), &m_skyboxVertices[0], GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  CHECK_GL_ERRORS;
+}
+
+//----------------------------------------------------------------------------------------
+void SkyBox::mapVboDataToVertexShaderInputLocations() {
+  glBindVertexArray(m_vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+  glVertexAttribPointer(m_positionAttribLocation, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), nullptr);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+
+  CHECK_GL_ERRORS;
 }

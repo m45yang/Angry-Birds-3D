@@ -1,13 +1,13 @@
 #version 330
-layout (location = 0) in vec3 aPos;
 
-out vec3 texCoords;
-
-uniform mat4 projection;
-uniform mat4 view;
+out vec3 tex_coords;
+in vec3 position;
+uniform mat4 Perspective;
+uniform mat4 View;
 
 void main()
 {
-    texCoords = aPos;
-    gl_Position = projection * view * vec4(aPos, 1.0);
+    tex_coords = normalize(position);
+    vec4 pos = Perspective * View * vec4(position, 1.0);
+    gl_Position = pos.xyww;
 }

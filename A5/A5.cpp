@@ -32,7 +32,7 @@ A3::A3(const std::string & luaSceneFile)
     m_vao_meshData(0),
     m_vbo_vertexPositions(0),
     m_vbo_vertexNormals(0),
-    m_current_mode(GLFW_KEY_A),
+    m_current_mode(GLFW_KEY_C),
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
     m_num_textures(0)
@@ -220,7 +220,7 @@ void A3::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A3::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 0.0f, 5.0f), vec3(0.0f, 0.0f, -1.0f),
+  m_view = glm::lookAt(vec3(0.0f, 0.0f, 5.0f), vec3(0.0f, 0.0f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -307,7 +307,8 @@ void A3::guiLogic()
       ImGui::EndMenuBar();
     }
 
-    ImGui::RadioButton( "Mode", &m_current_mode, GLFW_KEY_A );
+    ImGui::RadioButton( "Translate Camera Mode", &m_current_mode, GLFW_KEY_C );
+    ImGui::RadioButton( "Rotate Camera Mode", &m_current_mode, GLFW_KEY_R );
 
     ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
@@ -375,6 +376,8 @@ void A3::draw() {
   glEnable( GL_DEPTH_TEST );
 
   renderSceneGraph(*m_rootNode);
+
+  renderSkyBox();
 
   glDisable( GL_DEPTH_TEST );
 }
@@ -464,6 +467,33 @@ void A3::renderSceneGraph(const SceneNode & root) {
 }
 
 //----------------------------------------------------------------------------------------
+void A3::renderSkyBox() {
+  glDepthFunc(GL_LEQUAL);
+  m_skybox->m_shader.enable();
+
+  {
+    glBindVertexArray(m_skybox->m_vao);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox->m_cubeTextureID);
+
+    GLint location = m_skybox->m_shader.getUniformLocation("View");
+    glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(m_view) );
+    CHECK_GL_ERRORS;
+
+    location = m_skybox->m_shader.getUniformLocation("Perspective");
+    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
+    CHECK_GL_ERRORS;
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS);
+  }
+
+  m_skybox->m_shader.disable();
+  glDepthMask(GL_TRUE);
+}
+
+//----------------------------------------------------------------------------------------
 void A3::loadTexture(const char* textureFilePath) {
 
   // Create a new texture object and bind it to the buffer
@@ -527,6 +557,33 @@ bool A3::mouseMoveEvent (
     double yPos
 ) {
   bool eventHandled(false);
+
+    // Camera mode event nahdling
+  if (m_current_mode == GLFW_KEY_C) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && m_keys[GLFW_MOUSE_BUTTON_1]) {
+      float xDiff = (xPos - m_mouse_x_pos)/m_windowHeight;
+      float yDiff = (m_mouse_y_pos - yPos)/m_windowHeight;
+
+      vec3 amount(xDiff*5, yDiff*5, 0.0f);
+      mat4 transform = translate(mat4(), amount);
+
+      m_view = transform * m_view;
+    }
+  }
+  if (m_current_mode == GLFW_KEY_R) {
+    if (!ImGui::IsMouseHoveringAnyWindow() && m_keys[GLFW_MOUSE_BUTTON_1]) {
+      float xDiff = (xPos - m_mouse_x_pos)/m_windowHeight;
+      mat4 transform = rotate(mat4(), xDiff*5, vec3(0.0f, 1.0f, 0.0f));
+
+      m_view = transform * m_view;
+    }
+    if (!ImGui::IsMouseHoveringAnyWindow() && m_keys[GLFW_MOUSE_BUTTON_2]) {
+      float yDiff = (m_mouse_y_pos - yPos)/m_windowHeight;
+      mat4 transform = rotate(mat4(), yDiff*5, vec3(1.0f, 0.0f, 0.0f));
+
+      m_view = transform * m_view;
+    }
+  }
 
   m_mouse_x_pos = xPos;
   m_mouse_y_pos = yPos;
