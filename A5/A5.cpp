@@ -93,12 +93,12 @@ void A3::init()
   m_skybox = std::shared_ptr<SkyBox>(new SkyBox);
 
   vector<std::string> faces = {
-      "Assets/right.jpg",
-      "Assets/left.jpg",
-      "Assets/top.jpg",
-      "Assets/bottom.jpg",
-      "Assets/back.jpg",
-      "Assets/front.jpg"
+      "Assets/Sunny_01B_right.jpg",
+      "Assets/Sunny_01B_left.jpg",
+      "Assets/Sunny_01B_up.jpg",
+      "Assets/Sunny_01B_down.jpg",
+      "Assets/Sunny_01B_back.jpg",
+      "Assets/Sunny_01B_front.jpg"
   };
 
   // Load cube map
