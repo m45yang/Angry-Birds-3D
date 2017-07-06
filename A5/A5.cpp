@@ -88,17 +88,17 @@ void A3::init()
   initLightSources();
 
   // Load texture 1
-  loadTexture("Assets/container.jpg");
+  loadTexture(getAssetFilePath("textures/container.jpg").c_str());
 
   m_skybox = std::shared_ptr<SkyBox>(new SkyBox);
 
   vector<std::string> faces = {
-      "Assets/Sunny_01B_right.jpg",
-      "Assets/Sunny_01B_left.jpg",
-      "Assets/Sunny_01B_up.jpg",
-      "Assets/Sunny_01B_down.jpg",
-      "Assets/Sunny_01B_back.jpg",
-      "Assets/Sunny_01B_front.jpg"
+      getAssetFilePath("textures/Sunny_01B_right.jpg"),
+      getAssetFilePath("textures/Sunny_01B_left.jpg"),
+      getAssetFilePath("textures/Sunny_01B_up.jpg"),
+      getAssetFilePath("textures/Sunny_01B_down.jpg"),
+      getAssetFilePath("textures/Sunny_01B_back.jpg"),
+      getAssetFilePath("textures/Sunny_01B_front.jpg")
   };
 
   // Load cube map
