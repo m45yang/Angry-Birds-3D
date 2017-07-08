@@ -284,18 +284,20 @@ void A5::updateTransformations(SceneNode &node, double dt)
   if (node.m_nodeType == NodeType::PhysicsNode) {
     PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
     node.translate(vec3(
-      physicsNode->velocity.x,
-      physicsNode->velocity.y,
-      physicsNode->velocity.z
+      physicsNode->m_velocity.x,
+      physicsNode->m_velocity.y,
+      physicsNode->m_velocity.z
     ));
 
-    const vec3 velocity(
-      physicsNode->velocity.x,
-      physicsNode->velocity.y + (-9.81 * dt), // simulate gravity
-      physicsNode->velocity.z
-    );
+    if (physicsNode->m_gravity) {
+      const vec3 velocity(
+        physicsNode->m_velocity.x,
+        physicsNode->m_velocity.y + (-9.81 * dt),
+        physicsNode->m_velocity.z
+      );
 
-    physicsNode->set_velocity(velocity);
+      physicsNode->set_velocity(velocity);
+    }
   }
 
   for (SceneNode * child : node.children) {

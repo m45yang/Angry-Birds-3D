@@ -10,9 +10,15 @@ PhysicsNode::PhysicsNode(
   : SceneNode(name)
 {
   m_nodeType = NodeType::PhysicsNode;
+  m_gravity = true;
 }
 
 //---------------------------------------------------------------------------------------
 void PhysicsNode::set_velocity(const vec3 & v) {
-  velocity = v;
+  m_velocity = v;
+}
+
+//---------------------------------------------------------------------------------------
+void PhysicsNode::set_gravity(bool g) {
+  m_gravity = g;
 }

@@ -9,6 +9,8 @@ public:
   );
 
   void set_velocity(const glm::vec3 & v);
+  void set_gravity(bool g);
 
-  glm::vec3 velocity;
+  glm::vec3 m_velocity;
+  bool m_gravity;
 };

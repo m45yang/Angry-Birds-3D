@@ -335,7 +335,7 @@ int gr_node_rotate_cmd(lua_State* L)
   return 0;
 }
 
-// Set a node's material
+// Set a physics node's velocity
 extern "C"
 int gr_node_set_velocity_cmd(lua_State* L)
 {
@@ -354,6 +354,25 @@ int gr_node_set_velocity_cmd(lua_State* L)
   }
 
   self->set_velocity(glm::vec3(values[0], values[1], values[2]));
+
+  return 0;
+}
+
+// Toggle gravity for a velocity node
+extern "C"
+int gr_node_set_gravity_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  PhysicsNode* self = dynamic_cast<PhysicsNode*>(selfdata->node);
+  luaL_argcheck(L, self != 0, 1, "Physics node expected");
+
+  bool g =  luaL_checknumber(L, 2);
+
+  self->set_gravity(g);
 
   return 0;
 }
@@ -411,6 +430,7 @@ static const luaL_Reg grlib_node_methods[] = {
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},
   {"set_velocity", gr_node_set_velocity_cmd},
+  {"set_gravity", gr_node_set_gravity_cmd},
   {0, 0}
 };
 
