@@ -21,13 +21,13 @@ using namespace std;
 using namespace glm;
 
 static bool show_gui = true;
-stack<mat4> A3::matrixStack;
+stack<mat4> A5::matrixStack;
 
 const size_t CIRCLE_PTS = 48;
 
 //----------------------------------------------------------------------------------------
 // Constructor
-A3::A3(const std::string & luaSceneFile)
+A5::A5(const std::string & luaSceneFile)
   : m_luaSceneFile(luaSceneFile),
     m_positionAttribLocation(0),
     m_normalAttribLocation(0),
@@ -45,7 +45,7 @@ A3::A3(const std::string & luaSceneFile)
 
 //----------------------------------------------------------------------------------------
 // Destructor
-A3::~A3()
+A5::~A5()
 {
 
 }
@@ -54,7 +54,7 @@ A3::~A3()
 /*
  * Called once, at program start.
  */
-void A3::init()
+void A5::init()
 {
   // Set the background colour.
   glClearColor(0.35, 0.35, 0.35, 1.0);
@@ -114,7 +114,7 @@ void A3::init()
 }
 
 //----------------------------------------------------------------------------------------
-void A3::processLuaSceneFile(const std::string & filename) {
+void A5::processLuaSceneFile(const std::string & filename) {
   // This version of the code treats the Lua file as an Asset,
   // so that you'd launch the program with just the filename
   // of a puppet in the Assets/ directory.
@@ -130,7 +130,7 @@ void A3::processLuaSceneFile(const std::string & filename) {
 }
 
 //----------------------------------------------------------------------------------------
-void A3::createShaderProgram()
+void A5::createShaderProgram()
 {
   m_shader.generateProgramObject();
   m_shader.attachVertexShader( getAssetFilePath("VertexShader.vs").c_str() );
@@ -139,7 +139,7 @@ void A3::createShaderProgram()
 }
 
 //----------------------------------------------------------------------------------------
-void A3::enableVertexShaderInputSlots()
+void A5::enableVertexShaderInputSlots()
 {
   //-- Enable input slots for m_vao_meshData:
   {
@@ -161,7 +161,7 @@ void A3::enableVertexShaderInputSlots()
 }
 
 //----------------------------------------------------------------------------------------
-void A3::uploadVertexDataToVbos (
+void A5::uploadVertexDataToVbos (
     const MeshConsolidator & meshConsolidator
 ) {
   // Generate VBO to store all vertex position data
@@ -192,7 +192,7 @@ void A3::uploadVertexDataToVbos (
 }
 
 //----------------------------------------------------------------------------------------
-void A3::mapVboDataToVertexShaderInputLocations()
+void A5::mapVboDataToVertexShaderInputLocations()
 {
   // Bind VAO in order to record the data mapping.
   glBindVertexArray(m_vao_meshData);
@@ -215,27 +215,27 @@ void A3::mapVboDataToVertexShaderInputLocations()
 }
 
 //----------------------------------------------------------------------------------------
-void A3::initPerspectiveMatrix()
+void A5::initPerspectiveMatrix()
 {
   float aspect = ((float)m_windowWidth) / m_windowHeight;
   m_perspective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
 }
 
 //----------------------------------------------------------------------------------------
-void A3::initViewMatrix() {
+void A5::initViewMatrix() {
   m_view = glm::lookAt(vec3(0.0f, 3.0f, 5.0f), vec3(0.0f, 1.5f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
 //----------------------------------------------------------------------------------------
-void A3::initLightSources() {
+void A5::initLightSources() {
   // World-space position
   m_light.position = vec3(0.0f, 5.0f, 0.5f);
   m_light.rgbIntensity = vec3(0.8f); // White light
 }
 
 //----------------------------------------------------------------------------------------
-void A3::uploadCommonSceneUniforms() {
+void A5::uploadCommonSceneUniforms() {
   m_shader.enable();
   {
     //-- Set Perpsective matrix uniform for the scene:
@@ -263,7 +263,7 @@ void A3::uploadCommonSceneUniforms() {
 /*
  * Called once per frame, before guiLogic().
  */
-void A3::appLogic()
+void A5::appLogic()
 {
   if (old_time == 0) {
     old_time = clock();
@@ -279,7 +279,7 @@ void A3::appLogic()
 }
 
 //----------------------------------------------------------------------------------------
-void A3::updateTransformations(SceneNode &node, double dt)
+void A5::updateTransformations(SceneNode &node, double dt)
 {
   if (node.m_nodeType == NodeType::PhysicsNode) {
     PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
@@ -307,7 +307,7 @@ void A3::updateTransformations(SceneNode &node, double dt)
 /*
  * Called once per frame, after appLogic(), but before the draw() method.
  */
-void A3::guiLogic()
+void A5::guiLogic()
 {
   if( !show_gui ) {
     return;
@@ -353,7 +353,7 @@ void A3::guiLogic()
 
 //----------------------------------------------------------------------------------------
 // Update mesh specific shader uniforms:
-void A3::updateShaderUniforms(
+void A5::updateShaderUniforms(
     const GeometryNode & node
 ) {
 
@@ -407,7 +407,7 @@ void A3::updateShaderUniforms(
 /*
  * Called once per frame, after guiLogic().
  */
-void A3::draw() {
+void A5::draw() {
 
   glEnable( GL_DEPTH_TEST );
 
@@ -419,7 +419,7 @@ void A3::draw() {
 }
 
 //----------------------------------------------------------------------------------------
-void A3::renderNode(const SceneNode &node) {
+void A5::renderNode(const SceneNode &node) {
   if (node.m_nodeType == NodeType::SceneNode) {
     // Mult matrix stack
     mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
@@ -496,7 +496,7 @@ void A3::renderNode(const SceneNode &node) {
 }
 
 //----------------------------------------------------------------------------------------
-void A3::renderSceneGraph(const SceneNode & root) {
+void A5::renderSceneGraph(const SceneNode & root) {
 
   // Bind the VAO once here, and reuse for all GeometryNode rendering below.
   glBindVertexArray(m_vao_meshData);
@@ -508,7 +508,7 @@ void A3::renderSceneGraph(const SceneNode & root) {
 }
 
 //----------------------------------------------------------------------------------------
-void A3::renderSkyBox() {
+void A5::renderSkyBox() {
   glDepthFunc(GL_LEQUAL);
   m_skybox->m_shader.enable();
 
@@ -535,7 +535,7 @@ void A3::renderSkyBox() {
 }
 
 //----------------------------------------------------------------------------------------
-void A3::loadTexture(const char* textureFilePath) {
+void A5::loadTexture(const char* textureFilePath) {
 
   // Create a new texture object and bind it to the buffer
   unsigned int texture;
@@ -570,7 +570,7 @@ void A3::loadTexture(const char* textureFilePath) {
 /*
  * Called once, after program is signaled to terminate.
  */
-void A3::cleanup()
+void A5::cleanup()
 {
 
 }
@@ -579,7 +579,7 @@ void A3::cleanup()
 /*
  * Event handler.  Handles cursor entering the window area events.
  */
-bool A3::cursorEnterWindowEvent (
+bool A5::cursorEnterWindowEvent (
     int entered
 ) {
   bool eventHandled(false);
@@ -593,7 +593,7 @@ bool A3::cursorEnterWindowEvent (
 /*
  * Event handler.  Handles mouse cursor movement events.
  */
-bool A3::mouseMoveEvent (
+bool A5::mouseMoveEvent (
     double xPos,
     double yPos
 ) {
@@ -636,7 +636,7 @@ bool A3::mouseMoveEvent (
 /*
  * Event handler.  Handles mouse button events.
  */
-bool A3::mouseButtonInputEvent (
+bool A5::mouseButtonInputEvent (
     int button,
     int actions,
     int mods
@@ -658,7 +658,7 @@ bool A3::mouseButtonInputEvent (
 /*
  * Event handler.  Handles mouse scroll wheel events.
  */
-bool A3::mouseScrollEvent (
+bool A5::mouseScrollEvent (
     double xOffSet,
     double yOffSet
 ) {
@@ -671,7 +671,7 @@ bool A3::mouseScrollEvent (
 /*
  * Event handler.  Handles window resize events.
  */
-bool A3::windowResizeEvent (
+bool A5::windowResizeEvent (
     int width,
     int height
 ) {
@@ -684,7 +684,7 @@ bool A3::windowResizeEvent (
 /*
  * Event handler.  Handles key input events.
  */
-bool A3::keyInputEvent (
+bool A5::keyInputEvent (
     int key,
     int action,
     int mods
