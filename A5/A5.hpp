@@ -52,7 +52,7 @@ protected:
 
   void uploadCommonSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
-  void updateTransformations(SceneNode &node);
+  void updateTransformations(SceneNode &node, double dt);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
   void renderSkyBox();
@@ -86,6 +86,8 @@ protected:
   float m_mouse_y_pos;
   unsigned int m_num_textures;
   std::shared_ptr<SkyBox> m_skybox;
+  clock_t old_time;
+  clock_t new_time;
 
 private:
   static std::stack<glm::mat4> matrixStack;

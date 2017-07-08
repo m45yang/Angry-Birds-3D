@@ -169,7 +169,7 @@ pig1:add_child(pig)
 
 bird1_p = gr.physics('bird1_p')
 rootnode:add_child(bird1_p)
-bird1_p:set_velocity(0.0, 0.1, -0.1)
+bird1_p:set_velocity(0.0, 0.75, -0.75)
 bird1_p:translate(0.0, 0.0, 5.0)
 
 bird1 = gr.node('bird1')

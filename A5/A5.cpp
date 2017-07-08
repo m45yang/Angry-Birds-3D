@@ -16,6 +16,8 @@ using namespace std;
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <time.h>
+
 using namespace glm;
 
 static bool show_gui = true;
@@ -35,7 +37,8 @@ A3::A3(const std::string & luaSceneFile)
     m_current_mode(GLFW_KEY_C),
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
-    m_num_textures(0)
+    m_num_textures(0),
+    old_time(0)
 {
 
 }
@@ -262,21 +265,41 @@ void A3::uploadCommonSceneUniforms() {
  */
 void A3::appLogic()
 {
-  updateTransformations(*m_rootNode);
+  if (old_time == 0) {
+    old_time = clock();
+  }
+  new_time = clock();
+  double dt = double(new_time - old_time) / CLOCKS_PER_SEC;
+
+  updateTransformations(*m_rootNode, dt);
 
   uploadCommonSceneUniforms();
+
+  old_time = new_time;
 }
 
 //----------------------------------------------------------------------------------------
-void A3::updateTransformations(SceneNode &node)
+void A3::updateTransformations(SceneNode &node, double dt)
 {
   if (node.m_nodeType == NodeType::PhysicsNode) {
-    const PhysicsNode * physicsNode = static_cast<const PhysicsNode *>(&node);
-    node.translate(physicsNode->velocity);
+    PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
+    node.translate(vec3(
+      physicsNode->velocity.x,
+      physicsNode->velocity.y,
+      physicsNode->velocity.z
+    ));
+
+    const vec3 velocity(
+      physicsNode->velocity.x,
+      physicsNode->velocity.y + (-9.81 * dt), // simulate gravity
+      physicsNode->velocity.z
+    );
+
+    physicsNode->set_velocity(velocity);
   }
 
   for (SceneNode * child : node.children) {
-    updateTransformations(*child);
+    updateTransformations(*child, dt);
   }
 }
 
