@@ -90,6 +90,8 @@ void A5::init()
 
   initLightSources();
 
+  getPhysicsNodes(*m_rootNode);
+
   // Load texture 1
   loadTexture(getAssetFilePath("textures/container.jpg").c_str());
 
@@ -223,7 +225,7 @@ void A5::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 3.0f, 5.0f), vec3(0.0f, 1.5f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 5.0f, 5.0f), vec3(0.0f, 4.5f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -232,6 +234,18 @@ void A5::initLightSources() {
   // World-space position
   m_light.position = vec3(0.0f, 5.0f, 0.5f);
   m_light.rgbIntensity = vec3(0.8f); // White light
+}
+
+//----------------------------------------------------------------------------------------
+void A5::getPhysicsNodes(SceneNode &node) {
+  if (node.m_nodeType == NodeType::PhysicsNode) {
+    PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
+    m_physicsNodes.push_back(physicsNode);
+  }
+
+  for (SceneNode * child : node.children) {
+    getPhysicsNodes(*child);
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -271,7 +285,7 @@ void A5::appLogic()
   new_time = clock();
   double dt = double(new_time - old_time) / CLOCKS_PER_SEC;
 
-  updateTransformations(*m_rootNode, dt);
+  updateTransformations(dt);
 
   uploadCommonSceneUniforms();
 
@@ -279,17 +293,34 @@ void A5::appLogic()
 }
 
 //----------------------------------------------------------------------------------------
-void A5::updateTransformations(SceneNode &node, double dt)
+void A5::updateTransformations(double dt)
 {
-  if (node.m_nodeType == NodeType::PhysicsNode) {
-    PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
-    node.translate(vec3(
+  bool collide;
+  for (PhysicsNode * physicsNode : m_physicsNodes) {
+    physicsNode->translate(vec3(
       physicsNode->m_velocity.x,
       physicsNode->m_velocity.y,
       physicsNode->m_velocity.z
     ));
 
-    if (physicsNode->m_gravity) {
+    collide = checkCollision(physicsNode->m_primitive);
+    if (collide) {
+      physicsNode->translate(vec3(
+        -physicsNode->m_velocity.x,
+        -physicsNode->m_velocity.y,
+        -physicsNode->m_velocity.z
+      ));
+
+      // Calculate collision response here
+      const vec3 velocity(
+        0.0f,
+        0.0f,
+        0.0f
+      );
+
+      physicsNode->set_velocity(velocity);
+    }
+    else if (physicsNode->m_gravity) {
       const vec3 velocity(
         physicsNode->m_velocity.x,
         physicsNode->m_velocity.y + (-9.81 * dt),
@@ -299,10 +330,26 @@ void A5::updateTransformations(SceneNode &node, double dt)
       physicsNode->set_velocity(velocity);
     }
   }
+}
 
-  for (SceneNode * child : node.children) {
-    updateTransformations(*child, dt);
+bool A5::checkCollision(Primitive *p1)
+{
+  Primitive *p2;
+  for (PhysicsNode * physicsNode : m_physicsNodes) {
+    p2 = physicsNode->m_primitive;
+
+    if (p1 != p2) {
+      bool collisionX = p1->m_pos.x + (p1->m_size.x/2) >= p2->m_pos.x - (p2->m_size.x/2) && p2->m_pos.x + (p2->m_size.x/2) >= p1->m_pos.x - (p1->m_size.x/2);
+      bool collisionY = p1->m_pos.y + (p1->m_size.y/2) >= p2->m_pos.y - (p2->m_size.y/2) && p2->m_pos.y + (p2->m_size.y/2) >= p1->m_pos.y - (p1->m_size.y/2);
+      bool collisionZ = p1->m_pos.z + (p1->m_size.z/2) >= p2->m_pos.z - (p2->m_size.z/2) && p2->m_pos.z + (p2->m_size.z/2) >= p1->m_pos.z - (p1->m_size.z/2);
+
+      if (collisionX && collisionY && collisionZ) {
+        return true;
+      }
+    }
   }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------------------

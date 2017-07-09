@@ -155,35 +155,44 @@ bird_belly:scale(0.9, 0.9, 0.9)
 bird_belly:translate(0.0, -0.14, 0.06)
 
 
-
 -- Scene arrangement
 rootnode = gr.node('root')
-rootnode:scale( 0.25, 0.25, 0.25 )
 
-ground_p = gr.physics('ground_p')
+ground_p = gr.physics(
+  'ground_p',
+  'cube',
+  0.0, 0.0, -75.0,
+  50.0, 1.0, 150.0)
 rootnode:add_child(ground_p)
 ground_p:set_gravity(0)
 
 ground = gr.mesh('cube', 'ground', 0)
 ground_p:add_child(ground)
 ground:set_material(yellow_green)
-ground:scale(50.0, 0.5, 150.0)
-ground:translate(0.0, 0.0, -75.0)
+
+pig1_p = gr.physics(
+  'pig1_p',
+  'cube',
+  -20.0, 5.0, -25.0,
+  1.0, 1.0, 1.0
+)
+rootnode:add_child(pig1_p)
 
 pig1 = gr.node('pig1')
-rootnode:add_child(pig1)
-pig1:scale(1.0, 1.0, 1.0)
-pig1:translate(0.0, 1.0, -25.0)
+pig1_p:add_child(pig1)
 pig1:add_child(pig)
 
-bird1_p = gr.physics('bird1_p')
+bird1_p = gr.physics(
+  'bird1_p',
+  'cube',
+  0.0, 1.5, 0.0,
+  1.0, 1.0, 1.0
+)
 rootnode:add_child(bird1_p)
-bird1_p:set_velocity(0.0, 0.8, -1.0)
-bird1_p:translate(0.0, 0.0, 5.0)
+bird1_p:set_velocity(0.0, 1.0, -0.3)
 
 bird1 = gr.node('bird1')
 bird1_p:add_child(bird1)
-bird1:scale(1.0, 1.0, 1.0)
 bird1:rotate('y', 180)
 bird1:add_child(bird)
 

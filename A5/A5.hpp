@@ -13,6 +13,7 @@
 #include <glm/glm.hpp>
 #include <map>
 #include <memory>
+#include <vector>
 
 struct LightSource {
   glm::vec3 position;
@@ -49,10 +50,12 @@ protected:
   void initViewMatrix();
   void initLightSources();
   void initPerspectiveMatrix();
+  void getPhysicsNodes(SceneNode &node);
 
   void uploadCommonSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
-  void updateTransformations(SceneNode &node, double dt);
+  void updateTransformations(double dt);
+  bool checkCollision(Primitive *p1);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
   void renderSkyBox();
@@ -79,6 +82,8 @@ protected:
   std::string m_luaSceneFile;
 
   std::shared_ptr<SceneNode> m_rootNode;
+
+  std::vector<PhysicsNode*> m_physicsNodes;
 
   int m_current_mode;
   bool m_keys[1024];

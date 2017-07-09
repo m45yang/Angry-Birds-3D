@@ -44,6 +44,7 @@
 #include "JointNode.hpp"
 #include "GeometryNode.hpp"
 #include "PhysicsNode.hpp"
+#include "Primitive.hpp"
 
 // Uncomment the following line to enable debugging messages
 //#define GRLUA_ENABLE_DEBUG
@@ -148,8 +149,21 @@ int gr_physics_cmd(lua_State* L)
   data->node = 0;
 
   const char* name = luaL_checkstring(L, 1);
+  const char* prim_type = luaL_checkstring(L, 2);
+  double x_pos = luaL_checknumber(L, 3);
+  double y_pos = luaL_checknumber(L, 4);
+  double z_pos = luaL_checknumber(L, 5);
+  double x_size = luaL_checknumber(L, 6);
+  double y_size = luaL_checknumber(L, 7);
+  double z_size = luaL_checknumber(L, 8);
 
-  data->node = new PhysicsNode(name);
+  Primitive *prim = new Primitive(
+    prim_type,
+    glm::vec3(x_pos, y_pos, z_pos),
+    glm::vec3(x_size, y_size, z_size)
+  );
+
+  data->node = new PhysicsNode(name, prim);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
