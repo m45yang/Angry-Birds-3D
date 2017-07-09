@@ -317,7 +317,6 @@ void A5::updateTransformations(double dt)
         0.0f,
         0.0f
       );
-
       physicsNode->set_velocity(velocity);
     }
     else if (physicsNode->m_gravity) {
@@ -326,7 +325,6 @@ void A5::updateTransformations(double dt)
         physicsNode->m_velocity.y + (-9.81 * dt),
         physicsNode->m_velocity.z
       );
-
       physicsNode->set_velocity(velocity);
     }
   }
@@ -336,24 +334,61 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
 {
   Primitive *p1 = physicsNode1->m_primitive;
   Primitive *p2;
-  for (PhysicsNode * physicsNode2 : m_physicsNodes) {
+  PhysicsNode *physicsNode2;
+  bool collision = false;
+  vector<PhysicsNode*>::iterator it;
+
+  for (it=m_physicsNodes.begin(); it!=m_physicsNodes.end(); it++) {
+    physicsNode2 = *it;
     p2 = physicsNode2->m_primitive;
 
     if (!physicsNode1->m_destroyed && !physicsNode2->m_destroyed && p1 != p2) {
-      bool collisionX = p1->m_pos.x + (p1->m_size.x/2) >= p2->m_pos.x - (p2->m_size.x/2) && p2->m_pos.x + (p2->m_size.x/2) >= p1->m_pos.x - (p1->m_size.x/2);
-      bool collisionY = p1->m_pos.y + (p1->m_size.y/2) >= p2->m_pos.y - (p2->m_size.y/2) && p2->m_pos.y + (p2->m_size.y/2) >= p1->m_pos.y - (p1->m_size.y/2);
-      bool collisionZ = p1->m_pos.z + (p1->m_size.z/2) >= p2->m_pos.z - (p2->m_size.z/2) && p2->m_pos.z + (p2->m_size.z/2) >= p1->m_pos.z - (p1->m_size.z/2);
 
-      if (collisionX && collisionY && collisionZ) {
-        if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
-          physicsNode2->m_destroyed = true;
+      if (p1->m_type == "cube" && p2->m_type == "cube") {
+        bool collisionX = p1->m_pos.x + (p1->m_size.x/2) >= p2->m_pos.x - (p2->m_size.x/2) && p2->m_pos.x + (p2->m_size.x/2) >= p1->m_pos.x - (p1->m_size.x/2);
+        bool collisionY = p1->m_pos.y + (p1->m_size.y/2) >= p2->m_pos.y - (p2->m_size.y/2) && p2->m_pos.y + (p2->m_size.y/2) >= p1->m_pos.y - (p1->m_size.y/2);
+        bool collisionZ = p1->m_pos.z + (p1->m_size.z/2) >= p2->m_pos.z - (p2->m_size.z/2) && p2->m_pos.z + (p2->m_size.z/2) >= p1->m_pos.z - (p1->m_size.z/2);
+
+        if (collisionX && collisionY && collisionZ) {
+          if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
+            physicsNode2->m_destroyed = true;
+          }
+          collision = true;
+          break;
         }
-        return true;
+      }
+
+      if (p1->m_type == "sphere" && p2->m_type == "cube") {
+        vec3 aabb_half_extents(p2->m_size.x/2, p2->m_size.y/2, p2->m_size.z/2);
+        vec3 difference = p1->m_pos - p2->m_pos;
+        vec3 clamped = clamp(difference, -aabb_half_extents, aabb_half_extents);
+        vec3 closest = p2->m_pos + clamped;
+        difference = closest - p1->m_pos;
+
+        if (length(difference) <= p1->m_size.x) { // assume perfect sphere
+          if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
+            physicsNode2->m_destroyed = true;
+          }
+          collision = true;
+          break;
+        }
+      }
+
+      if (p1->m_type == "sphere" && p2->m_type == "sphere") {
+        vec3 difference = p1->m_pos - p2->m_pos;
+
+        if (length(difference) <= p1->m_size.x + p2->m_size.x) {
+          if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
+            physicsNode2->m_destroyed = true;
+          }
+          collision = true;
+          break;
+        }
       }
     }
   }
 
-  return false;
+  return collision;
 }
 
 //----------------------------------------------------------------------------------------
