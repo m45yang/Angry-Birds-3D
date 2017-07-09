@@ -225,7 +225,7 @@ void A5::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 5.0f, 5.0f), vec3(0.0f, 4.5f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 10.0f, 15.0f), vec3(0.0f, 2.5f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -303,7 +303,7 @@ void A5::updateTransformations(double dt)
       physicsNode->m_velocity.z
     ));
 
-    collide = checkCollision(physicsNode->m_primitive);
+    collide = checkCollision(physicsNode);
     if (collide) {
       physicsNode->translate(vec3(
         -physicsNode->m_velocity.x,
@@ -332,18 +332,22 @@ void A5::updateTransformations(double dt)
   }
 }
 
-bool A5::checkCollision(Primitive *p1)
+bool A5::checkCollision(PhysicsNode *physicsNode1)
 {
+  Primitive *p1 = physicsNode1->m_primitive;
   Primitive *p2;
-  for (PhysicsNode * physicsNode : m_physicsNodes) {
-    p2 = physicsNode->m_primitive;
+  for (PhysicsNode * physicsNode2 : m_physicsNodes) {
+    p2 = physicsNode2->m_primitive;
 
-    if (p1 != p2) {
+    if (!physicsNode1->m_destroyed && !physicsNode2->m_destroyed && p1 != p2) {
       bool collisionX = p1->m_pos.x + (p1->m_size.x/2) >= p2->m_pos.x - (p2->m_size.x/2) && p2->m_pos.x + (p2->m_size.x/2) >= p1->m_pos.x - (p1->m_size.x/2);
       bool collisionY = p1->m_pos.y + (p1->m_size.y/2) >= p2->m_pos.y - (p2->m_size.y/2) && p2->m_pos.y + (p2->m_size.y/2) >= p1->m_pos.y - (p1->m_size.y/2);
       bool collisionZ = p1->m_pos.z + (p1->m_size.z/2) >= p2->m_pos.z - (p2->m_size.z/2) && p2->m_pos.z + (p2->m_size.z/2) >= p1->m_pos.z - (p1->m_size.z/2);
 
       if (collisionX && collisionY && collisionZ) {
+        if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
+          physicsNode2->m_destroyed = true;
+        }
         return true;
       }
     }
@@ -502,6 +506,12 @@ void A5::renderNode(const SceneNode &node) {
     m_shader.disable();
   }
   else if (node.m_nodeType == NodeType::PhysicsNode) {
+    const PhysicsNode * physicsNode = static_cast<const PhysicsNode *>(&node);
+
+    if (physicsNode->m_destroyed == true) {
+      return;
+    }
+
     // Mult matrix stack
     mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
     matrixStack.push(newTransform);

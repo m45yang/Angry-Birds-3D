@@ -162,7 +162,9 @@ ground_p = gr.physics(
   'ground_p',
   'cube',
   0.0, 0.0, -75.0,
-  50.0, 1.0, 150.0)
+  50.0, 1.0, 150.0,
+  2
+)
 rootnode:add_child(ground_p)
 ground_p:set_gravity(0)
 
@@ -173,8 +175,9 @@ ground:set_material(yellow_green)
 pig1_p = gr.physics(
   'pig1_p',
   'cube',
-  -20.0, 5.0, -25.0,
-  1.0, 1.0, 1.0
+  0.0, 5.0, -21.0,
+  1.0, 1.0, 1.0,
+  1
 )
 rootnode:add_child(pig1_p)
 
@@ -186,7 +189,8 @@ bird1_p = gr.physics(
   'bird1_p',
   'cube',
   0.0, 1.5, 0.0,
-  1.0, 1.0, 1.0
+  1.0, 1.0, 1.0,
+  0
 )
 rootnode:add_child(bird1_p)
 bird1_p:set_velocity(0.0, 1.0, -0.3)

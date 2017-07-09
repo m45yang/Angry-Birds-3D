@@ -9,13 +9,16 @@ using namespace std;
 //---------------------------------------------------------------------------------------
 PhysicsNode::PhysicsNode(
     const string & name,
-    Primitive *prim
+    Primitive *prim,
+    unsigned int object_type
 )
   : SceneNode( name )
   , m_primitive( prim )
+  , m_gravity ( true )
+  , m_destroyed( false )
 {
   m_nodeType = NodeType::PhysicsNode;
-  m_gravity = true;
+  m_objectType = (ObjectType)object_type;
 
   scale(prim->m_size);
   translate(prim->m_pos);

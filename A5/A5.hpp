@@ -55,7 +55,7 @@ protected:
   void uploadCommonSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
   void updateTransformations(double dt);
-  bool checkCollision(Primitive *p1);
+  bool checkCollision(PhysicsNode *physicsNode);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
   void renderSkyBox();

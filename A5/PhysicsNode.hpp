@@ -3,11 +3,18 @@
 #include "SceneNode.hpp"
 #include "Primitive.hpp"
 
+enum class ObjectType {
+    Bird,
+    Pig,
+    Ground
+};
+
 class PhysicsNode : public SceneNode {
 public:
   PhysicsNode(
     const std::string & name,
-    Primitive *prim
+    Primitive *prim,
+    unsigned int object_type
   );
   ~PhysicsNode();
 
@@ -17,6 +24,8 @@ public:
 
   glm::vec3 m_velocity;
   bool m_gravity;
+  bool m_destroyed;
+  ObjectType m_objectType;
 
   Primitive *m_primitive;
 };

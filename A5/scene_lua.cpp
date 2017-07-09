@@ -156,6 +156,7 @@ int gr_physics_cmd(lua_State* L)
   double x_size = luaL_checknumber(L, 6);
   double y_size = luaL_checknumber(L, 7);
   double z_size = luaL_checknumber(L, 8);
+  unsigned int object_type = luaL_checknumber(L, 9);
 
   Primitive *prim = new Primitive(
     prim_type,
@@ -163,7 +164,7 @@ int gr_physics_cmd(lua_State* L)
     glm::vec3(x_size, y_size, z_size)
   );
 
-  data->node = new PhysicsNode(name, prim);
+  data->node = new PhysicsNode(name, prim, object_type);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
