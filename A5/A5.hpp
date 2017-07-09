@@ -51,6 +51,7 @@ protected:
   void initLightSources();
   void initPerspectiveMatrix();
   void getPhysicsNodes(SceneNode &node);
+  void getBirdNodes(SceneNode &node);
 
   void uploadCommonSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
@@ -84,11 +85,16 @@ protected:
   std::shared_ptr<SceneNode> m_rootNode;
 
   std::vector<PhysicsNode*> m_physicsNodes;
+  std::vector<PhysicsNode*> m_birdNodes;
 
   int m_current_mode;
+  unsigned int m_current_bird;
   bool m_keys[1024];
   float m_mouse_x_pos;
   float m_mouse_y_pos;
+  float x_velocity;
+  float y_velocity;
+  float z_velocity;
   unsigned int m_num_textures;
   std::shared_ptr<SkyBox> m_skybox;
   clock_t old_time;

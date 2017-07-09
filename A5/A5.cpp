@@ -35,8 +35,12 @@ A5::A5(const std::string & luaSceneFile)
     m_vbo_vertexPositions(0),
     m_vbo_vertexNormals(0),
     m_current_mode(GLFW_KEY_C),
+    m_current_bird(0),
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
+    x_velocity(0.0f),
+    y_velocity(0.0f),
+    z_velocity(0.0f),
     m_num_textures(0),
     old_time(0)
 {
@@ -91,6 +95,8 @@ void A5::init()
   initLightSources();
 
   getPhysicsNodes(*m_rootNode);
+
+  getBirdNodes(*m_rootNode);
 
   // Load texture 1
   loadTexture(getAssetFilePath("textures/container.jpg").c_str());
@@ -225,7 +231,7 @@ void A5::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 10.0f, 15.0f), vec3(0.0f, 2.5f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 9.0f, 15.0f), vec3(0.0f, 9.0f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -245,6 +251,20 @@ void A5::getPhysicsNodes(SceneNode &node) {
 
   for (SceneNode * child : node.children) {
     getPhysicsNodes(*child);
+  }
+}
+
+//----------------------------------------------------------------------------------------
+void A5::getBirdNodes(SceneNode &node) {
+  if (node.m_nodeType == NodeType::PhysicsNode) {
+    PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
+    if (physicsNode->m_objectType == ObjectType::Bird) {
+      m_birdNodes.push_back(physicsNode);
+    }
+  }
+
+  for (SceneNode * child : node.children) {
+    getBirdNodes(*child);
   }
 }
 
@@ -431,6 +451,10 @@ void A5::guiLogic()
       ImGui::EndMenuBar();
     }
 
+    ImGui::RadioButton( "Shoot", &m_current_mode, GLFW_KEY_S );
+    ImGui::SliderFloat("X Velocity", &x_velocity, 0.0f, 1.0f);
+    ImGui::SliderFloat("Y Velocity", &y_velocity, 0.0f, 1.0f);
+    ImGui::SliderFloat("Z Velocity", &z_velocity, 0.0f, 1.0f);
     ImGui::RadioButton( "Translate Camera Mode", &m_current_mode, GLFW_KEY_C );
     ImGui::RadioButton( "Rotate Camera Mode", &m_current_mode, GLFW_KEY_R );
 
@@ -786,9 +810,15 @@ bool A5::keyInputEvent (
   bool eventHandled(true);
 
   if( action == GLFW_PRESS ) {
-    if( key == GLFW_KEY_M ) {
+    if ( key == GLFW_KEY_M ) {
       show_gui = !show_gui;
       eventHandled = true;
+    }
+    else if ( m_current_mode == GLFW_KEY_S && key == GLFW_KEY_SPACE ) {
+      if (m_current_bird < m_birdNodes.size()) {
+        PhysicsNode *birdNode = m_birdNodes[m_current_bird++];
+        birdNode->set_velocity(vec3(x_velocity, y_velocity, -z_velocity));
+      }
     }
     else {
       m_current_mode = key;
