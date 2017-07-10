@@ -16,8 +16,6 @@ using namespace std;
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <time.h>
-
 using namespace glm;
 
 static bool show_gui = true;
@@ -39,10 +37,9 @@ A5::A5(const std::string & luaSceneFile)
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
     x_velocity(0.0f),
-    y_velocity(0.76f),
-    z_velocity(0.85f),
-    m_num_textures(0),
-    old_time(0)
+    y_velocity(95.0f),
+    z_velocity(35.0f),
+    m_num_textures(0)
 {
 
 }
@@ -302,19 +299,13 @@ void A5::uploadCommonSceneUniforms() {
  */
 void A5::appLogic()
 {
-  if (old_time == 0) {
-    old_time = clock();
-  }
-  new_time = clock();
-  double dt = double(new_time - old_time) / CLOCKS_PER_SEC;
+  double dt = 1/ImGui::GetIO().Framerate;
 
   updateParticleSystems(dt);
 
   updatePhysicsNodes(dt);
 
   uploadCommonSceneUniforms();
-
-  old_time = new_time;
 }
 
 bool isDead(ParticleSystem *particleSystem) {
@@ -337,17 +328,17 @@ void A5::updatePhysicsNodes(double dt)
   bool collide;
   for (PhysicsNode * physicsNode : m_physicsNodes) {
     physicsNode->translate(vec3(
-      physicsNode->m_velocity.x,
-      physicsNode->m_velocity.y,
-      physicsNode->m_velocity.z
+      physicsNode->m_velocity.x*dt,
+      physicsNode->m_velocity.y*dt,
+      physicsNode->m_velocity.z*dt
     ));
 
     collide = checkCollision(physicsNode);
     if (collide) {
       physicsNode->translate(vec3(
-        -physicsNode->m_velocity.x,
-        -physicsNode->m_velocity.y,
-        -physicsNode->m_velocity.z
+        -physicsNode->m_velocity.x*dt,
+        -physicsNode->m_velocity.y*dt,
+        -physicsNode->m_velocity.z*dt
       ));
 
       // Calculate collision response here
@@ -361,7 +352,7 @@ void A5::updatePhysicsNodes(double dt)
     else if (physicsNode->m_gravity) {
       const vec3 velocity(
         physicsNode->m_velocity.x,
-        physicsNode->m_velocity.y + (-9.81 * dt),
+        physicsNode->m_velocity.y + (-200 * dt),
         physicsNode->m_velocity.z
       );
       physicsNode->set_velocity(velocity);
@@ -480,9 +471,9 @@ void A5::guiLogic()
     }
 
     ImGui::RadioButton( "Shoot", &m_current_mode, GLFW_KEY_S );
-    ImGui::SliderFloat("X Velocity", &x_velocity, 0.0f, 1.0f);
-    ImGui::SliderFloat("Y Velocity", &y_velocity, 0.0f, 1.0f);
-    ImGui::SliderFloat("Z Velocity", &z_velocity, 0.0f, 1.0f);
+    ImGui::SliderFloat("X Velocity", &x_velocity, 0.0f, 100.0f);
+    ImGui::SliderFloat("Y Velocity", &y_velocity, 0.0f, 100.0f);
+    ImGui::SliderFloat("Z Velocity", &z_velocity, 0.0f, 100.0f);
     ImGui::RadioButton( "Translate Camera Mode", &m_current_mode, GLFW_KEY_C );
     ImGui::RadioButton( "Rotate Camera Mode", &m_current_mode, GLFW_KEY_R );
 

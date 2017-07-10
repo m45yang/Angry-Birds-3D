@@ -107,8 +107,6 @@ protected:
   float z_velocity;
   unsigned int m_num_textures;
   std::shared_ptr<SkyBox> m_skybox;
-  clock_t old_time;
-  clock_t new_time;
 
 private:
   static std::stack<glm::mat4> matrixStack;

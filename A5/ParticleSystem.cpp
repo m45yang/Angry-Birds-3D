@@ -104,10 +104,6 @@ void ParticleSystem::update(double dt)
         random2 = (rand() % 100);
         random3 = (rand() % 100);
 
-        // if (it - m_particles.begin() == 1) {
-        //   cout << particle.position << endl;
-        //   cout << particle.life << endl;
-        // }
         if (particle->life > 0.0f) { // particle is alive, thus update
             particle->position.x += particle->velocity.x * random1 * dt;
             particle->position.y += particle->velocity.y * random2 * dt;
