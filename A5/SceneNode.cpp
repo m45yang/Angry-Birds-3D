@@ -14,8 +14,6 @@ using namespace glm;
 
 // Static class variable
 unsigned int SceneNode::nodeInstanceCount = 0;
-vector<unsigned int> SceneNode::geometryNodesToJoints;
-vector<bool> SceneNode::selectedGeometryNodes;
 
 //---------------------------------------------------------------------------------------
 SceneNode::SceneNode(const std::string& name)
@@ -25,8 +23,6 @@ SceneNode::SceneNode(const std::string& name)
   isSelected(false),
   m_nodeId(nodeInstanceCount++)
 {
-  selectedGeometryNodes.push_back(false);
-  geometryNodesToJoints.push_back(-1);
 }
 
 //---------------------------------------------------------------------------------------
@@ -67,9 +63,6 @@ const glm::mat4& SceneNode::get_inverse() const {
 
 //---------------------------------------------------------------------------------------
 void SceneNode::add_child(SceneNode* child) {
-  if (m_nodeType == NodeType::JointNode) {
-    geometryNodesToJoints[child->m_nodeId] = m_nodeId;
-  }
   children.push_back(child);
 }
 

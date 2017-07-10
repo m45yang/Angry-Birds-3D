@@ -7,6 +7,7 @@
 
 #include "GeometryNode.hpp"
 #include "SceneNode.hpp"
+#include "ParticleSystem.hpp"
 #include "PhysicsNode.hpp"
 #include "SkyBox.hpp"
 
@@ -18,6 +19,11 @@
 struct LightSource {
   glm::vec3 position;
   glm::vec3 rgbIntensity;
+};
+
+enum class TextureType {
+  JPG,
+  PNG
 };
 
 
@@ -55,12 +61,15 @@ protected:
 
   void uploadCommonSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
-  void updateTransformations(double dt);
+  void updateParticleSystems(double dt);
+  void updatePhysicsNodes(double dt);
   bool checkCollision(PhysicsNode *physicsNode);
+  void destroyPhysicsNode(PhysicsNode *physicsNode);
   void renderSceneGraph(const SceneNode &node);
   void renderNode(const SceneNode &node);
+  void renderParticles();
   void renderSkyBox();
-  void loadTexture(const char* textureFilePath);
+  void loadTexture(const char* textureFilePath, TextureType type);
 
   glm::mat4 m_perspective;
   glm::mat4 m_view;
@@ -84,6 +93,7 @@ protected:
 
   std::shared_ptr<SceneNode> m_rootNode;
 
+  std::list<ParticleSystem*> m_particleSystems;
   std::list<PhysicsNode*> m_physicsNodes;
   std::vector<PhysicsNode*> m_birdNodes;
 

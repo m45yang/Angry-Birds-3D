@@ -1,15 +1,15 @@
 #version 330
 
-out vec3 tex_coords;
+out vec2 tex_coords;
 
 in vec3 position;
 
 uniform mat4 Perspective;
-uniform mat4 View;
+uniform mat4 ModelView;
 
 void main()
 {
     tex_coords = position.xy;
-    vec4 pos = Perspective * View * vec4(position, 1.0);
+    vec4 pos = Perspective * ModelView * vec4(position, 1.0);
     gl_Position = pos.xyzw;
 }

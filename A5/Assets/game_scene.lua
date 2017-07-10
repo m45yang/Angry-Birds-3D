@@ -175,7 +175,7 @@ ground:set_material(yellow_green)
 pig1_p = gr.physics(
   'pig1_p',
   'sphere',
-  0.0, 3.5, -40.0,
+  0.0, 3.5, -35.0,
   3.0, 3.0, 3.0,
   1
 )

@@ -6,7 +6,6 @@ using namespace std;
 #include "cs488-framework/MathUtils.hpp"
 #include "GeometryNode.hpp"
 #include "JointNode.hpp"
-#include "ParticleNode.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -35,13 +34,13 @@ A5::A5(const std::string & luaSceneFile)
     m_vao_meshData(0),
     m_vbo_vertexPositions(0),
     m_vbo_vertexNormals(0),
-    m_current_mode(GLFW_KEY_C),
+    m_current_mode(GLFW_KEY_S),
     m_current_bird(0),
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
     x_velocity(0.0f),
-    y_velocity(0.0f),
-    z_velocity(0.0f),
+    y_velocity(0.76f),
+    z_velocity(0.85f),
     m_num_textures(0),
     old_time(0)
 {
@@ -100,7 +99,10 @@ void A5::init()
   getBirdNodes(*m_rootNode);
 
   // Load texture 1
-  loadTexture(getAssetFilePath("textures/container.jpg").c_str());
+  loadTexture(getAssetFilePath("textures/container.jpg").c_str(), TextureType::JPG);
+
+  // Load texture 2
+  loadTexture(getAssetFilePath("textures/particle.png").c_str(), TextureType::PNG);
 
   m_skybox = std::shared_ptr<SkyBox>(new SkyBox);
 
@@ -306,15 +308,31 @@ void A5::appLogic()
   new_time = clock();
   double dt = double(new_time - old_time) / CLOCKS_PER_SEC;
 
-  updateTransformations(dt);
+  updateParticleSystems(dt);
+
+  updatePhysicsNodes(dt);
 
   uploadCommonSceneUniforms();
 
   old_time = new_time;
 }
 
+bool isDead(ParticleSystem *particleSystem) {
+  return particleSystem->m_life < -5.0;
+}
+
 //----------------------------------------------------------------------------------------
-void A5::updateTransformations(double dt)
+void A5::updateParticleSystems(double dt)
+{
+  for (ParticleSystem * particleSystem : m_particleSystems) {
+    particleSystem->update(dt);
+  }
+
+  m_particleSystems.remove_if(isDead);
+}
+
+//----------------------------------------------------------------------------------------
+void A5::updatePhysicsNodes(double dt)
 {
   bool collide;
   for (PhysicsNode * physicsNode : m_physicsNodes) {
@@ -386,7 +404,7 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
 
         if (length(difference) <= p1->m_size.x) { // assume perfect sphere
           if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
-            physicsNode2->m_destroyed = true;
+            destroyPhysicsNode(physicsNode2);
           }
           collision = true;
           break;
@@ -398,7 +416,7 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
 
         if (length(difference) <= p1->m_size.x + p2->m_size.x) {
           if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
-            physicsNode2->m_destroyed = true;
+            destroyPhysicsNode(physicsNode2);
           }
           collision = true;
           break;
@@ -408,6 +426,17 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
   }
 
   return collision;
+}
+
+void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
+{
+  physicsNode->m_destroyed = true;
+
+  ParticleSystem *particleSystem = new ParticleSystem(0.15);
+  particleSystem->m_position = physicsNode->m_primitive->m_pos;
+  particleSystem->m_velocity = vec3(0.0, 0.5, 0.0);
+
+  m_particleSystems.push_back(particleSystem);
 }
 
 //----------------------------------------------------------------------------------------
@@ -524,6 +553,8 @@ void A5::draw() {
 
   renderSceneGraph(*m_rootNode);
 
+  renderParticles();
+
   renderSkyBox();
 
   glDisable( GL_DEPTH_TEST );
@@ -548,10 +579,6 @@ void A5::renderNode(const SceneNode &node) {
     transformedGeometryNode.set_transform(newTransform);
 
     vec3 col = transformedGeometryNode.material.kd;
-    // If this node is selected, assign the selected color
-    if( SceneNode::selectedGeometryNodes[node.m_nodeId] ) {
-      col = glm::vec3( 1.0, 1.0, 0.0 );
-    }
 
     updateShaderUniforms( transformedGeometryNode );
 
@@ -573,36 +600,6 @@ void A5::renderNode(const SceneNode &node) {
     // Mult matrix stack
     mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
     matrixStack.push(newTransform);
-  }
-  else if (node.m_nodeType == NodeType::JointNode) {
-    // Cast the SceneNode as a JointNode
-    const JointNode * jointNode = static_cast<const JointNode *>(&node);
-    double angleX = JointNode::jointNodeX[jointNode->m_nodeId];
-    double angleY = JointNode::jointNodeY[jointNode->m_nodeId];
-
-    if (angleX > jointNode->m_joint_x.max) {
-      angleX = jointNode->m_joint_x.max;
-      JointNode::jointNodeX[jointNode->m_nodeId] = jointNode->m_joint_x.max;
-    }
-    else if (angleX < jointNode->m_joint_x.min) {
-      angleX = jointNode->m_joint_x.min;
-      JointNode::jointNodeX[jointNode->m_nodeId] = jointNode->m_joint_x.min;
-    }
-
-    if (angleY > jointNode->m_joint_y.max) {
-      angleY = jointNode->m_joint_y.max;
-      JointNode::jointNodeY[jointNode->m_nodeId] = jointNode->m_joint_y.max;
-    }
-    else if (angleY < jointNode->m_joint_y.min) {
-      angleY = jointNode->m_joint_y.min;
-      JointNode::jointNodeY[jointNode->m_nodeId] = jointNode->m_joint_y.min;
-    }
-
-    JointNode transformedJointNode = JointNode(*jointNode);
-    transformedJointNode.rotate('x', angleX);
-    transformedJointNode.rotate('y', angleY);
-
-    matrixStack.push(matrixStack.top() * transformedJointNode.trans);
   }
 
   for (const SceneNode * child : node.children) {
@@ -652,7 +649,43 @@ void A5::renderSkyBox() {
 }
 
 //----------------------------------------------------------------------------------------
-void A5::loadTexture(const char* textureFilePath) {
+void A5::renderParticles() {
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  for (ParticleSystem * particleSystem : m_particleSystems) {
+    particleSystem->m_shader.enable();
+
+    for (Particle particle : particleSystem->m_particles) {
+      if (particle.life > 0.0) {
+        glBindVertexArray(particleSystem->m_vao);
+        glBindTexture(GL_TEXTURE_2D, 2);
+        CHECK_GL_ERRORS;
+
+        GLint location = particleSystem->m_shader.getUniformLocation("ModelView");
+        mat4 model = translate(mat4(), particle.position);
+        mat4 modelView = m_view * model;
+        glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
+        CHECK_GL_ERRORS;
+
+        location = particleSystem->m_shader.getUniformLocation("Perspective");
+        glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
+        CHECK_GL_ERRORS;
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindVertexArray(0);
+      }
+    }
+
+    particleSystem->m_shader.disable();
+  }
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+//----------------------------------------------------------------------------------------
+void A5::loadTexture(const char* textureFilePath, TextureType type) {
+
+  // Buffer to load texture into
+  unsigned char *data;
 
   // Create a new texture object and bind it to the buffer
   unsigned int texture;
@@ -665,12 +698,24 @@ void A5::loadTexture(const char* textureFilePath) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+
+
   // Load and generate the texture
   int width, height, nrChannels;
-  unsigned char *data = stbi_load(textureFilePath, &width, &height, &nrChannels, 0);
+  if (type == TextureType::JPG) {
+    data = stbi_load(textureFilePath, &width, &height, &nrChannels, 0);
+  }
+  else if (type == TextureType::PNG) {
+    data = stbi_load(textureFilePath, &width, &height, &nrChannels, STBI_rgb_alpha);
+  }
   if (data)
   {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+      if (type == TextureType::JPG) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+      }
+      else if (type == TextureType::PNG) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+      }
       glGenerateMipmap(GL_TEXTURE_2D);
   }
   else
