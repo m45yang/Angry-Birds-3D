@@ -14,7 +14,8 @@ enum class NodeType {
     SceneNode,
     GeometryNode,
     JointNode,
-    PhysicsNode
+    PhysicsNode,
+    ParticleNode
 };
 
 class SceneNode {

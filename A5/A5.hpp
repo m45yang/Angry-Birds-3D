@@ -84,7 +84,7 @@ protected:
 
   std::shared_ptr<SceneNode> m_rootNode;
 
-  std::vector<PhysicsNode*> m_physicsNodes;
+  std::list<PhysicsNode*> m_physicsNodes;
   std::vector<PhysicsNode*> m_birdNodes;
 
   int m_current_mode;

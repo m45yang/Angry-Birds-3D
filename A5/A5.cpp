@@ -6,6 +6,7 @@ using namespace std;
 #include "cs488-framework/MathUtils.hpp"
 #include "GeometryNode.hpp"
 #include "JointNode.hpp"
+#include "ParticleNode.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -356,10 +357,8 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
   Primitive *p2;
   PhysicsNode *physicsNode2;
   bool collision = false;
-  vector<PhysicsNode*>::iterator it;
 
-  for (it=m_physicsNodes.begin(); it!=m_physicsNodes.end(); it++) {
-    physicsNode2 = *it;
+  for (PhysicsNode * physicsNode2 : m_physicsNodes) {
     p2 = physicsNode2->m_primitive;
 
     if (!physicsNode1->m_destroyed && !physicsNode2->m_destroyed && p1 != p2) {

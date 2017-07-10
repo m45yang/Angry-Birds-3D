@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cs488-framework/CS488Window.hpp"
 #include "cs488-framework/ShaderProgram.hpp"
 
 #include <iostream>
@@ -16,7 +15,6 @@ public:
   void enableVertexShaderInputSlots();
   void uploadVertexDataToVbos();
   void mapVboDataToVertexShaderInputLocations();
-  void draw();
 
   //-- GL resources for skybox data
   GLuint m_vbo;
