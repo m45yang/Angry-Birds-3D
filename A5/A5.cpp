@@ -379,7 +379,7 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
 
         if (collisionX && collisionY && collisionZ) {
           if (physicsNode1->m_objectType == ObjectType::Bird && physicsNode2->m_objectType == ObjectType::Pig) {
-            physicsNode2->m_destroyed = true;
+            destroyPhysicsNode(physicsNode2);
           }
           collision = true;
           break;
@@ -423,7 +423,7 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
 {
   physicsNode->m_destroyed = true;
 
-  ParticleSystem *particleSystem = new ParticleSystem(0.15);
+  ParticleSystem *particleSystem = new ParticleSystem(0.2);
   particleSystem->m_position = physicsNode->m_primitive->m_pos;
   particleSystem->m_velocity = vec3(0.0, 0.5, 0.0);
 

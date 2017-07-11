@@ -111,7 +111,7 @@ void ParticleSystem::update(double dt)
             // particleNode.color.a -= dt * 2.5;
             const vec3 velocity(
               particle->velocity.x,
-              particle->velocity.y + (-9.81 * dt),
+              particle->velocity.y + (-1.5 * dt),
               particle->velocity.z
             );
 
