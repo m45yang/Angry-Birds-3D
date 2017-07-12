@@ -410,7 +410,7 @@ void A5::updatePhysicsNodes(double dt)
     else if (physicsNode->m_gravity) {
       const vec3 velocity(
         physicsNode->m_velocity.x,
-        physicsNode->m_velocity.y + (-200 * dt),
+        physicsNode->m_velocity.y + (-50.0 * dt),
         physicsNode->m_velocity.z
       );
       physicsNode->set_velocity(velocity);
@@ -483,7 +483,7 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
 
   ParticleSystem *particleSystem = new ParticleSystem(0.2);
   particleSystem->m_position = physicsNode->m_primitive->m_pos;
-  particleSystem->m_velocity = vec3(0.0, 0.5, 0.0);
+  particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
   m_particleSystems.push_back(particleSystem);
 }
@@ -759,13 +759,14 @@ void A5::renderSkyBox() {
 //----------------------------------------------------------------------------------------
 void A5::renderParticles() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
   for (ParticleSystem * particleSystem : m_particleSystems) {
     particleSystem->m_shader.enable();
+    glBindVertexArray(particleSystem->m_vao);
 
     for (Particle particle : particleSystem->m_particles) {
       if (particle.life > 0.0) {
-        glBindVertexArray(particleSystem->m_vao);
-        glBindTexture(GL_TEXTURE_2D, 2);
+
         CHECK_GL_ERRORS;
 
         GLint location = particleSystem->m_shader.getUniformLocation("ModelView");
@@ -779,15 +780,53 @@ void A5::renderParticles() {
         CHECK_GL_ERRORS;
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        glBindVertexArray(0);
       }
     }
 
+    glBindVertexArray(0);
     particleSystem->m_shader.disable();
   }
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
+
+// //----------------------------------------------------------------------------------------
+// void A5::renderParticlesDepthMap() {
+//   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_depthMap);
+//   glClear(GL_DEPTH_BUFFER_BIT);
+//   glActiveTexture(GL_TEXTURE1);
+
+//   glBindVertexArray(m_vao_meshData);
+
+//   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//   CHECK_GL_ERRORS;
+//   for (ParticleSystem * particleSystem : m_particleSystems) {
+//     particleSystem->m_shader.enable();
+
+//     for (Particle particle : particleSystem->m_particles) {
+//       if (particle.life > 0.0) {
+//         glBindVertexArray(particleSystem->m_vao);
+//         glBindTexture(GL_TEXTURE_2D, 2);
+//         CHECK_GL_ERRORS;
+
+//         GLint location = particleSystem->m_shader.getUniformLocation("ModelView");
+//         mat4 model = translate(mat4(), particle.position);
+//         mat4 modelView = m_view * model;
+//         glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
+//         CHECK_GL_ERRORS;
+
+//         location = particleSystem->m_shader.getUniformLocation("Perspective");
+//         glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
+//         CHECK_GL_ERRORS;
+
+//         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+//         glBindVertexArray(0);
+//       }
+//     }
+
+//     particleSystem->m_shader.disable();
+//   }
+// }
 
 //----------------------------------------------------------------------------------------
 void A5::loadTexture(const char* textureFilePath, TextureType type) {

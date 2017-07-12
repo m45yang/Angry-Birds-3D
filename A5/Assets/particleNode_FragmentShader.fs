@@ -2,12 +2,9 @@
 
 out vec4 fragColor;
 
-in vec2 tex_coords;
-// in vec4 particle_color;
-
-uniform sampler2D sprite;
+uniform vec4 color;
 
 void main()
 {
-    fragColor = texture(sprite, tex_coords);
+    fragColor = color;
 }
