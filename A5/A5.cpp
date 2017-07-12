@@ -91,6 +91,12 @@ void A5::init()
 
   initLightSources();
 
+  initLightPerspectiveMatrix();
+
+  initLightViewMatrix();
+
+  initDepthMap();
+
   getPhysicsNodes(*m_rootNode);
 
   getBirdNodes(*m_rootNode);
@@ -144,6 +150,11 @@ void A5::createShaderProgram()
   m_shader.attachVertexShader( getAssetFilePath("VertexShader.vs").c_str() );
   m_shader.attachFragmentShader( getAssetFilePath("FragmentShader.fs").c_str() );
   m_shader.link();
+
+  m_depthMapShader.generateProgramObject();
+  m_depthMapShader.attachVertexShader( getAssetFilePath("depthMap_VertexShader.vs").c_str() );
+  m_depthMapShader.attachFragmentShader( getAssetFilePath("depthMap_FragmentShader.fs").c_str() );
+  m_depthMapShader.link();
 }
 
 //----------------------------------------------------------------------------------------
@@ -238,8 +249,20 @@ void A5::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void A5::initLightSources() {
   // World-space position
-  m_light.position = vec3(0.0f, 5.0f, 0.5f);
-  m_light.rgbIntensity = vec3(0.8f); // White light
+  m_light.position = vec3(0.0f, 100.0f, -0.5f);
+  m_light.rgbIntensity = vec3(0.75f); // White light
+}
+
+//----------------------------------------------------------------------------------------
+void A5::initLightPerspectiveMatrix()
+{
+  m_lightPerspective = glm::ortho(-20.0f, 20.0f, -180.0f, 50.0f, 0.1f, 120.0f);
+}
+
+//----------------------------------------------------------------------------------------
+void A5::initLightViewMatrix() {
+  m_lightView = glm::lookAt(m_light.position, vec3(0.0f, 0.0f, 0.0f),
+      vec3(0.0f, 1.0f, 0.0f));
 }
 
 //----------------------------------------------------------------------------------------
@@ -277,6 +300,11 @@ void A5::uploadCommonSceneUniforms() {
     glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
     CHECK_GL_ERRORS;
 
+    //-- Set LightPerspective matrix uniform for the scene:
+    location = m_shader.getUniformLocation("LightPerspective");
+    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_lightPerspective));
+    CHECK_GL_ERRORS;
+
     //-- Set LightSource uniform for the scene:
     location = m_shader.getUniformLocation("light.position");
     glUniform3fv(location, 1, value_ptr(m_light.position));
@@ -294,6 +322,38 @@ void A5::uploadCommonSceneUniforms() {
 }
 
 //----------------------------------------------------------------------------------------
+void A5::uploadDepthMapSceneUniforms() {
+  m_depthMapShader.enable();
+  {
+    GLint location = m_depthMapShader.getUniformLocation("Perspective");
+    glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_lightPerspective));
+    CHECK_GL_ERRORS;
+  }
+  m_depthMapShader.disable();
+}
+
+//----------------------------------------------------------------------------------------
+void A5::initDepthMap() {
+  glGenFramebuffers(1, &m_fbo_depthMap);
+
+  glGenTextures(1, &m_depthMapTexture);
+  glBindTexture(GL_TEXTURE_2D, m_depthMapTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, m_windowWidth, m_windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_depthMap);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthMapTexture, 0);
+
+  glReadBuffer(GL_NONE);
+  glDrawBuffer(GL_NONE); // No color buffer is drawn to.
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+//----------------------------------------------------------------------------------------
 /*
  * Called once per frame, before guiLogic().
  */
@@ -304,8 +364,6 @@ void A5::appLogic()
   updateParticleSystems(dt);
 
   updatePhysicsNodes(dt);
-
-  uploadCommonSceneUniforms();
 }
 
 bool isDead(ParticleSystem *particleSystem) {
@@ -490,10 +548,16 @@ void A5::updateShaderUniforms(
 
   m_shader.enable();
   {
+
     //-- Set ModelView matrix:
     GLint location = m_shader.getUniformLocation("ModelView");
     mat4 modelView = m_view * node.trans;
     glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
+    CHECK_GL_ERRORS;
+
+    location = m_shader.getUniformLocation("LightModelView");
+    mat4 lightModelView = m_lightView * node.trans;
+    glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(lightModelView) );
     CHECK_GL_ERRORS;
 
     //-- Set NormMatrix:
@@ -525,12 +589,32 @@ void A5::updateShaderUniforms(
     }
     else if (node.texture <= m_num_textures) {
       glUniform1i( location, 1 );
+      glActiveTexture(GL_TEXTURE0);
       glBindTexture( GL_TEXTURE_2D, node.texture );
       CHECK_GL_ERRORS;
     }
-
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_depthMapTexture);
   }
   m_shader.disable();
+
+}
+
+//----------------------------------------------------------------------------------------
+// Update mesh specific shader uniforms:
+void A5::updateDepthMapShaderUniforms(
+    const GeometryNode & node
+) {
+
+  m_depthMapShader.enable();
+  {
+    //-- Set ModelView matrix:
+    GLint location = m_depthMapShader.getUniformLocation("ModelView");
+    mat4 modelView = m_lightView * node.trans;
+    glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
+    CHECK_GL_ERRORS;
+  }
+  m_depthMapShader.disable();
 
 }
 
@@ -542,6 +626,12 @@ void A5::draw() {
 
   glEnable( GL_DEPTH_TEST );
 
+  uploadDepthMapSceneUniforms();
+
+  renderDepthMap(*m_rootNode);
+
+  uploadCommonSceneUniforms();
+
   renderSceneGraph(*m_rootNode);
 
   renderParticles();
@@ -552,7 +642,7 @@ void A5::draw() {
 }
 
 //----------------------------------------------------------------------------------------
-void A5::renderNode(const SceneNode &node) {
+void A5::renderNode(const SceneNode &node, unsigned int type) {
   if (node.m_nodeType == NodeType::SceneNode) {
     // Mult matrix stack
     mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
@@ -571,15 +661,24 @@ void A5::renderNode(const SceneNode &node) {
 
     vec3 col = transformedGeometryNode.material.kd;
 
-    updateShaderUniforms( transformedGeometryNode );
-
     // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
     BatchInfo batchInfo = m_batchInfoMap[transformedGeometryNode.meshId];
 
-    // Render the mesh:
-    m_shader.enable();
-    glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-    m_shader.disable();
+    if (type == 1) {
+      updateShaderUniforms( transformedGeometryNode );
+
+      m_shader.enable();
+      glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+      m_shader.disable();
+    }
+    else if (type == 2) {
+      updateDepthMapShaderUniforms( transformedGeometryNode );
+
+      m_depthMapShader.enable();
+      glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+      CHECK_GL_ERRORS;
+      m_depthMapShader.disable();
+    }
   }
   else if (node.m_nodeType == NodeType::PhysicsNode) {
     const PhysicsNode * physicsNode = static_cast<const PhysicsNode *>(&node);
@@ -594,7 +693,7 @@ void A5::renderNode(const SceneNode &node) {
   }
 
   for (const SceneNode * child : node.children) {
-    renderNode(*child);
+    renderNode(*child, type);
   }
 
   matrixStack.pop();
@@ -606,11 +705,29 @@ void A5::renderSceneGraph(const SceneNode & root) {
   // Bind the VAO once here, and reuse for all GeometryNode rendering below.
   glBindVertexArray(m_vao_meshData);
 
-  renderNode(root);
+  renderNode(root, 1);
 
   glBindVertexArray(0);
   CHECK_GL_ERRORS;
 }
+
+//----------------------------------------------------------------------------------------
+void A5::renderDepthMap(const SceneNode & root) {
+
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_depthMap);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  glActiveTexture(GL_TEXTURE1);
+
+  glBindVertexArray(m_vao_meshData);
+
+  renderNode(root, 2);
+
+  glBindVertexArray(0);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  CHECK_GL_ERRORS;
+}
+
 
 //----------------------------------------------------------------------------------------
 void A5::renderSkyBox() {

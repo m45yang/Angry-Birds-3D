@@ -53,26 +53,34 @@ protected:
   void enableVertexShaderInputSlots();
   void uploadVertexDataToVbos(const MeshConsolidator & meshConsolidator);
   void mapVboDataToVertexShaderInputLocations();
-  void initViewMatrix();
-  void initLightSources();
   void initPerspectiveMatrix();
+  void initViewMatrix();
+  void initLightPerspectiveMatrix();
+  void initLightViewMatrix();
+  void initLightSources();
   void getPhysicsNodes(SceneNode &node);
   void getBirdNodes(SceneNode &node);
+  void initDepthMap();
 
   void uploadCommonSceneUniforms();
+  void uploadDepthMapSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
+  void updateDepthMapShaderUniforms(const GeometryNode & node);
   void updateParticleSystems(double dt);
   void updatePhysicsNodes(double dt);
   bool checkCollision(PhysicsNode *physicsNode);
   void destroyPhysicsNode(PhysicsNode *physicsNode);
   void renderSceneGraph(const SceneNode &node);
-  void renderNode(const SceneNode &node);
+  void renderDepthMap(const SceneNode &node);
+  void renderNode(const SceneNode &node, unsigned int type);
   void renderParticles();
   void renderSkyBox();
   void loadTexture(const char* textureFilePath, TextureType type);
 
   glm::mat4 m_perspective;
   glm::mat4 m_view;
+  glm::mat4 m_lightPerspective;
+  glm::mat4 m_lightView;
 
   LightSource m_light;
 
@@ -83,6 +91,11 @@ protected:
   GLint m_positionAttribLocation;
   GLint m_normalAttribLocation;
   ShaderProgram m_shader;
+
+  //-- GL resources for depth map data:
+  GLuint m_fbo_depthMap;
+  GLuint m_depthMapTexture;
+  ShaderProgram m_depthMapShader;
 
   // BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
   // object. Each BatchInfo object contains an index offset and the number of indices
