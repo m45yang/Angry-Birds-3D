@@ -91,21 +91,12 @@ void A5::init()
 
   initLightSources();
 
-  initLightPerspectiveMatrix();
-
-  initLightViewMatrix();
-
-  initDepthMap();
-
   getPhysicsNodes(*m_rootNode);
 
   getBirdNodes(*m_rootNode);
 
   // Load texture 1
   loadTexture(getAssetFilePath("textures/container.jpg").c_str(), TextureType::JPG);
-
-  // Load texture 2
-  loadTexture(getAssetFilePath("textures/particle.png").c_str(), TextureType::PNG);
 
   m_skybox = std::shared_ptr<SkyBox>(new SkyBox);
 
@@ -120,6 +111,23 @@ void A5::init()
 
   // Load cube map
   m_skybox->loadCubeMap(faces);
+
+  initLightPerspectiveMatrix();
+
+  initLightViewMatrix();
+
+  initDepthMap();
+
+  // Map the texture to active texture ids
+  GLuint shadowMapLocation = m_shader.getUniformLocation("shadowMap");
+  m_shader.enable();
+  glUniform1i(shadowMapLocation, 0);
+  m_shader.disable();
+
+  GLuint ourTextureLocation = m_shader.getUniformLocation("ourTexture");
+  m_shader.enable();
+  glUniform1i(ourTextureLocation, 1);
+  m_shader.disable();
 
   // Exiting the current scope calls delete automatically on meshConsolidator freeing
   // all vertex data resources.  This is fine since we already copied this data to
@@ -249,14 +257,14 @@ void A5::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void A5::initLightSources() {
   // World-space position
-  m_light.position = vec3(0.0f, 100.0f, -0.1f);
+  m_light.position = vec3(0.0f, 50.0f, -0.1f);
   m_light.rgbIntensity = vec3(0.75f); // White light
 }
 
 //----------------------------------------------------------------------------------------
 void A5::initLightPerspectiveMatrix()
 {
-  m_lightPerspective = glm::ortho(-20.0f, 20.0f, -180.0f, 50.0f, 0.1f, 120.0f);
+  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -90.0f, 90.0f, 0.1f, 51.0f);
 }
 
 //----------------------------------------------------------------------------------------
@@ -338,11 +346,15 @@ void A5::initDepthMap() {
 
   glGenTextures(1, &m_depthMapTexture);
   glBindTexture(GL_TEXTURE_2D, m_depthMapTexture);
+
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, m_windowWidth, m_windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+  float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_depthMap);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthMapTexture, 0);
@@ -542,13 +554,31 @@ void A5::guiLogic()
 
 //----------------------------------------------------------------------------------------
 // Update mesh specific shader uniforms:
+void A5::updateDepthMapShaderUniforms(
+    const GeometryNode & node
+) {
+
+  m_depthMapShader.enable();
+  {
+    //-- Set ModelView matrix:
+    GLint location = m_depthMapShader.getUniformLocation("ModelView");
+    mat4 modelView = m_lightView * node.trans;
+    glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
+    CHECK_GL_ERRORS;
+  }
+  m_depthMapShader.disable();
+
+}
+
+
+//----------------------------------------------------------------------------------------
+// Update mesh specific shader uniforms:
 void A5::updateShaderUniforms(
     const GeometryNode & node
 ) {
 
   m_shader.enable();
   {
-
     //-- Set ModelView matrix:
     GLint location = m_shader.getUniformLocation("ModelView");
     mat4 modelView = m_view * node.trans;
@@ -589,32 +619,12 @@ void A5::updateShaderUniforms(
     }
     else if (node.texture <= m_num_textures) {
       glUniform1i( location, 1 );
-      glActiveTexture(GL_TEXTURE0);
+      glActiveTexture( GL_TEXTURE1 );
       glBindTexture( GL_TEXTURE_2D, node.texture );
       CHECK_GL_ERRORS;
     }
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_depthMapTexture);
   }
   m_shader.disable();
-
-}
-
-//----------------------------------------------------------------------------------------
-// Update mesh specific shader uniforms:
-void A5::updateDepthMapShaderUniforms(
-    const GeometryNode & node
-) {
-
-  m_depthMapShader.enable();
-  {
-    //-- Set ModelView matrix:
-    GLint location = m_depthMapShader.getUniformLocation("ModelView");
-    mat4 modelView = m_lightView * node.trans;
-    glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
-    CHECK_GL_ERRORS;
-  }
-  m_depthMapShader.disable();
 
 }
 
@@ -704,6 +714,8 @@ void A5::renderSceneGraph(const SceneNode & root) {
 
   // Bind the VAO once here, and reuse for all GeometryNode rendering below.
   glBindVertexArray(m_vao_meshData);
+  glActiveTexture( GL_TEXTURE0 );
+  glBindTexture( GL_TEXTURE_2D, m_depthMapTexture );
 
   renderNode(root, 1);
 
@@ -716,11 +728,12 @@ void A5::renderDepthMap(const SceneNode & root) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_depthMap);
   glClear(GL_DEPTH_BUFFER_BIT);
-  glActiveTexture(GL_TEXTURE1);
 
   glBindVertexArray(m_vao_meshData);
 
+  glCullFace(GL_FRONT);
   renderNode(root, 2);
+  glCullFace(GL_BACK);
 
   glBindVertexArray(0);
 
@@ -789,44 +802,6 @@ void A5::renderParticles() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-// //----------------------------------------------------------------------------------------
-// void A5::renderParticlesDepthMap() {
-//   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_depthMap);
-//   glClear(GL_DEPTH_BUFFER_BIT);
-//   glActiveTexture(GL_TEXTURE1);
-
-//   glBindVertexArray(m_vao_meshData);
-
-//   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//   CHECK_GL_ERRORS;
-//   for (ParticleSystem * particleSystem : m_particleSystems) {
-//     particleSystem->m_shader.enable();
-
-//     for (Particle particle : particleSystem->m_particles) {
-//       if (particle.life > 0.0) {
-//         glBindVertexArray(particleSystem->m_vao);
-//         glBindTexture(GL_TEXTURE_2D, 2);
-//         CHECK_GL_ERRORS;
-
-//         GLint location = particleSystem->m_shader.getUniformLocation("ModelView");
-//         mat4 model = translate(mat4(), particle.position);
-//         mat4 modelView = m_view * model;
-//         glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(modelView) );
-//         CHECK_GL_ERRORS;
-
-//         location = particleSystem->m_shader.getUniformLocation("Perspective");
-//         glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
-//         CHECK_GL_ERRORS;
-
-//         glDrawArrays(GL_TRIANGLES, 0, 6);
-
-//         glBindVertexArray(0);
-//       }
-//     }
-
-//     particleSystem->m_shader.disable();
-//   }
-// }
 
 //----------------------------------------------------------------------------------------
 void A5::loadTexture(const char* textureFilePath, TextureType type) {
@@ -845,8 +820,6 @@ void A5::loadTexture(const char* textureFilePath, TextureType type) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-
-
   // Load and generate the texture
   int width, height, nrChannels;
   if (type == TextureType::JPG) {
@@ -855,6 +828,7 @@ void A5::loadTexture(const char* textureFilePath, TextureType type) {
   else if (type == TextureType::PNG) {
     data = stbi_load(textureFilePath, &width, &height, &nrChannels, STBI_rgb_alpha);
   }
+
   if (data)
   {
       if (type == TextureType::JPG) {

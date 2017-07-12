@@ -172,6 +172,7 @@ ground = gr.mesh('cube', 'ground', 0)
 ground_p:add_child(ground)
 ground:set_material(yellow_green)
 
+
 pig1_p = gr.physics(
   'pig1_p',
   'sphere',
@@ -185,6 +186,7 @@ pig1 = gr.node('pig1')
 pig1_p:add_child(pig1)
 pig1:add_child(pig)
 
+
 bird1_p = gr.physics(
   'bird1_p',
   'sphere',
@@ -193,11 +195,23 @@ bird1_p = gr.physics(
   0
 )
 rootnode:add_child(bird1_p)
--- bird1_p:set_velocity(0.0, 0.3, -0.9)
 
 bird1 = gr.node('bird1')
 bird1_p:add_child(bird1)
 bird1:rotate('y', 180)
 bird1:add_child(bird)
+
+
+wall1_p = gr.physics(
+  'wall1_p',
+  'cube',
+  0.0, 2.5, -10.0,
+  5.0, 5.0, 5.0,
+  0
+)
+rootnode:add_child(wall1_p)
+
+wall1 = gr.mesh('cube', 'wall1', 1)
+wall1_p:add_child(wall1)
 
 return rootnode
