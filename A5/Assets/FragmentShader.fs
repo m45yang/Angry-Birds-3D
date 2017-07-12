@@ -58,7 +58,7 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal, float shadow)
     return ambientIntensity + (1.0 - shadow) * light.rgbIntensity * (diffuse + specular);
 }
 
-float shadowCalculation(vec4 fragPosition)
+float shadowCalculation(vec4 fragPosition, vec3 fragNormal)
 {
     LightSource light = fs_in.light;
     vec3 projCoords = fragPosition.xyz / fragPosition.w;
@@ -71,14 +71,15 @@ float shadowCalculation(vec4 fragPosition)
     float currentDepth = projCoords.z;
 
     // check whether current frag pos is in shadow
-    float bias = 0.005;
+    vec3 l = normalize(light.position - fragPosition.xyz);
+    float bias = max(0.05 * (1.0 - dot(fragNormal, l)), 0.005);
     float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     return shadow;
 }
 
 void main() {
-    float shadow = shadowCalculation(fs_in.position_LS);
+    float shadow = shadowCalculation(fs_in.position_LS, fs_in.normal_ES);
 
 
     if (apply_texture) {
