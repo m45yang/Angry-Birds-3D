@@ -780,8 +780,6 @@ void A5::renderParticles() {
     for (Particle particle : particleSystem->m_particles) {
       if (particle.life > 0.0) {
 
-        CHECK_GL_ERRORS;
-
         GLint location = particleSystem->m_shader.getUniformLocation("ModelView");
         mat4 model = translate(mat4(), particle.position);
         mat4 modelView = m_view * model;
