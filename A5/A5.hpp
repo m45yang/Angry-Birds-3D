@@ -5,6 +5,7 @@
 #include "cs488-framework/ShaderProgram.hpp"
 #include "cs488-framework/MeshConsolidator.hpp"
 
+#include "AnimationNode.hpp"
 #include "GeometryNode.hpp"
 #include "SceneNode.hpp"
 #include "ParticleSystem.hpp"
@@ -59,6 +60,7 @@ protected:
   void initLightViewMatrix();
   void initLightSources();
   void getPhysicsNodes(SceneNode &node);
+  void getAnimationNodes(SceneNode &node);
   void getBirdNodes(SceneNode &node);
   void initDepthMap();
 
@@ -68,6 +70,7 @@ protected:
   void updateDepthMapShaderUniforms(const GeometryNode & node);
   void updateParticleSystems(double dt);
   void updatePhysicsNodes(double dt);
+  void updateAnimationNodes(double dt);
   bool checkCollision(PhysicsNode *physicsNode);
   void destroyPhysicsNode(PhysicsNode *physicsNode);
   void renderSceneGraph(const SceneNode &node);
@@ -109,6 +112,7 @@ protected:
   std::list<ParticleSystem*> m_particleSystems;
   std::list<PhysicsNode*> m_physicsNodes;
   std::vector<PhysicsNode*> m_birdNodes;
+  std::list<AnimationNode*> m_animationNodes;
 
   int m_current_mode;
   unsigned int m_current_bird;

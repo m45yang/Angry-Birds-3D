@@ -176,14 +176,19 @@ ground:set_material(yellow_green)
 pig1_p = gr.physics(
   'pig1_p',
   'sphere',
-  0.0, 3.5, -35.0,
+  0.0, 15.5, -25.0,
   3.0, 3.0, 3.0,
   1
 )
 rootnode:add_child(pig1_p)
 
+pig1_a = gr.animation('pig1_a')
+pig1_p:add_child(pig1_a)
+pig1_a:keyframe_translate(-1.0, 0.0, 0.0, 1)
+pig1_a:keyframe_translate(1.0, 0.0, 0.0, 2)
+
 pig1 = gr.node('pig1')
-pig1_p:add_child(pig1)
+pig1_a:add_child(pig1)
 pig1:add_child(pig)
 
 

@@ -41,6 +41,7 @@
 #include <cstring>
 #include <cstdio>
 #include "lua488.hpp"
+#include "AnimationNode.hpp"
 #include "JointNode.hpp"
 #include "GeometryNode.hpp"
 #include "PhysicsNode.hpp"
@@ -165,6 +166,24 @@ int gr_physics_cmd(lua_State* L)
   );
 
   data->node = new PhysicsNode(name, prim, object_type);
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+extern "C"
+int gr_animation_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+
+  const char* name = luaL_checkstring(L, 1);
+
+  data->node = new AnimationNode(name);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -350,9 +369,88 @@ int gr_node_rotate_cmd(lua_State* L)
   return 0;
 }
 
+// Add a scaling transformation to a node.
+extern "C"
+int gr_animation_node_scale_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  AnimationNode* self = dynamic_cast<AnimationNode*>(selfdata->node);
+  luaL_argcheck(L, self != 0, 1, "AnimationNode node expected");
+
+  double values[3];
+
+  for (int i = 0; i < 3; i++) {
+    values[i] = luaL_checknumber(L, i + 2);
+  }
+
+  unsigned int keyframe = luaL_checknumber(L, 5);
+
+  self->scaleKeyframe(glm::vec3(values[0], values[1], values[2]), keyframe);
+
+  return 0;
+}
+
+// Add a translation to a node.
+extern "C"
+int gr_animation_node_translate_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  AnimationNode* self = dynamic_cast<AnimationNode*>(selfdata->node);
+  luaL_argcheck(L, self != 0, 1, "AnimationNode node expected");
+
+  double values[3];
+
+  for (int i = 0; i < 3; i++) {
+    values[i] = luaL_checknumber(L, i + 2);
+  }
+
+  unsigned int keyframe = luaL_checknumber(L, 5);
+
+  self->translateKeyframe(glm::vec3(values[0], values[1], values[2]), keyframe);
+
+  return 0;
+}
+
+// Rotate a node.
+extern "C"
+int gr_animation_node_rotate_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  AnimationNode* self = dynamic_cast<AnimationNode*>(selfdata->node);
+  luaL_argcheck(L, self != 0, 1, "AnimationNode node expected");
+
+  const char* axis_string = luaL_checkstring(L, 2);
+
+  luaL_argcheck(L, axis_string
+                && std::strlen(axis_string) == 1, 2, "Single character expected");
+  char axis = std::tolower(axis_string[0]);
+
+  luaL_argcheck(L, axis >= 'x' && axis <= 'z', 2, "Axis must be x, y or z");
+
+  double angle = luaL_checknumber(L, 3);
+
+  unsigned int keyframe = luaL_checknumber(L, 4);
+
+  self->rotateKeyframe(axis, angle, keyframe);
+
+  return 0;
+}
+
 // Set a physics node's velocity
 extern "C"
-int gr_node_set_velocity_cmd(lua_State* L)
+int gr_physics_node_set_velocity_cmd(lua_State* L)
 {
   GRLUA_DEBUG_CALL;
 
@@ -422,6 +520,7 @@ static const luaL_Reg grlib_functions[] = {
   {"mesh", gr_mesh_cmd},
   {"material", gr_material_cmd},
   {"physics", gr_physics_cmd},
+  {"animation", gr_animation_cmd},
   {0, 0}
 };
 
@@ -444,7 +543,10 @@ static const luaL_Reg grlib_node_methods[] = {
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},
-  {"set_velocity", gr_node_set_velocity_cmd},
+  {"keyframe_scale", gr_animation_node_scale_cmd},
+  {"keyframe_rotate", gr_animation_node_rotate_cmd},
+  {"keyframe_translate", gr_animation_node_translate_cmd},
+  {"set_velocity", gr_physics_node_set_velocity_cmd},
   {"set_gravity", gr_node_set_gravity_cmd},
   {0, 0}
 };

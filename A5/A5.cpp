@@ -95,6 +95,8 @@ void A5::init()
 
   getBirdNodes(*m_rootNode);
 
+  getAnimationNodes(*m_rootNode);
+
   // Load texture 1
   loadTexture(getAssetFilePath("textures/container.jpg").c_str(), TextureType::JPG);
 
@@ -286,6 +288,18 @@ void A5::getPhysicsNodes(SceneNode &node) {
 }
 
 //----------------------------------------------------------------------------------------
+void A5::getAnimationNodes(SceneNode &node) {
+  if (node.m_nodeType == NodeType::AnimationNode) {
+    AnimationNode * animationNode = static_cast<AnimationNode *>(&node);
+    m_animationNodes.push_back(animationNode);
+  }
+
+  for (SceneNode * child : node.children) {
+    getAnimationNodes(*child);
+  }
+}
+
+//----------------------------------------------------------------------------------------
 void A5::getBirdNodes(SceneNode &node) {
   if (node.m_nodeType == NodeType::PhysicsNode) {
     PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
@@ -376,6 +390,8 @@ void A5::appLogic()
   updateParticleSystems(dt);
 
   updatePhysicsNodes(dt);
+
+  updateAnimationNodes(dt);
 }
 
 bool isDead(ParticleSystem *particleSystem) {
@@ -498,6 +514,14 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
   particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
   m_particleSystems.push_back(particleSystem);
+}
+
+//----------------------------------------------------------------------------------------
+void A5::updateAnimationNodes(double dt)
+{
+  for (AnimationNode * animationNode : m_animationNodes) {
+    animationNode->updateKeyframe(dt);
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -696,6 +720,14 @@ void A5::renderNode(const SceneNode &node, unsigned int type) {
     if (physicsNode->m_destroyed == true) {
       return;
     }
+
+    // Mult matrix stack
+    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
+
+    matrixStack.push(newTransform);
+  }
+  else if (node.m_nodeType == NodeType::AnimationNode) {
+    const AnimationNode * animationNode = static_cast<const AnimationNode *>(&node);
 
     // Mult matrix stack
     mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
