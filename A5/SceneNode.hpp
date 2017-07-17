@@ -18,6 +18,12 @@ enum class NodeType {
     AnimationNode
 };
 
+enum class ObjectType {
+    Bird,
+    Pig,
+    Ground
+};
+
 class SceneNode {
 public:
     SceneNode(const std::string & name);

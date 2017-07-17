@@ -11,15 +11,22 @@ using namespace std;
 
 //---------------------------------------------------------------------------------------
 AnimationNode::AnimationNode(
-    const string & name
+    const string & name,
+    Primitive *prim,
+    unsigned int object_type
 )
   : SceneNode( name )
-  , m_keyframe1(mat4())
-  , m_keyframe2(mat4())
-  , m_dt(0.0)
-  , m_current_keyframe(1)
+  , m_keyframe_trans( mat4() )
+  , m_dt( 0.0 )
+  , m_current_keyframe( 1 )
+  , m_primitive( prim )
+  , m_destroyed( false )
 {
   m_nodeType = NodeType::AnimationNode;
+  m_objectType = (ObjectType)object_type;
+
+  scale(prim->m_size);
+  translate(prim->m_pos);
 }
 
 //---------------------------------------------------------------------------------------
@@ -90,7 +97,12 @@ void AnimationNode::computeTrans()
     vec4((1-m_dt)*previous_keyframe[3][0], (1-m_dt)*previous_keyframe[3][1], (1-m_dt)*previous_keyframe[3][2], 0.5*previous_keyframe[3][3])
   );
 
-  trans = k1 + k2;
+  m_keyframe_trans = k1 + k2;
+
+  mat4 full_trans = m_keyframe_trans * trans;
+  m_primitive->m_pos.x = full_trans[3][0];
+  m_primitive->m_pos.y = full_trans[3][1];
+  m_primitive->m_pos.z = full_trans[3][2];
 }
 
 //---------------------------------------------------------------------------------------

@@ -3,12 +3,6 @@
 #include "SceneNode.hpp"
 #include "Primitive.hpp"
 
-enum class ObjectType {
-    Bird,
-    Pig,
-    Ground
-};
-
 class PhysicsNode : public SceneNode {
 public:
   PhysicsNode(

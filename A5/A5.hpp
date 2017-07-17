@@ -75,6 +75,7 @@ protected:
   void updateAnimationNodes(double dt);
   bool checkCollision(PhysicsNode *physicsNode);
   void destroyPhysicsNode(PhysicsNode *physicsNode);
+  void destroyAnimationNode(AnimationNode *animationNode);
   void renderSceneGraph(const SceneNode &node);
   void renderDepthMap(const SceneNode &node);
   void renderNode(const SceneNode &node, unsigned int type);

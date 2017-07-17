@@ -509,6 +509,55 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
     }
   }
 
+  for (AnimationNode * animationNode : m_animationNodes) {
+    p2 = animationNode->m_primitive;
+
+    if (!physicsNode1->m_destroyed && !animationNode->m_destroyed && p1 != p2) {
+
+      if (p1->m_type == "cube" && p2->m_type == "cube") {
+        bool collisionX = p1->m_pos.x + (p1->m_size.x/2) >= p2->m_pos.x - (p2->m_size.x/2) && p2->m_pos.x + (p2->m_size.x/2) >= p1->m_pos.x - (p1->m_size.x/2);
+        bool collisionY = p1->m_pos.y + (p1->m_size.y/2) >= p2->m_pos.y - (p2->m_size.y/2) && p2->m_pos.y + (p2->m_size.y/2) >= p1->m_pos.y - (p1->m_size.y/2);
+        bool collisionZ = p1->m_pos.z + (p1->m_size.z/2) >= p2->m_pos.z - (p2->m_size.z/2) && p2->m_pos.z + (p2->m_size.z/2) >= p1->m_pos.z - (p1->m_size.z/2);
+
+        if (collisionX && collisionY && collisionZ) {
+          if (physicsNode1->m_objectType == ObjectType::Bird && animationNode->m_objectType == ObjectType::Pig) {
+            destroyAnimationNode(animationNode);
+          }
+          collision = true;
+          break;
+        }
+      }
+
+      if (p1->m_type == "sphere" && p2->m_type == "cube") {
+        vec3 aabb_half_extents(p2->m_size.x/2, p2->m_size.y/2, p2->m_size.z/2);
+        vec3 difference = p1->m_pos - p2->m_pos;
+        vec3 clamped = clamp(difference, -aabb_half_extents, aabb_half_extents);
+        vec3 closest = p2->m_pos + clamped;
+        difference = closest - p1->m_pos;
+
+        if (length(difference) <= p1->m_size.x) { // assume perfect sphere
+          if (physicsNode1->m_objectType == ObjectType::Bird && animationNode->m_objectType == ObjectType::Pig) {
+            destroyAnimationNode(animationNode);
+          }
+          collision = true;
+          break;
+        }
+      }
+
+      if (p1->m_type == "sphere" && p2->m_type == "sphere") {
+        vec3 difference = p1->m_pos - p2->m_pos;
+
+        if (length(difference) <= p1->m_size.x + p2->m_size.x) {
+          if (physicsNode1->m_objectType == ObjectType::Bird && animationNode->m_objectType == ObjectType::Pig) {
+            destroyAnimationNode(animationNode);
+          }
+          collision = true;
+          break;
+        }
+      }
+    }
+  }
+
   return collision;
 }
 
@@ -518,6 +567,17 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
 
   ParticleSystem *particleSystem = new ParticleSystem(0.2);
   particleSystem->m_position = physicsNode->m_primitive->m_pos;
+  particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
+
+  m_particleSystems.push_back(particleSystem);
+}
+
+void A5::destroyAnimationNode(AnimationNode *animationNode)
+{
+  animationNode->m_destroyed = true;
+
+  ParticleSystem *particleSystem = new ParticleSystem(0.2);
+  particleSystem->m_position = animationNode->m_primitive->m_pos;
   particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
   m_particleSystems.push_back(particleSystem);
@@ -736,8 +796,12 @@ void A5::renderNode(const SceneNode &node, unsigned int type) {
   else if (node.m_nodeType == NodeType::AnimationNode) {
     const AnimationNode * animationNode = static_cast<const AnimationNode *>(&node);
 
+    if (animationNode->m_destroyed == true) {
+      return;
+    }
+
     // Mult matrix stack
-    mat4 newTransform = matrixStack.empty() ? node.trans : matrixStack.top() * node.trans;
+    mat4 newTransform = matrixStack.empty() ? animationNode->m_keyframe_trans*animationNode->trans : matrixStack.top()*animationNode->m_keyframe_trans*animationNode->trans;
     matrixStack.push(newTransform);
   }
 

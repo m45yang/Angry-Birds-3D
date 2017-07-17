@@ -182,8 +182,22 @@ int gr_animation_cmd(lua_State* L)
   data->node = 0;
 
   const char* name = luaL_checkstring(L, 1);
+  const char* prim_type = luaL_checkstring(L, 2);
+  double x_pos = luaL_checknumber(L, 3);
+  double y_pos = luaL_checknumber(L, 4);
+  double z_pos = luaL_checknumber(L, 5);
+  double x_size = luaL_checknumber(L, 6);
+  double y_size = luaL_checknumber(L, 7);
+  double z_size = luaL_checknumber(L, 8);
+  unsigned int object_type = luaL_checknumber(L, 9);
 
-  data->node = new AnimationNode(name);
+  Primitive *prim = new Primitive(
+    prim_type,
+    glm::vec3(x_pos, y_pos, z_pos),
+    glm::vec3(x_size, y_size, z_size)
+  );
+
+  data->node = new AnimationNode(name, prim, object_type);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
