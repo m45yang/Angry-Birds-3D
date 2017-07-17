@@ -369,7 +369,28 @@ int gr_node_rotate_cmd(lua_State* L)
   return 0;
 }
 
-// Add a scaling transformation to a node.
+// Add a keyframe
+extern "C"
+int gr_animation_node_add_keyframe_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  AnimationNode* self = dynamic_cast<AnimationNode*>(selfdata->node);
+  luaL_argcheck(L, self != 0, 1, "AnimationNode node expected");
+
+  unsigned int num_keyframes = luaL_checknumber(L, 2);
+
+  for (unsigned int i=0; i<num_keyframes; i++) {
+    self->addKeyframe();
+  }
+
+  return 0;
+}
+
+// Add a scaling transformation to a keyframe.
 extern "C"
 int gr_animation_node_scale_cmd(lua_State* L)
 {
@@ -394,7 +415,7 @@ int gr_animation_node_scale_cmd(lua_State* L)
   return 0;
 }
 
-// Add a translation to a node.
+// Add a translation to a keyframe.
 extern "C"
 int gr_animation_node_translate_cmd(lua_State* L)
 {
@@ -419,7 +440,7 @@ int gr_animation_node_translate_cmd(lua_State* L)
   return 0;
 }
 
-// Rotate a node.
+// Add a rotation transformation to a keyframe.
 extern "C"
 int gr_animation_node_rotate_cmd(lua_State* L)
 {
@@ -543,6 +564,7 @@ static const luaL_Reg grlib_node_methods[] = {
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},
+  {"keyframe_add", gr_animation_node_add_keyframe_cmd},
   {"keyframe_scale", gr_animation_node_scale_cmd},
   {"keyframe_rotate", gr_animation_node_rotate_cmd},
   {"keyframe_translate", gr_animation_node_translate_cmd},
