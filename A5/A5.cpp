@@ -10,18 +10,14 @@ using namespace std;
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "irrKlang.h"
-using namespace irrklang;
-
 #include <imgui/imgui.h>
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+using namespace irrklang;
 using namespace glm;
-
-ISoundEngine *soundEngine;
 
 static bool show_gui = true;
 stack<mat4> A5::matrixStack;
@@ -62,8 +58,12 @@ A5::~A5()
  */
 void A5::init()
 {
-  soundEngine = createIrrKlangDevice();
-  soundEngine->play2D("Assets/sounds/theme_song.wav", GL_TRUE);
+  // Initialize the sound resources
+  m_themeSoundEngine = createIrrKlangDevice();
+  m_themeSoundEngine->play2D("Assets/sounds/theme_song.wav", GL_TRUE);
+
+  m_collisionSoundEngine = createIrrKlangDevice();
+
   // Set the background colour.
   glClearColor(0.35, 0.35, 0.35, 1.0);
 

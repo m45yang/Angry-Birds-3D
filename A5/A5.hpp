@@ -5,6 +5,8 @@
 #include "cs488-framework/ShaderProgram.hpp"
 #include "cs488-framework/MeshConsolidator.hpp"
 
+#include "irrKlang.h"
+
 #include "AnimationNode.hpp"
 #include "GeometryNode.hpp"
 #include "SceneNode.hpp"
@@ -99,6 +101,10 @@ protected:
   GLuint m_fbo_depthMap;
   GLuint m_depthMapTexture;
   ShaderProgram m_depthMapShader;
+
+  // -- Resources for sound
+  irrklang::ISoundEngine *m_themeSoundEngine;
+  irrklang::ISoundEngine *m_collisionSoundEngine;
 
   // BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
   // object. Each BatchInfo object contains an index offset and the number of indices
