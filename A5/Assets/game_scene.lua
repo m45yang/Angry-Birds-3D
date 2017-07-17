@@ -181,6 +181,7 @@ pig1_a = gr.animation(
   1
 )
 rootnode:add_child(pig1_a)
+pig1_a:set_animation_material(green)
 pig1_a:keyframe_add(5)
 pig1_a:keyframe_translate(-6.0, 3.5, -1.0, 0)
 pig1_a:keyframe_translate(6.0, 3.5, -1.0, 1)

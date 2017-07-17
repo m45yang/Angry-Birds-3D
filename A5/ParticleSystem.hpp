@@ -9,16 +9,15 @@
 
 struct Particle {
     glm::vec3 position, velocity;
-    glm::vec4 color;
     GLfloat life;
 
     Particle()
-      : position(0.0f), velocity(0.0f), color(1.0f), life(0.0f) { }
+      : position(0.0f), velocity(0.0f), life(0.0f) { }
 };
 
 class ParticleSystem {
 public:
-  ParticleSystem(double life);
+  ParticleSystem(double life, glm::vec4 color);
   ~ParticleSystem();
 
   void enableVertexShaderInputSlots();
@@ -37,6 +36,8 @@ public:
   // Dynamics data
   glm::vec3 m_velocity;
   glm::vec3 m_position;
+
+  glm::vec4 m_color;
 
   double m_life;
   unsigned int m_lastUsedParticle;

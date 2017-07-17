@@ -2,6 +2,7 @@
 
 #include "SceneNode.hpp"
 #include "Primitive.hpp"
+#include "Material.hpp"
 
 class AnimationNode : public SceneNode {
 public:
@@ -18,6 +19,8 @@ public:
   void translateKeyframe(const glm::vec3& amount, unsigned int keyframe);
   void computeTrans();
   void updateKeyframe(double dt);
+
+  Material material;
 
   glm::mat4 m_keyframe_trans;
   std::vector<glm::mat4> m_keyframes;

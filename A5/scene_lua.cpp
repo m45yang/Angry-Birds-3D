@@ -313,6 +313,56 @@ int gr_node_set_material_cmd(lua_State* L)
   return 0;
 }
 
+// Set a physics node's material
+// This will determine the color of the explosion produced when destroyed
+extern "C"
+int gr_physics_node_set_material_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  PhysicsNode* self = dynamic_cast<PhysicsNode*>(selfdata->node);
+
+  luaL_argcheck(L, self != 0, 1, "Physics node expected");
+
+  gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
+  luaL_argcheck(L, matdata != 0, 2, "Material expected");
+
+  Material * material = matdata->material;
+  self->material.kd = material->kd;
+  self->material.ks = material->ks;
+  self->material.shininess = material->shininess;
+
+  return 0;
+}
+
+// Set a animation node's material
+// This will determine the color of the explosion produced when destroyed
+extern "C"
+int gr_animation_node_set_material_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  AnimationNode* self = dynamic_cast<AnimationNode*>(selfdata->node);
+
+  luaL_argcheck(L, self != 0, 1, "Animation node expected");
+
+  gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
+  luaL_argcheck(L, matdata != 0, 2, "Material expected");
+
+  Material * material = matdata->material;
+  self->material.kd = material->kd;
+  self->material.ks = material->ks;
+  self->material.shininess = material->shininess;
+
+  return 0;
+}
+
 // Add a scaling transformation to a node.
 extern "C"
 int gr_node_scale_cmd(lua_State* L)
@@ -575,6 +625,8 @@ static const luaL_Reg grlib_node_methods[] = {
   {"__gc", gr_node_gc_cmd},
   {"add_child", gr_node_add_child_cmd},
   {"set_material", gr_node_set_material_cmd},
+  {"set_physics_material", gr_physics_node_set_material_cmd},
+  {"set_animation_material", gr_animation_node_set_material_cmd},
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},

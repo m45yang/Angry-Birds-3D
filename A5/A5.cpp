@@ -638,7 +638,8 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
 {
   physicsNode->m_destroyed = true;
 
-  ParticleSystem *particleSystem = new ParticleSystem(0.2);
+  vec4 color(physicsNode->material.kd, 1.0);
+  ParticleSystem *particleSystem = new ParticleSystem(0.2, color);
   particleSystem->m_position = physicsNode->m_primitive->m_pos;
   particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
@@ -649,7 +650,8 @@ void A5::destroyAnimationNode(AnimationNode *animationNode)
 {
   animationNode->m_destroyed = true;
 
-  ParticleSystem *particleSystem = new ParticleSystem(0.2);
+  vec4 color(animationNode->material.kd, 1.0);
+  ParticleSystem *particleSystem = new ParticleSystem(0.2, color);
   particleSystem->m_position = animationNode->m_primitive->m_pos;
   particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
@@ -964,6 +966,10 @@ void A5::renderParticles() {
 
         location = particleSystem->m_shader.getUniformLocation("Perspective");
         glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
+        CHECK_GL_ERRORS;
+
+        location = particleSystem->m_shader.getUniformLocation("color");
+        glUniform4fv(location, 1, value_ptr(particleSystem->m_color));
         CHECK_GL_ERRORS;
 
         glDrawArrays(GL_TRIANGLES, 0, 6);

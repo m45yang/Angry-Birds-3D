@@ -8,14 +8,16 @@ using namespace std;
 
 //---------------------------------------------------------------------------------------
 ParticleSystem::ParticleSystem(
-  double life
+  double life,
+  vec4 color
 )
   : m_lastUsedParticle( 0 )
   , m_life( life )
+  , m_color( color )
 {
   m_shader.generateProgramObject();
-  m_shader.attachVertexShader( "Assets/particleNode_VertexShader.vs" );
-  m_shader.attachFragmentShader( "Assets/particleNode_FragmentShader.fs" );
+  m_shader.attachVertexShader( "Assets/particleSystem_VertexShader.vs" );
+  m_shader.attachFragmentShader( "Assets/particleSystem_FragmentShader.fs" );
   m_shader.link();
 
   glGenVertexArrays(1, &m_vao);
@@ -108,7 +110,7 @@ void ParticleSystem::update(double dt)
             particle->position.x += particle->velocity.x * random1 * dt;
             particle->position.y += particle->velocity.y * random2 * dt;
             particle->position.z += particle->velocity.z * random3 * dt;
-            // particleNode.color.a -= dt * 2.5;
+
             const vec3 velocity(
               particle->velocity.x,
               particle->velocity.y + (-1.5 * dt),
@@ -161,9 +163,6 @@ void ParticleSystem::respawnParticle(Particle &particle)
   particle.velocity.x = m_velocity.x + random1;
   particle.velocity.y = m_velocity.y + random2;
   particle.velocity.z = m_velocity.z + random3;
-
-  float rColor = 0.5 + ((rand() % 100) / 100.0f);
-  // particleNode.color = glm::vec4(rColor, rColor, rColor, 1.0f);
 
   particle.life = m_particle_life;
 }
