@@ -12,6 +12,7 @@ struct LightSource {
 in VsOutFsIn {
     vec3 position_ES; // Eye-space position
     vec3 normal_ES;   // Eye-space normal
+    vec3 texcoords;
     LightSource light;
     vec4 position_LS; // Light-space position
 } fs_in;
@@ -109,7 +110,7 @@ void main() {
     float shadow = shadowCalculation(fs_in.position_LS, fs_in.normal_ES);
 
     if (apply_texture) {
-        vec4 color = texture(ourTexture, vec2(fs_in.position_ES.x, fs_in.position_ES.y));
+        vec4 color = texture(ourTexture, vec2(fs_in.texcoords.x, fs_in.texcoords.y));
         fragColour = vec4(phongModelWithTexture(fs_in.position_ES, fs_in.normal_ES, color.xyz, shadow), 1.0);
     }
     else {

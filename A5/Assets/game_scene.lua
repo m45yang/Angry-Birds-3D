@@ -184,8 +184,8 @@ rootnode:add_child(pig1_a)
 pig1_a:keyframe_add(5)
 pig1_a:keyframe_translate(-6.0, 3.5, -1.0, 0)
 pig1_a:keyframe_translate(6.0, 3.5, -1.0, 1)
-pig1_a:keyframe_translate(6.0, 3.5, 1.0, 2)
-pig1_a:keyframe_translate(-6.0, 3.5, 1.0, 3)
+pig1_a:keyframe_translate(6.0, 3.5, 5.0, 2)
+pig1_a:keyframe_translate(-6.0, 3.5, 5.0, 3)
 pig1_a:keyframe_translate(-6.0, 3.5, -1.0, 4)
 
 pig1 = gr.node('pig1')
@@ -208,16 +208,16 @@ bird1:rotate('y', 180)
 bird1:add_child(bird)
 
 
--- wall1_p = gr.physics(
---   'wall1_p',
---   'cube',
---   0.0, 2.5, -10.0,
---   5.0, 5.0, 5.0,
---   0
--- )
--- rootnode:add_child(wall1_p)
+wall1_p = gr.physics(
+  'wall1_p',
+  'cube',
+  0.0, 2.5, -25.0,
+  5.0, 5.0, 5.0,
+  0
+)
+rootnode:add_child(wall1_p)
 
--- wall1 = gr.mesh('cube', 'wall1', 1)
--- wall1_p:add_child(wall1)
+wall1 = gr.mesh('cube', 'wall1', 1)
+wall1_p:add_child(wall1)
 
 return rootnode

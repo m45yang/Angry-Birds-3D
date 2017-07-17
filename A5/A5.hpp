@@ -103,6 +103,11 @@ protected:
   GLuint m_depthMapTexture;
   ShaderProgram m_depthMapShader;
 
+  //-- GL resources for uv coordinates of a cube
+  GLuint m_vbo_uvCube;
+  GLuint m_vao_uvCube;
+  GLuint m_cubeTexCoordsAttribLocation;
+
   // -- Resources for sound
   irrklang::ISoundEngine *m_themeSoundEngine;
   irrklang::ISoundEngine *m_collisionSoundEngine;

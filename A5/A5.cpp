@@ -24,12 +24,63 @@ stack<mat4> A5::matrixStack;
 
 const size_t CIRCLE_PTS = 48;
 
+float m_uvCube[72] = {
+  1.0f, 1.0f,
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+
+  1.0f, 1.0f,
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+
+  1.0f, 1.0f,
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+  0.0f, 1.0f,
+
+  1.0f, 1.0f,
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+
+  1.0f, 1.0f,
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+  0.0f, 1.0f,
+
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+  0.0f, 1.0f,
+
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+  0.0f, 1.0f,
+
+  0.0f, 1.0f,
+  1.0f, 0.0f,
+  0.0f, 0.0f,
+
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+  0.0f, 1.0f,
+
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+  0.0f, 1.0f
+};
+
 //----------------------------------------------------------------------------------------
 // Constructor
 A5::A5(const std::string & luaSceneFile)
   : m_luaSceneFile(luaSceneFile),
     m_positionAttribLocation(0),
     m_normalAttribLocation(0),
+    m_cubeTexCoordsAttribLocation(0),
     m_vao_meshData(0),
     m_vbo_vertexPositions(0),
     m_vbo_vertexNormals(0),
@@ -189,6 +240,10 @@ void A5::enableVertexShaderInputSlots()
     m_normalAttribLocation = m_shader.getAttribLocation("normal");
     glEnableVertexAttribArray(m_normalAttribLocation);
 
+    // Enable the vertex shader attribute for "cubeTexcoords" when rendering
+    m_cubeTexCoordsAttribLocation = m_shader.getAttribLocation("cubeTexcoords");
+    glEnableVertexAttribArray(m_cubeTexCoordsAttribLocation);
+
     CHECK_GL_ERRORS;
   }
 
@@ -225,6 +280,19 @@ void A5::uploadVertexDataToVbos (
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     CHECK_GL_ERRORS;
   }
+
+  // Generate CBO to store all uv coordinates for a textured cube
+  {
+    glGenBuffers(1, &m_vbo_uvCube);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_uvCube);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(m_uvCube),
+        m_uvCube, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    CHECK_GL_ERRORS;
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -242,6 +310,11 @@ void A5::mapVboDataToVertexShaderInputLocations()
   // "normal" vertex attribute location for any bound vertex shader program.
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexNormals);
   glVertexAttribPointer(m_normalAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  // Tell GL how to map data from the vertex buffer "m_vbo_uvCube" into the
+  // "cubeTexcoords" vertex attribute location for any bound vertex shader program.
+  glBindBuffer(GL_ARRAY_BUFFER, m_vbo_uvCube);
+  glVertexAttribPointer(m_cubeTexCoordsAttribLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(float), nullptr);
 
   //-- Unbind target, and restore default values:
   glBindBuffer(GL_ARRAY_BUFFER, 0);
