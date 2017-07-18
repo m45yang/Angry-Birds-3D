@@ -214,11 +214,11 @@ wall1_p = gr.physics(
   'cube',
   0.0, 20.5, -10.0,
   10.0, 10.0, 10.0,
-  0
+  3
 )
 rootnode:add_child(wall1_p)
 
-wall1 = gr.mesh('cube', 'wall1', -1)
+wall1 = gr.mesh('cube', 'wall1', 1)
 wall1_p:add_child(wall1)
 
 return rootnode

@@ -557,7 +557,7 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
         }
       }
 
-      if (p1->m_type == "sphere" && p2->m_type == "cube") {
+      if (p1->m_type == "sphere" && p2->m_type == "cube" || p1->m_type == "cube" && p2->m_type == "sphere") {
         vec3 aabb_half_extents(p2->m_size.x/2, p2->m_size.y/2, p2->m_size.z/2);
         vec3 difference = p1->m_pos - p2->m_pos;
         vec3 clamped = clamp(difference, -aabb_half_extents, aabb_half_extents);
@@ -606,7 +606,7 @@ bool A5::checkCollision(PhysicsNode *physicsNode1)
         }
       }
 
-      if (p1->m_type == "sphere" && p2->m_type == "cube") {
+      if (p1->m_type == "sphere" && p2->m_type == "cube" || p1->m_type == "cube" && p2->m_type == "sphere") {
         vec3 aabb_half_extents(p2->m_size.x/2, p2->m_size.y/2, p2->m_size.z/2);
         vec3 difference = p1->m_pos - p2->m_pos;
         vec3 clamped = clamp(difference, -aabb_half_extents, aabb_half_extents);
