@@ -52,8 +52,6 @@ public:
 
     friend std::ostream & operator << (std::ostream & os, const SceneNode & node);
 
-    bool isSelected;
-
     // Transformations
     glm::mat4 trans;
     glm::mat4 invtrans;

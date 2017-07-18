@@ -22,9 +22,7 @@ using namespace glm;
 static bool show_gui = true;
 stack<mat4> A5::matrixStack;
 
-const size_t CIRCLE_PTS = 48;
-
-float m_uvCube[72] = {
+const float m_uvCube[72] = {
   1.0f, 1.0f,
   0.0f, 1.0f,
   0.0f, 0.0f,
@@ -84,12 +82,10 @@ A5::A5(const std::string & luaSceneFile)
     m_vao_meshData(0),
     m_vbo_vertexPositions(0),
     m_vbo_vertexNormals(0),
-    m_current_mode(GLFW_KEY_S),
-    m_current_bird(0),
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
     x_velocity(0.0f),
-    y_velocity(95.0f),
+    y_velocity(0.0f),
     z_velocity(35.0f),
     m_num_textures(0)
 {
@@ -151,7 +147,7 @@ void A5::init()
 
   getPhysicsNodes(*m_rootNode);
 
-  getBirdNodes(*m_rootNode);
+  getBirdNode(*m_rootNode);
 
   getAnimationNodes(*m_rootNode);
 
@@ -337,7 +333,7 @@ void A5::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 50.0f, 15.0f), vec3(0.0f, 0.0f, -50.0f),
+  m_view = glm::lookAt(vec3(0.0f, 2.0f, 15.0f), vec3(0.0f, 2.0f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -385,16 +381,17 @@ void A5::getAnimationNodes(SceneNode &node) {
 }
 
 //----------------------------------------------------------------------------------------
-void A5::getBirdNodes(SceneNode &node) {
+void A5::getBirdNode(SceneNode &node) {
   if (node.m_nodeType == NodeType::PhysicsNode) {
     PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
     if (physicsNode->m_objectType == ObjectType::Bird) {
-      m_birdNodes.push_back(physicsNode);
+      m_birdNode = physicsNode;
+      return;
     }
   }
 
   for (SceneNode * child : node.children) {
-    getBirdNodes(*child);
+    getBirdNode(*child);
   }
 }
 
@@ -711,16 +708,59 @@ void A5::guiLogic()
       ImGui::EndMenuBar();
     }
 
-    ImGui::RadioButton( "Shoot", &m_current_mode, GLFW_KEY_S );
     ImGui::SliderFloat("X Velocity", &x_velocity, 0.0f, 100.0f);
     ImGui::SliderFloat("Y Velocity", &y_velocity, 0.0f, 100.0f);
     ImGui::SliderFloat("Z Velocity", &z_velocity, 0.0f, 100.0f);
-    ImGui::RadioButton( "Translate Camera Mode", &m_current_mode, GLFW_KEY_C );
-    ImGui::RadioButton( "Rotate Camera Mode", &m_current_mode, GLFW_KEY_R );
 
     ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
   ImGui::End();
+
+  updateCamera();
+}
+
+//----------------------------------------------------------------------------------------
+void A5::updateCamera()
+{
+  // Camera rotation
+  if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_LEFT] ) {
+    m_view = rotate(mat4(), -0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_RIGHT] ) {
+    m_view = rotate(mat4(), 0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_UP] ) {
+    m_view = rotate(mat4(), -0.1f, vec3(1.0f, 0.0f, 0.0f)) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_DOWN] ) {
+    m_view = rotate(mat4(), 0.1f, vec3(1.0f, 0.0f, 0.0f)) * m_view;
+  }
+
+  // Camera translation
+  else if ( m_keys[GLFW_KEY_UP] ) {
+    vec3 amount(0.0f, -1.0f, 0.0f);
+    m_view = translate(mat4(), amount) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_DOWN] ) {
+    vec3 amount(0.0f, 1.0f, 0.0f);
+    m_view = translate(mat4(), amount) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_RIGHT] ) {
+    vec3 amount(-1.0f, 0.0f, 0.0f);
+    m_view = translate(mat4(), amount) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_LEFT] ) {
+    vec3 amount(1.0f, 0.0f, 0.0f);
+    m_view = translate(mat4(), amount) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_O] ) {
+    vec3 amount(0.0f, 0.0f, -1.0f);
+    m_view = translate(mat4(), amount) * m_view;
+  }
+  else if ( m_keys[GLFW_KEY_I] ) {
+    vec3 amount(0.0f, 0.0f, 1.0f);
+    m_view = translate(mat4(), amount) * m_view;
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -1092,33 +1132,6 @@ bool A5::mouseMoveEvent (
 ) {
   bool eventHandled(false);
 
-    // Camera mode event nahdling
-  if (m_current_mode == GLFW_KEY_C) {
-    if (!ImGui::IsMouseHoveringAnyWindow() && m_keys[GLFW_MOUSE_BUTTON_1]) {
-      float xDiff = (xPos - m_mouse_x_pos)/m_windowHeight;
-      float yDiff = (m_mouse_y_pos - yPos)/m_windowHeight;
-
-      vec3 amount(xDiff*5, yDiff*5, 0.0f);
-      mat4 transform = translate(mat4(), amount);
-
-      m_view = transform * m_view;
-    }
-  }
-  if (m_current_mode == GLFW_KEY_R) {
-    if (!ImGui::IsMouseHoveringAnyWindow() && m_keys[GLFW_MOUSE_BUTTON_1]) {
-      float xDiff = (xPos - m_mouse_x_pos)/m_windowHeight;
-      mat4 transform = rotate(mat4(), xDiff*5, vec3(0.0f, 1.0f, 0.0f));
-
-      m_view = transform * m_view;
-    }
-    if (!ImGui::IsMouseHoveringAnyWindow() && m_keys[GLFW_MOUSE_BUTTON_2]) {
-      float yDiff = (m_mouse_y_pos - yPos)/m_windowHeight;
-      mat4 transform = rotate(mat4(), yDiff*5, vec3(1.0f, 0.0f, 0.0f));
-
-      m_view = transform * m_view;
-    }
-  }
-
   m_mouse_x_pos = xPos;
   m_mouse_y_pos = yPos;
 
@@ -1184,20 +1197,21 @@ bool A5::keyInputEvent (
 ) {
   bool eventHandled(true);
 
-  if( action == GLFW_PRESS ) {
+  if ( action == GLFW_PRESS ) {
     if ( key == GLFW_KEY_M ) {
       show_gui = !show_gui;
       eventHandled = true;
     }
-    else if ( m_current_mode == GLFW_KEY_S && key == GLFW_KEY_SPACE ) {
-      if (m_current_bird < m_birdNodes.size()) {
-        PhysicsNode *birdNode = m_birdNodes[m_current_bird++];
-        birdNode->set_velocity(vec3(x_velocity, y_velocity, -z_velocity));
-      }
+    else if ( key == GLFW_KEY_SPACE ) {
+      m_birdNode->set_velocity(vec3(x_velocity, y_velocity, -z_velocity));
     }
     else {
-      m_current_mode = key;
+      m_keys[key] = true;
     }
+  }
+
+  if ( action == GLFW_RELEASE ) {
+    m_keys[key] = false;
   }
 
   return eventHandled;

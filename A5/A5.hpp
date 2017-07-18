@@ -63,9 +63,10 @@ protected:
   void initLightSources();
   void getPhysicsNodes(SceneNode &node);
   void getAnimationNodes(SceneNode &node);
-  void getBirdNodes(SceneNode &node);
+  void getBirdNode(SceneNode &node);
   void initDepthMap();
 
+  void updateCamera();
   void uploadCommonSceneUniforms();
   void uploadDepthMapSceneUniforms();
   void updateShaderUniforms(const GeometryNode & node);
@@ -123,11 +124,9 @@ protected:
 
   std::list<ParticleSystem*> m_particleSystems;
   std::list<PhysicsNode*> m_physicsNodes;
-  std::vector<PhysicsNode*> m_birdNodes;
   std::list<AnimationNode*> m_animationNodes;
+  PhysicsNode *m_birdNode;
 
-  int m_current_mode;
-  unsigned int m_current_bird;
   bool m_keys[1024];
   float m_mouse_x_pos;
   float m_mouse_y_pos;

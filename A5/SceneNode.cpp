@@ -20,7 +20,6 @@ SceneNode::SceneNode(const std::string& name)
   : m_name(name),
   m_nodeType(NodeType::SceneNode),
   trans(mat4()),
-  isSelected(false),
   m_nodeId(nodeInstanceCount++)
 {
 }
