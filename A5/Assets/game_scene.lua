@@ -162,13 +162,13 @@ ground_p = gr.physics(
   'ground_p',
   'cube',
   0.0, 0.0, -75.0,
-  500.0, 1.0, 500.0,
+  200.0, 1.0, 200.0,
   2
 )
 rootnode:add_child(ground_p)
 ground_p:set_gravity(0)
 
-ground = gr.mesh('cube', 'ground', 0)
+ground = gr.mesh('cube', 'ground', 2)
 ground_p:add_child(ground)
 ground:set_material(yellow_green)
 

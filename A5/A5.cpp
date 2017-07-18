@@ -23,53 +23,65 @@ static bool show_gui = true;
 stack<mat4> A5::matrixStack;
 
 const float m_uvCube[72] = {
+  // Left face top left
+  0.0f, 1.0f,
+  1.0f, 1.0f,
+  1.0f, 0.0f,
+
+  // Back face top left
+  0.0f, 1.0f,
+  1.0f, 1.0f,
+  1.0f, 0.0f,
+
+  // Right face top left
+  0.0f, 1.0f,
+  1.0f, 1.0f,
+  1.0f, 0.0f,
+
+  // Front face top left
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+  1.0f, 1.0f,
+
+  // Bottom face top left
+  0.0f, 1.0f,
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+
+  // Top face top right
+  1.0f, 1.0f,
+  1.0f, 0.0f,
+  0.0f, 0.0f,
+
+  // Left face bottom right
+  0.0f, 0.0f,
+  0.0f, 1.0f,
+  1.0f, 0.0f,
+
+  // Back face bottom right
+  0.0f, 0.0f,
+  0.0f, 1.0f,
+  1.0f, 0.0f,
+
+  // Right face bottom right
+  0.0f, 0.0f,
+  0.0f, 1.0f,
+  1.0f, 0.0f,
+
+  // Front face bottom right
+  1.0f, 1.0f,
+  0.0f, 0.0f,
+  1.0f, 0.0f,
+
+  // Bottom face bottom right
   1.0f, 1.0f,
   0.0f, 1.0f,
-  0.0f, 0.0f,
+  1.0f, 0.0f,
 
+  // Top face bottom left
+  0.0f, 1.0f,
   1.0f, 1.0f,
-  0.0f, 1.0f,
-  0.0f, 0.0f,
-
-  1.0f, 1.0f,
-  0.0f, 1.0f,
-  0.0f, 0.0f,
-
-  0.0f, 0.0f,
-  1.0f, 0.0f,
-  0.0f, 1.0f,
-
-  1.0f, 1.0f,
-  0.0f, 1.0f,
-  0.0f, 0.0f,
-
-  1.0f, 1.0f,
-  0.0f, 1.0f,
-  0.0f, 0.0f,
-
-  0.0f, 0.0f,
-  1.0f, 0.0f,
-  0.0f, 1.0f,
-
-  0.0f, 0.0f,
-  1.0f, 0.0f,
-  0.0f, 1.0f,
-
-  0.0f, 0.0f,
-  1.0f, 0.0f,
-  0.0f, 1.0f,
-
-  0.0f, 1.0f,
-  1.0f, 0.0f,
-  0.0f, 0.0f,
-
-  0.0f, 0.0f,
-  1.0f, 0.0f,
-  0.0f, 1.0f,
-
-  0.0f, 0.0f,
-  1.0f, 0.0f,
-  0.0f, 1.0f
+  0.0f, 0.0f
 };
 
 //----------------------------------------------------------------------------------------
@@ -153,6 +165,9 @@ void A5::init()
 
   // Load texture 1
   loadTexture(getAssetFilePath("textures/container.jpg").c_str(), TextureType::JPG);
+
+  // Load texture 2
+  loadTexture(getAssetFilePath("textures/grass.jpg").c_str(), TextureType::JPG);
 
   m_skybox = std::shared_ptr<SkyBox>(new SkyBox);
 
@@ -1183,6 +1198,7 @@ bool A5::windowResizeEvent (
 ) {
   bool eventHandled(false);
   initPerspectiveMatrix();
+  initLightPerspectiveMatrix();
   return eventHandled;
 }
 
