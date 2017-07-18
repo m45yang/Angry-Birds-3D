@@ -1,8 +1,11 @@
 #version 330
 
 uniform bool apply_texture;
+uniform bool apply_skybox_reflection;
+
 uniform sampler2D shadowMap;
 uniform sampler2D ourTexture;
+uniform samplerCube skyBox;
 
 struct LightSource {
     vec3 position;
@@ -12,6 +15,8 @@ struct LightSource {
 in VsOutFsIn {
     vec3 position_ES; // Eye-space position
     vec3 normal_ES;   // Eye-space normal
+    vec3 position_f; // Fragment position
+    vec3 normal_f; // Fragment normal
     vec3 texcoords;
     LightSource light;
     vec4 position_LS; // Light-space position
@@ -112,6 +117,11 @@ void main() {
     if (apply_texture) {
         vec4 color = texture(ourTexture, vec2(fs_in.texcoords.x, fs_in.texcoords.y));
         fragColour = vec4(phongModelWithTexture(fs_in.position_ES, fs_in.normal_ES, color.xyz, shadow), 1.0);
+    }
+    else if (apply_skybox_reflection) {
+        vec3 I = normalize(fs_in.position_f - fs_in.position_ES);
+        vec3 R = reflect(I, normalize(fs_in.normal_f));
+        fragColour = vec4(texture(skyBox, R).rgb, 1.0);
     }
     else {
         fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES, shadow), 1.0);

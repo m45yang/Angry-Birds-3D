@@ -162,7 +162,7 @@ ground_p = gr.physics(
   'ground_p',
   'cube',
   0.0, 0.0, -75.0,
-  50.0, 1.0, 180.0,
+  500.0, 1.0, 500.0,
   2
 )
 rootnode:add_child(ground_p)
@@ -212,13 +212,13 @@ bird1:add_child(bird)
 wall1_p = gr.physics(
   'wall1_p',
   'cube',
-  0.0, 2.5, -25.0,
-  5.0, 5.0, 5.0,
+  0.0, 20.5, -10.0,
+  10.0, 10.0, 10.0,
   0
 )
 rootnode:add_child(wall1_p)
 
-wall1 = gr.mesh('cube', 'wall1', 1)
+wall1 = gr.mesh('cube', 'wall1', -1)
 wall1_p:add_child(wall1)
 
 return rootnode

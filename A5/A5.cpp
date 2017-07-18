@@ -189,6 +189,11 @@ void A5::init()
   glUniform1i(ourTextureLocation, 1);
   m_shader.disable();
 
+  GLuint skyboxTextureLocation = m_shader.getUniformLocation("skyBox");
+  m_shader.enable();
+  glUniform1i(skyboxTextureLocation, 2);
+  m_shader.disable();
+
   // Exiting the current scope calls delete automatically on meshConsolidator freeing
   // all vertex data resources.  This is fine since we already copied this data to
   // VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
@@ -327,12 +332,12 @@ void A5::mapVboDataToVertexShaderInputLocations()
 void A5::initPerspectiveMatrix()
 {
   float aspect = ((float)m_windowWidth) / m_windowHeight;
-  m_perspective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
+  m_perspective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 1000.0f);
 }
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 9.0f, 15.0f), vec3(0.0f, 9.0f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 50.0f, 15.0f), vec3(0.0f, 0.0f, -50.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -762,10 +767,15 @@ void A5::updateShaderUniforms(
     glUniformMatrix3fv( location, 1, GL_FALSE, value_ptr(normalMatrix)) ;
     CHECK_GL_ERRORS;
 
-    location = m_shader.getUniformLocation("apply_texture");
+
 
     if (node.texture == 0) {
       // Disable textures
+      location = m_shader.getUniformLocation("apply_texture");
+      glUniform1i( location, 0 );
+
+      // Disable skybox reflection
+      location = m_shader.getUniformLocation("apply_skybox_reflection");
       glUniform1i( location, 0 );
 
       //-- Set Material values:
@@ -783,8 +793,28 @@ void A5::updateShaderUniforms(
       glUniform1f( location, node.material.shininess) ;
       CHECK_GL_ERRORS;
     }
-    else if (node.texture <= m_num_textures) {
+    else if (node.texture == -1) {
+      // Disable textures
+      location = m_shader.getUniformLocation("apply_texture");
+      glUniform1i( location, 0 );
+
+      // Enable skybox reflection
+      location = m_shader.getUniformLocation("apply_skybox_reflection");
       glUniform1i( location, 1 );
+
+      glActiveTexture( GL_TEXTURE2 );
+      glBindTexture( GL_TEXTURE_CUBE_MAP, m_skybox->m_cubeTextureID );
+      CHECK_GL_ERRORS;
+    }
+    else if (node.texture <= m_num_textures) {
+      // Enable textures
+      location = m_shader.getUniformLocation("apply_texture");
+      glUniform1i( location, 1 );
+
+      // Disable skybox reflection
+      location = m_shader.getUniformLocation("apply_skybox_reflection");
+      glUniform1i( location, 0 );
+
       glActiveTexture( GL_TEXTURE1 );
       glBindTexture( GL_TEXTURE_2D, node.texture );
       CHECK_GL_ERRORS;
