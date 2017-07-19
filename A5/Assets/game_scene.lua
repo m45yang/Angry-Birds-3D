@@ -228,7 +228,7 @@ rootnode = gr.node('root')
 ground_p = gr.physics(
   'ground_p',
   'cube',
-  0.0, 0.0, -20.0,
+  0.0, 0.0, -40.0,
   100.0, 1.0, 100.0,
   2
 )
@@ -270,11 +270,12 @@ pig1_p:add_child(pig)
 pig2_p = gr.physics(
   'pig2_p',
   'sphere',
-  -2.0, 2.0, -20.0,
+  9.9, 9.0, -24.0,
   2.0, 2.0, 2.0,
   1
 )
 rootnode:add_child(pig2_p)
+pig2_p:rotate('z', -30)
 pig2_p:set_physics_material(red)
 pig2_p:add_child(pig)
 
@@ -282,54 +283,143 @@ pig2_p:add_child(pig)
 pig3_p = gr.physics(
   'pig3_p',
   'sphere',
-  10.0, 2.0, -20.0,
-  2.0, 2.0, 2.0,
+  0.0, 25.0, -55.0,
+  5.0, 5.0, 5.0,
   1
 )
 rootnode:add_child(pig3_p)
+pig3_p:set_gravity(0)
 pig3_p:set_physics_material(red)
-pig3_p:add_child(reflective_pig)
+pig3_p:add_child(pig)
+
+
+pig4_p = gr.physics(
+  'pig4_p',
+  'sphere',
+  0.0, 11.5, -25.0,
+  2.0, 2.0, 2.0,
+  1
+)
+rootnode:add_child(pig4_p)
+pig4_p:set_physics_material(red)
+pig4_p:add_child(reflective_pig)
+
+
+pig6_p = gr.physics(
+  'pig6_p',
+  'sphere',
+  4.0, 1.4, -20.0,
+  1.0, 1.0, 1.0,
+  1
+)
+rootnode:add_child(pig6_p)
+pig6_p:rotate('y', 70)
+pig6_p:set_physics_material(red)
+pig6_p:add_child(pig)
+
+
+pig7_p = gr.physics(
+  'pig7_p',
+  'sphere',
+  4.0, 2.0, -20.0,
+  1.8, 1.8, 1.8,
+  1
+)
+rootnode:add_child(pig7_p)
+pig7_p:rotate('y', 77)
+pig7_p:set_physics_material(red)
+pig7_p:add_child(pig)
+
+
+pig8_p = gr.physics(
+  'pig8_p',
+  'sphere',
+  -5.0, 2.0, -30.0,
+  1.8, 1.8, 1.8,
+  1
+)
+rootnode:add_child(pig8_p)
+pig8_p:set_physics_material(red)
+pig8_p:add_child(pig)
 
 
 pig1_a = gr.animation(
   'pig1_a',
   'sphere',
-  5.0, 11.5, -25.0,
-  2.0, 2.0, 2.0,
-  1
-)
-rootnode:add_child(pig1_a)
-pig1_a:set_animation_material(red)
-pig1_a:keyframe_add(3)
-pig1_a:keyframe_translate(-3.0, 0.0, 0.0, 0)
-pig1_a:keyframe_translate(3.0, 0.0, 0.0, 1)
-pig1_a:keyframe_translate(-3.0, 0.0, 0.0, 2)
-pig1_a:add_child(pig)
-
-pig2_a = gr.animation(
-  'pig2_a',
-  'sphere',
   -13.0, 3.0, -5.0,
   3.0, 3.0, 3.0,
   1
 )
+rootnode:add_child(pig1_a)
+pig1_a:set_animation_material(red)
+pig1_a:keyframe_add(6)
+pig1_a:keyframe_translate(0.0, 0.0, -10.0, 0)
+pig1_a:keyframe_translate(0.0, 0.0, -10.0, 1)
+pig1_a:keyframe_translate(0.0, 0.0, -20.0, 2)
+pig1_a:keyframe_translate(0.0, 0.0, -30.0, 3)
+pig1_a:keyframe_translate(0.0, 0.0, -30.0, 4)
+pig1_a:keyframe_translate(0.0, 0.0, -10.0, 5)
+pig1_a:add_child(pig)
+
+
+pig2_a = gr.animation(
+  'pig2_a',
+  'sphere',
+  6.0, 1.4, -20.0,
+  1.0, 1.0, 1.0,
+  1
+)
 rootnode:add_child(pig2_a)
 pig2_a:set_animation_material(red)
-pig2_a:keyframe_add(7)
-pig2_a:keyframe_translate(0.0, 0.0, -10.0, 0)
-pig2_a:keyframe_translate(0.0, 0.0, -10.0, 1)
-pig2_a:keyframe_translate(0.0, 0.0, -35.0, 2)
-pig2_a:keyframe_translate(30.0, 0.0, -35.0, 3)
-pig2_a:keyframe_translate(30.0, 0.0, -35.0, 4)
-pig2_a:keyframe_translate(30.0, 0.0, -10.0, 5)
-pig2_a:keyframe_translate(0.0, 0.0, -10.0, 6)
+pig2_a:keyframe_add(3)
+pig2_a:keyframe_scale(1.0, 1.0, 1.0, 0)
+pig2_a:keyframe_scale(1.0, 1.2, 1.0, 1)
+pig2_a:keyframe_scale(1.0, 1.0, 1.0, 2)
 pig2_a:add_child(pig)
+
+
+pig3_a = gr.animation(
+  'pig3_a',
+  'sphere',
+  4.0, 1.4, -20.0,
+  1.0, 1.0, 1.0,
+  1
+)
+rootnode:add_child(pig3_a)
+pig3_a:set_animation_material(red)
+pig3_a:keyframe_add(5)
+pig3_a:keyframe_scale(1.0, 1.0, 1.0, 0)
+pig3_a:keyframe_scale(1.0, 1.1, 1.0, 1)
+pig3_a:keyframe_scale(1.0, 1.2, 1.0, 2)
+pig3_a:keyframe_scale(1.0, 1.1, 1.0, 3)
+pig3_a:keyframe_scale(1.0, 1.0, 1.0, 4)
+pig3_a:add_child(pig)
+
+
+pig4_a = gr.animation(
+  'pig4_a',
+  'sphere',
+  2.0, 1.4, -20.0,
+  1.0, 1.0, 1.0,
+  1
+)
+rootnode:add_child(pig4_a)
+pig4_a:set_animation_material(red)
+pig4_a:keyframe_add(7)
+pig4_a:keyframe_scale(1.0, 1.0, 1.0, 0)
+pig4_a:keyframe_scale(1.0, 1.05, 1.0, 1)
+pig4_a:keyframe_scale(1.0, 1.1, 1.0, 2)
+pig4_a:keyframe_scale(1.0, 1.2, 1.0, 3)
+pig4_a:keyframe_scale(1.0, 1.1, 1.0, 4)
+pig4_a:keyframe_scale(1.0, 1.05, 1.0, 5)
+pig4_a:keyframe_scale(1.0, 1.0, 1.0, 6)
+pig4_a:add_child(pig)
 
 
 wall1_p = gr.physics(
   'wall1_p',
   'cube',
-  0.0, 2.0, -25.0,
+  -20.0, 2.0, -25.0,
   3.0, 3.0, 3.0,
   2
 )
@@ -341,7 +431,7 @@ wall1_p:add_child(wall1)
 wall2_p = gr.physics(
   'wall2_p',
   'cube',
-  0.0, 5.0, -25.0,
+  -20.0, 5.0, -25.0,
   3.0, 3.0, 3.0,
   2
 )
@@ -353,8 +443,8 @@ wall2_p:add_child(wall2)
 wall3_p = gr.physics(
   'wall3_p',
   'cube',
-  5.0, 8.0, -25.0,
-  10.0, 3.0, 3.0,
+  -5.0, 8.0, -25.0,
+  30.0, 3.0, 3.0,
   2
 )
 rootnode:add_child(wall3_p)

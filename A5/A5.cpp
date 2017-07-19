@@ -346,7 +346,7 @@ void A5::mapVboDataToVertexShaderInputLocations()
 void A5::initPerspectiveMatrix()
 {
   float aspect = ((float)m_windowWidth) / m_windowHeight;
-  m_perspective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 1000.0f);
+  m_perspective = glm::perspective(degreesToRadians(65.0f), aspect, 0.1f, 1000.0f);
 }
 
 //----------------------------------------------------------------------------------------
@@ -365,7 +365,7 @@ void A5::initLightSources() {
 //----------------------------------------------------------------------------------------
 void A5::initLightPerspectiveMatrix()
 {
-  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -50.0f, 25.0f, 0.1f, 55.0f);
+  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -75.0f, 25.0f, 0.1f, 55.0f);
 }
 
 //----------------------------------------------------------------------------------------
@@ -714,7 +714,7 @@ void A5::guiLogic()
 
   ImGui::Begin("Angry Birds 3D", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
 
-    ImGui::SliderFloat("Power", &power, -0.0f, 20.0f);
+    ImGui::SliderFloat("Power", &power, -0.0f, 45.0f);
 
   ImGui::End();
 
@@ -773,7 +773,7 @@ void A5::updateCamera()
     }
   }
   if ( m_keys[GLFW_KEY_W] ) {
-    if (y_angle < 45.0f) {
+    if (y_angle < 60.0f) {
       y_angle += 1.0f;
       m_birdNode->set_transform(m_birdNodeOriginalTrans);
       m_birdNode->rotate('x', y_angle);
@@ -781,7 +781,7 @@ void A5::updateCamera()
     }
   }
   if ( m_keys[GLFW_KEY_SPACE] ) {
-    if (power < 20.0f) {
+    if (power < 45.0f) {
       power += power_change;
       power_change += 0.01f;
     }
