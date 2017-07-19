@@ -22,6 +22,14 @@ using namespace glm;
 static bool show_gui = true;
 stack<mat4> A5::matrixStack;
 
+const string flyingSounds[5] = {
+  "Assets/sounds/flying1.wav",
+  "Assets/sounds/flying2.wav",
+  "Assets/sounds/flying3.wav",
+  "Assets/sounds/flying4.wav",
+  "Assets/sounds/flying5.wav"
+};
+
 const float m_uvCube[72] = {
   // Left face top left
   0.0f, 1.0f,
@@ -706,7 +714,7 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
 
   m_particleSystems.push_back(particleSystem);
 
-  m_collisionSoundEngine->play2D("Assets/sounds/smash.wav");
+  m_collisionSoundEngine->play2D("Assets/sounds/collision1.wav");
 }
 
 void A5::destroyAnimationNode(AnimationNode *animationNode)
@@ -720,7 +728,7 @@ void A5::destroyAnimationNode(AnimationNode *animationNode)
 
   m_particleSystems.push_back(particleSystem);
 
-  m_collisionSoundEngine->play2D("Assets/sounds/smash.wav");
+  m_collisionSoundEngine->play2D("Assets/sounds/collision1.wav");
 }
 
 //----------------------------------------------------------------------------------------
@@ -1360,7 +1368,8 @@ bool A5::keyInputEvent (
       power = 0.0f;
       power_change = 0.0f;
 
-      m_birdSoundEngine->play2D("Assets/sounds/bird_flying.wav");
+      int sound = rand() % 5;
+      m_collisionSoundEngine->play2D(flyingSounds[sound].c_str());
       m_is_flying = true;
     }
     m_keys[key] = false;
