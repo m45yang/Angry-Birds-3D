@@ -74,6 +74,73 @@ pig_right_nostril:scale(1/0.3, 1/0.25, 1/0.1)
 pig_right_nostril:scale(0.08, 0.1, 0.07)
 pig_right_nostril:translate(0.3, 0.0, 0.5)
 
+-- Reflective model
+reflective_pig = gr.mesh('sphere', 'reflective_pig', -1)
+reflective_pig:set_material(green)
+
+reflective_pig_left_ear = gr.mesh('sphere', 'reflective_pig_left_ear', -1)
+reflective_pig:add_child(reflective_pig_left_ear)
+reflective_pig_left_ear:set_material(green)
+reflective_pig_left_ear:scale(1.25, 1.25, 1.25)
+reflective_pig_left_ear:scale(0.15, 0.25, 0.05)
+reflective_pig_left_ear:translate(-0.4, 0.8, 0.4)
+
+reflective_pig_right_ear = gr.mesh('sphere', 'reflective_pig_right_ear', -1)
+reflective_pig:add_child(reflective_pig_right_ear)
+reflective_pig_right_ear:set_material(green)
+reflective_pig_right_ear:scale(1.25, 1.25, 1.25)
+reflective_pig_right_ear:scale(0.25, 0.15, 0.05)
+reflective_pig_right_ear:translate(0.5, 0.8, 0.4)
+
+reflective_pig_left_eye = gr.mesh('sphere', 'reflective_pig_left_eye', -1)
+reflective_pig:add_child(reflective_pig_left_eye)
+reflective_pig_left_eye:set_material(white)
+reflective_pig_left_eye:scale(1.25, 1.25, 1.25)
+reflective_pig_left_eye:scale(0.2, 0.2, 0.2)
+reflective_pig_left_eye:translate(-0.625, 0.0, 0.7)
+
+reflective_pig_left_pupil = gr.mesh('sphere', 'reflective_pig_left_pupil', -1)
+reflective_pig_left_eye:add_child(reflective_pig_left_pupil)
+reflective_pig_left_pupil:set_material(black)
+reflective_pig_left_pupil:scale(1/0.2, 1/0.2, 1/0.2)
+reflective_pig_left_pupil:scale(0.05, 0.05, 0.05)
+reflective_pig_left_pupil:translate(-0.5, 0.0, 0.75)
+
+reflective_pig_right_eye = gr.mesh('sphere', 'reflective_pig_right_eye', -1)
+reflective_pig:add_child(reflective_pig_right_eye)
+reflective_pig_right_eye:set_material(white)
+reflective_pig_right_eye:scale(1.25, 1.25, 1.25)
+reflective_pig_right_eye:scale(0.2, 0.2, 0.2)
+reflective_pig_right_eye:translate(0.625, 0.0, 0.7)
+
+reflective_pig_right_pupil = gr.mesh('sphere', 'reflective_pig_right_pupil', -1)
+reflective_pig_right_eye:add_child(reflective_pig_right_pupil)
+reflective_pig_right_pupil:set_material(black)
+reflective_pig_right_pupil:scale(1/0.2, 1/0.2, 1/0.2)
+reflective_pig_right_pupil:scale(0.05, 0.05, 0.05)
+reflective_pig_right_pupil:translate(0.5, 0.0, 0.75)
+
+reflective_pig_nose = gr.mesh('sphere', 'reflective_pig_nose', -1)
+reflective_pig:add_child(reflective_pig_nose)
+reflective_pig_nose:set_material(yellow_green)
+reflective_pig_nose:scale(1.25, 1.25, 1.25)
+reflective_pig_nose:scale(0.3, 0.25, 0.1)
+reflective_pig_nose:translate(0.0, 0.0, 1.-1)
+
+reflective_pig_left_nostril = gr.mesh('sphere', 'reflective_pig_left_nostril', -1)
+reflective_pig_nose:add_child(reflective_pig_left_nostril)
+reflective_pig_left_nostril:set_material(black)
+reflective_pig_left_nostril:scale(1/0.3, 1/0.25, 1/0.1)
+reflective_pig_left_nostril:scale(0.08, 0.1, 0.07)
+reflective_pig_left_nostril:translate(-0.3, 0.0, 0.5)
+
+reflective_pig_right_nostril = gr.mesh('sphere', 'reflective_pig_right_nostril', -1)
+reflective_pig_nose:add_child(reflective_pig_right_nostril)
+reflective_pig_right_nostril:set_material(black)
+reflective_pig_right_nostril:scale(1/0.3, 1/0.25, 1/0.1)
+reflective_pig_right_nostril:scale(0.08, 0.1, 0.07)
+reflective_pig_right_nostril:translate(0.3, 0.0, 0.5)
+
 
 -- Red angry bird model
 bird = gr.mesh('sphere', 'bird', 0)
@@ -161,8 +228,8 @@ rootnode = gr.node('root')
 ground_p = gr.physics(
   'ground_p',
   'cube',
-  0.0, 0.0, -75.0,
-  200.0, 1.0, 200.0,
+  0.0, 0.0, 0.0,
+  50.0, 1.0, 50.0,
   2
 )
 rootnode:add_child(ground_p)
@@ -173,31 +240,10 @@ ground_p:add_child(ground)
 ground:set_material(yellow_green)
 
 
-pig1_a = gr.animation(
-  'pig1_a',
-  'sphere',
-  0.0, 0.0, -5.0,
-  3.0, 3.0, 3.0,
-  1
-)
-rootnode:add_child(pig1_a)
-pig1_a:set_animation_material(green)
-pig1_a:keyframe_add(5)
-pig1_a:keyframe_translate(-6.0, 3.5, -1.0, 0)
-pig1_a:keyframe_translate(6.0, 3.5, -1.0, 1)
-pig1_a:keyframe_translate(6.0, 3.5, 5.0, 2)
-pig1_a:keyframe_translate(-6.0, 3.5, 5.0, 3)
-pig1_a:keyframe_translate(-6.0, 3.5, -1.0, 4)
-
-pig1 = gr.node('pig1')
-pig1_a:add_child(pig1)
-pig1:add_child(pig)
-
-
 bird1_p = gr.physics(
   'bird1_p',
   'sphere',
-  0.0, 1.5, 0.0,
+  0.0, 1.5, 20.0,
   1.0, 1.0, 1.0,
   0
 )
@@ -209,16 +255,136 @@ bird1:rotate('y', 180)
 bird1:add_child(bird)
 
 
+pig1_p = gr.physics(
+  'pig1_p',
+  'sphere',
+  5.0, 3.0, -5.0,
+  3.0, 3.0, 3.0,
+  1
+)
+rootnode:add_child(pig1_p)
+pig1_p:set_physics_material(red)
+pig1_p:add_child(pig)
+
+
+pig2_p = gr.physics(
+  'pig2_p',
+  'sphere',
+  -2.0, 2.0, -1.0,
+  2.0, 2.0, 2.0,
+  1
+)
+rootnode:add_child(pig2_p)
+pig2_p:set_physics_material(red)
+pig2_p:add_child(pig)
+
+
+pig3_p = gr.physics(
+  'pig3_p',
+  'sphere',
+  10.0, 2.0, 16.0,
+  2.0, 2.0, 2.0,
+  1
+)
+rootnode:add_child(pig3_p)
+pig3_p:set_physics_material(red)
+pig3_p:add_child(reflective_pig)
+
+
+pig1_a = gr.animation(
+  'pig1_a',
+  'sphere',
+  5.0, 11.5, -5.0,
+  2.0, 2.0, 2.0,
+  1
+)
+rootnode:add_child(pig1_a)
+pig1_a:set_animation_material(red)
+pig1_a:keyframe_add(3)
+pig1_a:keyframe_translate(-3.0, 0.0, 0.0, 0)
+pig1_a:keyframe_translate(3.0, 0.0, 0.0, 1)
+pig1_a:keyframe_translate(-3.0, 0.0, 0.0, 2)
+pig1_a:add_child(pig)
+
+pig2_a = gr.animation(
+  'pig2_a',
+  'sphere',
+  -13.0, 3.0, 15.0,
+  3.0, 3.0, 3.0,
+  1
+)
+rootnode:add_child(pig2_a)
+pig2_a:set_animation_material(red)
+pig2_a:keyframe_add(7)
+pig2_a:keyframe_translate(0.0, 0.0, -10.0, 0)
+pig2_a:keyframe_translate(0.0, 0.0, -10.0, 1)
+pig2_a:keyframe_translate(0.0, 0.0, -35.0, 2)
+pig2_a:keyframe_translate(30.0, 0.0, -35.0, 3)
+pig2_a:keyframe_translate(30.0, 0.0, -35.0, 4)
+pig2_a:keyframe_translate(30.0, 0.0, -10.0, 5)
+pig2_a:keyframe_translate(0.0, 0.0, -10.0, 6)
+pig2_a:add_child(pig)
+
+
 wall1_p = gr.physics(
   'wall1_p',
   'cube',
-  0.0, 5.0, -20.0,
-  10.0, 10.0, 10.0,
+  0.0, 2.0, -5.0,
+  3.0, 3.0, 3.0,
   2
 )
 rootnode:add_child(wall1_p)
 
 wall1 = gr.mesh('cube', 'wall1', 1)
 wall1_p:add_child(wall1)
+
+wall2_p = gr.physics(
+  'wall2_p',
+  'cube',
+  0.0, 5.0, -5.0,
+  3.0, 3.0, 3.0,
+  2
+)
+rootnode:add_child(wall2_p)
+
+wall2 = gr.mesh('cube', 'wall2', 1)
+wall2_p:add_child(wall2)
+
+wall3_p = gr.physics(
+  'wall3_p',
+  'cube',
+  5.0, 8.0, -5.0,
+  10.0, 3.0, 3.0,
+  2
+)
+rootnode:add_child(wall3_p)
+
+wall3 = gr.mesh('cube', 'wall3', 1)
+wall3_p:add_child(wall3)
+
+wall4_p = gr.physics(
+  'wall4_p',
+  'cube',
+  10.0, 2.0, -5.0,
+  3.0, 3.0, 3.0,
+  2
+)
+rootnode:add_child(wall4_p)
+
+wall4 = gr.mesh('cube', 'wall4', 1)
+wall4_p:add_child(wall4)
+
+wall5_p = gr.physics(
+  'wall5_p',
+  'cube',
+  10.0, 5.0, -5.0,
+  3.0, 3.0, 3.0,
+  2
+)
+rootnode:add_child(wall5_p)
+
+wall5 = gr.mesh('cube', 'wall5', 1)
+wall5_p:add_child(wall5)
+
 
 return rootnode

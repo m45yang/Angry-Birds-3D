@@ -348,7 +348,7 @@ void A5::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 2.0f, 15.0f), vec3(0.0f, 2.0f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 10.0f, 40.0f), vec3(0.0f, 10.0f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -362,7 +362,7 @@ void A5::initLightSources() {
 //----------------------------------------------------------------------------------------
 void A5::initLightPerspectiveMatrix()
 {
-  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -90.0f, 90.0f, 0.1f, 51.0f);
+  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 0.1f, 55.0f);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1034,8 +1034,6 @@ void A5::renderSkyBox() {
 
 //----------------------------------------------------------------------------------------
 void A5::renderParticles() {
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
   for (ParticleSystem * particleSystem : m_particleSystems) {
     particleSystem->m_shader.enable();
     glBindVertexArray(particleSystem->m_vao);
