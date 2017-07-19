@@ -1310,6 +1310,7 @@ bool A5::windowResizeEvent (
   bool eventHandled(false);
   initPerspectiveMatrix();
   initLightPerspectiveMatrix();
+  initDepthMap();
   return eventHandled;
 }
 
