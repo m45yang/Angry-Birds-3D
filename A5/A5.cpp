@@ -773,7 +773,7 @@ void A5::updateCamera()
     }
   }
   if ( m_keys[GLFW_KEY_W] ) {
-    if (y_angle < 90.0f) {
+    if (y_angle < 45.0f) {
       y_angle += 1.0f;
       m_birdNode->set_transform(m_birdNodeOriginalTrans);
       m_birdNode->rotate('x', y_angle);
