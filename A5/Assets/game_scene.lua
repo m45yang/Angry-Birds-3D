@@ -270,7 +270,7 @@ pig1_p:add_child(pig)
 pig2_p = gr.physics(
   'pig2_p',
   'sphere',
-  -2.0, 2.0, -26.0,
+  -2.0, 2.0, -20.0,
   2.0, 2.0, 2.0,
   1
 )
@@ -282,7 +282,7 @@ pig2_p:add_child(pig)
 pig3_p = gr.physics(
   'pig3_p',
   'sphere',
-  10.0, 2.0, -4.0,
+  10.0, 2.0, -20.0,
   2.0, 2.0, 2.0,
   1
 )

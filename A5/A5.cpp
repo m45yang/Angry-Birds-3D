@@ -124,6 +124,8 @@ void A5::init()
 
   m_collisionSoundEngine = createIrrKlangDevice();
 
+  m_birdSoundEngine = createIrrKlangDevice();
+
   // Set the background colour.
   glClearColor(0.35, 0.35, 0.35, 1.0);
 
@@ -663,6 +665,8 @@ void A5::destroyPhysicsNode(PhysicsNode *physicsNode)
   particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
   m_particleSystems.push_back(particleSystem);
+
+  m_collisionSoundEngine->play2D("Assets/sounds/smash.wav");
 }
 
 void A5::destroyAnimationNode(AnimationNode *animationNode)
@@ -675,6 +679,8 @@ void A5::destroyAnimationNode(AnimationNode *animationNode)
   particleSystem->m_velocity = vec3(0.0, 0.3, 0.0);
 
   m_particleSystems.push_back(particleSystem);
+
+  m_collisionSoundEngine->play2D("Assets/sounds/smash.wav");
 }
 
 //----------------------------------------------------------------------------------------
@@ -1122,7 +1128,9 @@ void A5::loadTexture(const char* textureFilePath, TextureType type) {
  */
 void A5::cleanup()
 {
-
+  m_themeSoundEngine->drop();
+  m_birdSoundEngine->drop();
+  m_collisionSoundEngine->drop();
 }
 
 //----------------------------------------------------------------------------------------
@@ -1251,6 +1259,8 @@ bool A5::keyInputEvent (
       y_angle = 0.0f;
       power = 0.0f;
       power_change = 0.0f;
+
+      m_birdSoundEngine->play2D("Assets/sounds/bird_flying.wav");
     }
     m_keys[key] = false;
   }

@@ -112,6 +112,7 @@ protected:
   // -- Resources for sound
   irrklang::ISoundEngine *m_themeSoundEngine;
   irrklang::ISoundEngine *m_collisionSoundEngine;
+  irrklang::ISoundEngine *m_birdSoundEngine;
 
   // BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
   // object. Each BatchInfo object contains an index offset and the number of indices
