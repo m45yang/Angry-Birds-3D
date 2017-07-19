@@ -100,7 +100,8 @@ A5::A5(const std::string & luaSceneFile)
     y_angle(0.0f),
     power(0.0f),
     power_change(0.0f),
-    m_num_textures(0)
+    m_num_textures(0),
+    m_is_flying(false)
 {
 
 }
@@ -748,42 +749,44 @@ void A5::updateCamera()
   }
 
   // Bird orientation
-  if ( m_keys[GLFW_KEY_D] ) {
-    if (x_angle < 90.0f) {
-      x_angle += 2.0f;
-      m_birdNode->set_transform(m_birdNodeOriginalTrans);
-      m_birdNode->rotate('x', y_angle);
-      m_birdNode->rotate('y', -x_angle);
+  if (!m_is_flying) {
+    if ( m_keys[GLFW_KEY_D] ) {
+      if (x_angle < 90.0f) {
+        x_angle += 2.0f;
+        m_birdNode->set_transform(m_birdNodeOriginalTrans);
+        m_birdNode->rotate('x', y_angle);
+        m_birdNode->rotate('y', -x_angle);
+      }
     }
-  }
-  if ( m_keys[GLFW_KEY_A] ) {
-    if (x_angle > -90.0f) {
-      x_angle -= 2.0f;
-      m_birdNode->set_transform(m_birdNodeOriginalTrans);
-      m_birdNode->rotate('x', y_angle);
-      m_birdNode->rotate('y', -x_angle);
+    if ( m_keys[GLFW_KEY_A] ) {
+      if (x_angle > -90.0f) {
+        x_angle -= 2.0f;
+        m_birdNode->set_transform(m_birdNodeOriginalTrans);
+        m_birdNode->rotate('x', y_angle);
+        m_birdNode->rotate('y', -x_angle);
+      }
     }
-  }
-  if ( m_keys[GLFW_KEY_S] ) {
-    if (y_angle > 0.0f) {
-      y_angle -= 1.0f;
-      m_birdNode->set_transform(m_birdNodeOriginalTrans);
-      m_birdNode->rotate('x', y_angle);
-      m_birdNode->rotate('y', -x_angle);
+    if ( m_keys[GLFW_KEY_S] ) {
+      if (y_angle > 0.0f) {
+        y_angle -= 1.0f;
+        m_birdNode->set_transform(m_birdNodeOriginalTrans);
+        m_birdNode->rotate('x', y_angle);
+        m_birdNode->rotate('y', -x_angle);
+      }
     }
-  }
-  if ( m_keys[GLFW_KEY_W] ) {
-    if (y_angle < 60.0f) {
-      y_angle += 1.0f;
-      m_birdNode->set_transform(m_birdNodeOriginalTrans);
-      m_birdNode->rotate('x', y_angle);
-      m_birdNode->rotate('y', -x_angle);
+    if ( m_keys[GLFW_KEY_W] ) {
+      if (y_angle < 60.0f) {
+        y_angle += 1.0f;
+        m_birdNode->set_transform(m_birdNodeOriginalTrans);
+        m_birdNode->rotate('x', y_angle);
+        m_birdNode->rotate('y', -x_angle);
+      }
     }
-  }
-  if ( m_keys[GLFW_KEY_SPACE] ) {
-    if (power < 45.0f) {
-      power += power_change;
-      power_change += 0.01f;
+    if ( m_keys[GLFW_KEY_SPACE] ) {
+      if (power < 45.0f) {
+        power += power_change;
+        power_change += 0.01f;
+      }
     }
   }
 }
@@ -1230,6 +1233,7 @@ bool A5::keyInputEvent (
     }
     else if (key == GLFW_KEY_R) {
       m_birdNode->set_transform(m_birdNodeOriginalTrans);
+      m_is_flying = false;
     }
     else {
       m_keys[key] = true;
@@ -1237,7 +1241,7 @@ bool A5::keyInputEvent (
   }
 
   if ( action == GLFW_RELEASE ) {
-    if ( key == GLFW_KEY_SPACE ) {
+    if ( key == GLFW_KEY_SPACE && !m_is_flying ) {
       double x_velocity, y_velocity, z_velocity;
 
       if (x_angle == 0.0f) {
@@ -1261,6 +1265,7 @@ bool A5::keyInputEvent (
       power_change = 0.0f;
 
       m_birdSoundEngine->play2D("Assets/sounds/bird_flying.wav");
+      m_is_flying = true;
     }
     m_keys[key] = false;
   }

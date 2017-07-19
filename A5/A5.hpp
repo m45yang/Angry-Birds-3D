@@ -130,6 +130,7 @@ protected:
   glm::mat4 m_birdNodeOriginalTrans;
 
   bool m_keys[1024];
+  bool m_is_flying;
   float m_mouse_x_pos;
   float m_mouse_y_pos;
   float x_angle;
