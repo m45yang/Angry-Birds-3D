@@ -135,6 +135,7 @@ protected:
   bool m_is_flying;
   bool m_game_in_progress;
   bool m_game_over;
+  unsigned int m_num_birds_left;
   float m_mouse_x_pos;
   float m_mouse_y_pos;
   float x_angle;

@@ -102,7 +102,9 @@ A5::A5(const std::string & luaSceneFile)
     power_change(0.0f),
     m_num_textures(0),
     m_is_flying(false),
-    m_game_in_progress(false)
+    m_game_in_progress(false),
+    m_game_over(false),
+    m_num_birds_left(10)
 {
 
 }
@@ -505,24 +507,32 @@ void A5::appLogic()
 
 void A5::checkIfGameOver()
 {
-   for (PhysicsNode * physicsNode : m_physicsNodes)
-   {
-      if (physicsNode->m_objectType == ObjectType::Pig && !physicsNode->m_destroyed) {
-        return;
-      }
-   }
+  if (m_num_birds_left == 0) {
+    m_game_over = true;
+    m_game_in_progress = false;
+    m_themeSoundEngine->stopAllSounds();
+    m_themeSoundEngine->play2D("Assets/sounds/game_lose.wav");
+    return;
+  }
 
-   for (AnimationNode * animationNode : m_animationNodes)
-   {
-      if (animationNode->m_objectType == ObjectType::Pig && !animationNode->m_destroyed) {
-        return;
-      }
-   }
+  for (PhysicsNode * physicsNode : m_physicsNodes)
+  {
+    if (physicsNode->m_objectType == ObjectType::Pig && !physicsNode->m_destroyed) {
+      return;
+    }
+  }
 
-   m_game_over = true;
-   m_game_in_progress = false;
-   m_themeSoundEngine->stopAllSounds();
-   m_themeSoundEngine->play2D("Assets/sounds/game_win.wav");
+  for (AnimationNode * animationNode : m_animationNodes)
+  {
+    if (animationNode->m_objectType == ObjectType::Pig && !animationNode->m_destroyed) {
+      return;
+    }
+  }
+
+  m_game_over = true;
+  m_game_in_progress = false;
+  m_themeSoundEngine->stopAllSounds();
+  m_themeSoundEngine->play2D("Assets/sounds/game_win.wav");
 }
 
 bool isDead(ParticleSystem *particleSystem) {
@@ -745,6 +755,7 @@ void A5::guiLogic()
     ImGui::Begin("Angry Birds 3D", &showDebugWindow, ImVec2(100,100), opacity, windowFlags);
 
       ImGui::SliderFloat("Power", &power, -0.0f, 45.0f);
+      ImGui::Text("Number of birds left: %d", m_num_birds_left);
 
     ImGui::End();
 
@@ -759,7 +770,12 @@ void A5::guiLogic()
 
     ImGui::Begin("", &showDebugWindow, ImVec2(500,500), opacity, windowFlags);
 
-      ImGui::Text("You won!!");
+      if (m_num_birds_left > 0) {
+        ImGui::Text("You won!!");
+      }
+      else {
+        ImGui::Text("Aw, you lost :(");
+      }
 
     ImGui::End();
   }
@@ -776,7 +792,7 @@ void A5::guiLogic()
         "Instructions to play: \n"
         "Use W A S D keys to change the pitch and angle of the bird. \n"
         "Hold down the SPACE key to build up power, release to shoot the bird. \n"
-        "Press the R key to reset the bird and shoot again.\n"
+        "Press the R key to set the next bird and shoot again.\n"
       );
 
       ImGui::Text("Click here now to begin!");
@@ -1206,6 +1222,8 @@ void A5::cleanup()
   m_themeSoundEngine->drop();
   m_birdSoundEngine->drop();
   m_collisionSoundEngine->drop();
+
+  delete m_birdNode;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1305,7 +1323,13 @@ bool A5::keyInputEvent (
     }
     else if (key == GLFW_KEY_R) {
       m_birdNode->set_transform(m_birdNodeOriginalTrans);
+      m_birdNode->set_velocity(vec3(0.0f, 0.0f, 0.0f));
+      x_angle = 0.0f;
+      y_angle = 0.0f;
+      power = 0.0f;
+      power_change = 0.0f;
       m_is_flying = false;
+      m_num_birds_left -= 1;
     }
     else {
       m_keys[key] = true;

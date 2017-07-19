@@ -346,19 +346,19 @@ pig8_p:add_child(pig)
 pig1_a = gr.animation(
   'pig1_a',
   'sphere',
-  -13.0, 3.0, -5.0,
+  -13.0, 3.0, -20.0,
   3.0, 3.0, 3.0,
   1
 )
 rootnode:add_child(pig1_a)
 pig1_a:set_animation_material(red)
 pig1_a:keyframe_add(6)
-pig1_a:keyframe_translate(0.0, 0.0, -10.0, 0)
-pig1_a:keyframe_translate(0.0, 0.0, -10.0, 1)
-pig1_a:keyframe_translate(0.0, 0.0, -20.0, 2)
-pig1_a:keyframe_translate(0.0, 0.0, -30.0, 3)
-pig1_a:keyframe_translate(0.0, 0.0, -30.0, 4)
-pig1_a:keyframe_translate(0.0, 0.0, -10.0, 5)
+pig1_a:keyframe_translate(0.0, 0.0, 0.0, 0)
+pig1_a:keyframe_translate(0.0, 0.0, 0.0, 1)
+pig1_a:keyframe_translate(0.0, 0.0, -10.0, 2)
+pig1_a:keyframe_translate(0.0, 0.0, -20.0, 3)
+pig1_a:keyframe_translate(0.0, 0.0, -20.0, 4)
+pig1_a:keyframe_translate(0.0, 0.0, 0.0, 5)
 pig1_a:add_child(pig)
 
 
