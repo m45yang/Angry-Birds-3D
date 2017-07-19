@@ -96,9 +96,10 @@ A5::A5(const std::string & luaSceneFile)
     m_vbo_vertexNormals(0),
     m_mouse_x_pos(0.0f),
     m_mouse_y_pos(0.0f),
-    x_velocity(0.0f),
-    y_velocity(0.0f),
-    z_velocity(35.0f),
+    x_angle(0.0f),
+    y_angle(0.0f),
+    power(0.0f),
+    power_change(0.0f),
     m_num_textures(0)
 {
 
@@ -348,7 +349,7 @@ void A5::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A5::initViewMatrix() {
-  m_view = glm::lookAt(vec3(0.0f, 10.0f, 40.0f), vec3(0.0f, 10.0f, 0.0f),
+  m_view = glm::lookAt(vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 0.0f),
       vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -362,7 +363,7 @@ void A5::initLightSources() {
 //----------------------------------------------------------------------------------------
 void A5::initLightPerspectiveMatrix()
 {
-  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 0.1f, 55.0f);
+  m_lightPerspective = glm::ortho(-25.0f, 25.0f, -50.0f, 25.0f, 0.1f, 55.0f);
 }
 
 //----------------------------------------------------------------------------------------
@@ -401,6 +402,7 @@ void A5::getBirdNode(SceneNode &node) {
     PhysicsNode * physicsNode = static_cast<PhysicsNode *>(&node);
     if (physicsNode->m_objectType == ObjectType::Bird) {
       m_birdNode = physicsNode;
+      m_birdNodeOriginalTrans = mat4(physicsNode->trans);
       return;
     }
   }
@@ -704,30 +706,9 @@ void A5::guiLogic()
   windowFlags |= ImGuiWindowFlags_MenuBar;
   float opacity(0.5f);
 
-  ImGui::Begin("Assignment 5", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
+  ImGui::Begin("Angry Birds 3D", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
 
-    if (ImGui::BeginMenuBar())
-    {
-      if (ImGui::BeginMenu("Application"))
-      {
-        ImGui::MenuItem("Main menu bar");
-        if (ImGui::MenuItem("Reset All")) {
-        }
-        if ( ImGui::MenuItem( "Quit Application" ) ) {
-          glfwSetWindowShouldClose(m_window, GL_TRUE);
-        }
-
-        ImGui::EndMenu();
-      }
-
-      ImGui::EndMenuBar();
-    }
-
-    ImGui::SliderFloat("X Velocity", &x_velocity, 0.0f, 100.0f);
-    ImGui::SliderFloat("Y Velocity", &y_velocity, 0.0f, 100.0f);
-    ImGui::SliderFloat("Z Velocity", &z_velocity, 0.0f, 100.0f);
-
-    ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
+    ImGui::SliderFloat("Power", &power, -0.0f, 90.0f);
 
   ImGui::End();
 
@@ -737,44 +718,67 @@ void A5::guiLogic()
 //----------------------------------------------------------------------------------------
 void A5::updateCamera()
 {
-  // Camera rotation
-  if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_LEFT] ) {
-    m_view = rotate(mat4(), -0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
-  }
-  else if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_RIGHT] ) {
-    m_view = rotate(mat4(), 0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
-  }
-  else if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_UP] ) {
+  if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_UP] ) {
     m_view = rotate(mat4(), -0.1f, vec3(1.0f, 0.0f, 0.0f)) * m_view;
   }
-  else if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_DOWN] ) {
+  if ( m_keys[GLFW_KEY_LEFT_SHIFT] && m_keys[GLFW_KEY_DOWN] ) {
     m_view = rotate(mat4(), 0.1f, vec3(1.0f, 0.0f, 0.0f)) * m_view;
   }
 
-  // Camera translation
-  else if ( m_keys[GLFW_KEY_UP] ) {
-    vec3 amount(0.0f, -1.0f, 0.0f);
-    m_view = translate(mat4(), amount) * m_view;
-  }
-  else if ( m_keys[GLFW_KEY_DOWN] ) {
-    vec3 amount(0.0f, 1.0f, 0.0f);
-    m_view = translate(mat4(), amount) * m_view;
-  }
-  else if ( m_keys[GLFW_KEY_RIGHT] ) {
-    vec3 amount(-1.0f, 0.0f, 0.0f);
-    m_view = translate(mat4(), amount) * m_view;
-  }
-  else if ( m_keys[GLFW_KEY_LEFT] ) {
-    vec3 amount(1.0f, 0.0f, 0.0f);
-    m_view = translate(mat4(), amount) * m_view;
-  }
-  else if ( m_keys[GLFW_KEY_O] ) {
+  // Camera rotation and translation
+  if ( m_keys[GLFW_KEY_DOWN] ) {
     vec3 amount(0.0f, 0.0f, -1.0f);
     m_view = translate(mat4(), amount) * m_view;
   }
-  else if ( m_keys[GLFW_KEY_I] ) {
+  if ( m_keys[GLFW_KEY_UP] ) {
     vec3 amount(0.0f, 0.0f, 1.0f);
     m_view = translate(mat4(), amount) * m_view;
+  }
+  if ( m_keys[GLFW_KEY_RIGHT] ) {
+    m_view = rotate(mat4(), 0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
+  }
+  if ( m_keys[GLFW_KEY_LEFT] ) {
+    m_view = rotate(mat4(), -0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
+  }
+
+  // Bird orientation
+  if ( m_keys[GLFW_KEY_D] ) {
+    if (x_angle < 90.0f) {
+      x_angle += 2.0f;
+      m_birdNode->set_transform(m_birdNodeOriginalTrans);
+      m_birdNode->rotate('x', y_angle);
+      m_birdNode->rotate('y', -x_angle);
+    }
+  }
+  if ( m_keys[GLFW_KEY_A] ) {
+    if (x_angle > -90.0f) {
+      x_angle -= 2.0f;
+      m_birdNode->set_transform(m_birdNodeOriginalTrans);
+      m_birdNode->rotate('x', y_angle);
+      m_birdNode->rotate('y', -x_angle);
+    }
+  }
+  if ( m_keys[GLFW_KEY_S] ) {
+    if (y_angle > 0.0f) {
+      y_angle -= 1.0f;
+      m_birdNode->set_transform(m_birdNodeOriginalTrans);
+      m_birdNode->rotate('x', y_angle);
+      m_birdNode->rotate('y', -x_angle);
+    }
+  }
+  if ( m_keys[GLFW_KEY_W] ) {
+    if (y_angle < 90.0f) {
+      y_angle += 1.0f;
+      m_birdNode->set_transform(m_birdNodeOriginalTrans);
+      m_birdNode->rotate('x', y_angle);
+      m_birdNode->rotate('y', -x_angle);
+    }
+  }
+  if ( m_keys[GLFW_KEY_SPACE] ) {
+    if (power < 90.0f) {
+      power += power_change;
+      power_change += 0.01f;
+    }
   }
 }
 
@@ -1216,8 +1220,8 @@ bool A5::keyInputEvent (
       show_gui = !show_gui;
       eventHandled = true;
     }
-    else if ( key == GLFW_KEY_SPACE ) {
-      m_birdNode->set_velocity(vec3(x_velocity, y_velocity, -z_velocity));
+    else if (key == GLFW_KEY_R) {
+      m_birdNode->set_transform(m_birdNodeOriginalTrans);
     }
     else {
       m_keys[key] = true;
@@ -1225,6 +1229,29 @@ bool A5::keyInputEvent (
   }
 
   if ( action == GLFW_RELEASE ) {
+    if ( key == GLFW_KEY_SPACE ) {
+      double x_velocity, y_velocity, z_velocity;
+
+      if (x_angle == 0.0f) {
+        x_velocity = 0.0f;
+        z_velocity = power;
+      }
+      else if (x_angle > 0.0f) {
+        x_velocity = 1.0 * power;
+        z_velocity = 1/(tan(degreesToRadians(x_angle))) * power;
+      }
+      else if (x_angle < 0.0f) {
+        x_velocity = -1.0 * power;
+        z_velocity = 1/(tan(degreesToRadians(-x_angle))) * power;
+      }
+      y_velocity = y_angle * power;
+
+      m_birdNode->set_velocity(vec3(x_velocity, y_angle, -z_velocity));
+      x_angle = 0.0f;
+      y_angle = 0.0f;
+      power = 0.0f;
+      power_change = 0.0f;
+    }
     m_keys[key] = false;
   }
 

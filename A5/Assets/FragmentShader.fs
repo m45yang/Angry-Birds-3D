@@ -72,7 +72,7 @@ vec3 phongModelWithTexture(vec3 fragPosition, vec3 fragNormal, vec3 color, float
     vec3 normal = normalize(fragNormal);
 
     // Ambient
-    vec3 ambient = 0.5 * color;
+    vec3 ambient = 0.2 * color;
 
     // Diffuse
     vec3 l = normalize(light.position - fragPosition);

@@ -126,13 +126,15 @@ protected:
   std::list<PhysicsNode*> m_physicsNodes;
   std::list<AnimationNode*> m_animationNodes;
   PhysicsNode *m_birdNode;
+  glm::mat4 m_birdNodeOriginalTrans;
 
   bool m_keys[1024];
   float m_mouse_x_pos;
   float m_mouse_y_pos;
-  float x_velocity;
-  float y_velocity;
-  float z_velocity;
+  float x_angle;
+  float y_angle;
+  float power;
+  float power_change;
   unsigned int m_num_textures;
   std::shared_ptr<SkyBox> m_skybox;
 

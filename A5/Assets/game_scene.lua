@@ -228,8 +228,8 @@ rootnode = gr.node('root')
 ground_p = gr.physics(
   'ground_p',
   'cube',
-  0.0, 0.0, 0.0,
-  50.0, 1.0, 50.0,
+  0.0, 0.0, -20.0,
+  100.0, 1.0, 100.0,
   2
 )
 rootnode:add_child(ground_p)
@@ -243,7 +243,7 @@ ground:set_material(yellow_green)
 bird1_p = gr.physics(
   'bird1_p',
   'sphere',
-  0.0, 1.5, 20.0,
+  0.0, 1.5, 0.0,
   1.0, 1.0, 1.0,
   0
 )
@@ -258,7 +258,7 @@ bird1:add_child(bird)
 pig1_p = gr.physics(
   'pig1_p',
   'sphere',
-  5.0, 3.0, -5.0,
+  5.0, 3.0, -25.0,
   3.0, 3.0, 3.0,
   1
 )
@@ -270,7 +270,7 @@ pig1_p:add_child(pig)
 pig2_p = gr.physics(
   'pig2_p',
   'sphere',
-  -2.0, 2.0, -1.0,
+  -2.0, 2.0, -26.0,
   2.0, 2.0, 2.0,
   1
 )
@@ -282,7 +282,7 @@ pig2_p:add_child(pig)
 pig3_p = gr.physics(
   'pig3_p',
   'sphere',
-  10.0, 2.0, 16.0,
+  10.0, 2.0, -4.0,
   2.0, 2.0, 2.0,
   1
 )
@@ -294,7 +294,7 @@ pig3_p:add_child(reflective_pig)
 pig1_a = gr.animation(
   'pig1_a',
   'sphere',
-  5.0, 11.5, -5.0,
+  5.0, 11.5, -25.0,
   2.0, 2.0, 2.0,
   1
 )
@@ -309,7 +309,7 @@ pig1_a:add_child(pig)
 pig2_a = gr.animation(
   'pig2_a',
   'sphere',
-  -13.0, 3.0, 15.0,
+  -13.0, 3.0, -5.0,
   3.0, 3.0, 3.0,
   1
 )
@@ -329,7 +329,7 @@ pig2_a:add_child(pig)
 wall1_p = gr.physics(
   'wall1_p',
   'cube',
-  0.0, 2.0, -5.0,
+  0.0, 2.0, -25.0,
   3.0, 3.0, 3.0,
   2
 )
@@ -341,7 +341,7 @@ wall1_p:add_child(wall1)
 wall2_p = gr.physics(
   'wall2_p',
   'cube',
-  0.0, 5.0, -5.0,
+  0.0, 5.0, -25.0,
   3.0, 3.0, 3.0,
   2
 )
@@ -353,7 +353,7 @@ wall2_p:add_child(wall2)
 wall3_p = gr.physics(
   'wall3_p',
   'cube',
-  5.0, 8.0, -5.0,
+  5.0, 8.0, -25.0,
   10.0, 3.0, 3.0,
   2
 )
@@ -365,7 +365,7 @@ wall3_p:add_child(wall3)
 wall4_p = gr.physics(
   'wall4_p',
   'cube',
-  10.0, 2.0, -5.0,
+  10.0, 2.0, -25.0,
   3.0, 3.0, 3.0,
   2
 )
@@ -377,7 +377,7 @@ wall4_p:add_child(wall4)
 wall5_p = gr.physics(
   'wall5_p',
   'cube',
-  10.0, 5.0, -5.0,
+  10.0, 5.0, -25.0,
   3.0, 3.0, 3.0,
   2
 )
