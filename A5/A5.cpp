@@ -101,7 +101,8 @@ A5::A5(const std::string & luaSceneFile)
     power(0.0f),
     power_change(0.0f),
     m_num_textures(0),
-    m_is_flying(false)
+    m_is_flying(false),
+    m_game_in_progress(false)
 {
 
 }
@@ -489,11 +490,39 @@ void A5::appLogic()
 {
   double dt = 1/ImGui::GetIO().Framerate;
 
-  updateParticleSystems(dt);
+  if (m_game_in_progress || m_game_over) {
+    updateParticleSystems(dt);
 
-  updatePhysicsNodes(dt);
+    updatePhysicsNodes(dt);
 
-  updateAnimationNodes(dt);
+    updateAnimationNodes(dt);
+  }
+
+  if (m_game_in_progress) {
+    checkIfGameOver();
+  }
+}
+
+void A5::checkIfGameOver()
+{
+   for (PhysicsNode * physicsNode : m_physicsNodes)
+   {
+      if (physicsNode->m_objectType == ObjectType::Pig && !physicsNode->m_destroyed) {
+        return;
+      }
+   }
+
+   for (AnimationNode * animationNode : m_animationNodes)
+   {
+      if (animationNode->m_objectType == ObjectType::Pig && !animationNode->m_destroyed) {
+        return;
+      }
+   }
+
+   m_game_over = true;
+   m_game_in_progress = false;
+   m_themeSoundEngine->stopAllSounds();
+   m_themeSoundEngine->play2D("Assets/sounds/game_win.wav");
 }
 
 bool isDead(ParticleSystem *particleSystem) {
@@ -708,18 +737,58 @@ void A5::guiLogic()
     firstRun = false;
   }
 
-  static bool showDebugWindow(false);
-  ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
-  windowFlags |= ImGuiWindowFlags_MenuBar;
-  float opacity(0.5f);
+  if (m_game_in_progress) {
+    static bool showDebugWindow(false);
+    ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+    float opacity(0.99f);
 
-  ImGui::Begin("Angry Birds 3D", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
+    ImGui::Begin("Angry Birds 3D", &showDebugWindow, ImVec2(100,100), opacity, windowFlags);
 
-    ImGui::SliderFloat("Power", &power, -0.0f, 45.0f);
+      ImGui::SliderFloat("Power", &power, -0.0f, 45.0f);
 
-  ImGui::End();
+    ImGui::End();
 
-  updateCamera();
+    updateCamera();
+
+    updateBirdOrientation();
+  }
+  else if (m_game_over) {
+    static bool showDebugWindow(false);
+    ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+    float opacity(0.99f);
+
+    ImGui::Begin("", &showDebugWindow, ImVec2(500,500), opacity, windowFlags);
+
+      ImGui::Text("You won!!");
+
+    ImGui::End();
+  }
+  else {
+    static bool showDebugWindow(false);
+    ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+    float opacity(0.99f);
+
+    ImGui::Begin("", &showDebugWindow, ImVec2(500,500), opacity, windowFlags);
+
+      ImGui::Text("Welcome to Angry Birds 3D!");
+
+      ImGui::Text(
+        "Instructions to play: \n"
+        "Use W A S D keys to change the pitch and angle of the bird. \n"
+        "Hold down the SPACE key to build up power, release to shoot the bird. \n"
+        "Press the R key to reset the bird and shoot again.\n"
+      );
+
+      ImGui::Text("Click here now to begin!");
+
+      if( ImGui::Button( "Let's Go!" ) ) {
+        m_game_in_progress = true;
+        m_themeSoundEngine->stopAllSounds();
+        m_themeSoundEngine->play2D("Assets/sounds/game_start.wav", false);
+      }
+
+    ImGui::End();
+  }
 }
 
 //----------------------------------------------------------------------------------------
@@ -747,7 +816,10 @@ void A5::updateCamera()
   if ( m_keys[GLFW_KEY_LEFT] ) {
     m_view = rotate(mat4(), -0.1f, vec3(0.0f, 1.0f, 0.0f)) * m_view;
   }
+}
 
+void A5::updateBirdOrientation()
+{
   // Bird orientation
   if (!m_is_flying) {
     if ( m_keys[GLFW_KEY_D] ) {
