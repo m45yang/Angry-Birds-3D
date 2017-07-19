@@ -707,14 +707,14 @@ void A5::guiLogic()
     firstRun = false;
   }
 
-  static bool showDebugWindow(true);
+  static bool showDebugWindow(false);
   ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
   windowFlags |= ImGuiWindowFlags_MenuBar;
   float opacity(0.5f);
 
   ImGui::Begin("Angry Birds 3D", &showDebugWindow, ImVec2(200,200), opacity, windowFlags);
 
-    ImGui::SliderFloat("Power", &power, -0.0f, 90.0f);
+    ImGui::SliderFloat("Power", &power, -0.0f, 20.0f);
 
   ImGui::End();
 
@@ -781,7 +781,7 @@ void A5::updateCamera()
     }
   }
   if ( m_keys[GLFW_KEY_SPACE] ) {
-    if (power < 90.0f) {
+    if (power < 20.0f) {
       power += power_change;
       power_change += 0.01f;
     }
