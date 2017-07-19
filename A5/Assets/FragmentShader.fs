@@ -77,14 +77,13 @@ vec3 phongModelWithTexture(vec3 fragPosition, vec3 fragNormal, vec3 color, float
     // Diffuse
     vec3 l = normalize(light.position - fragPosition);
     float diff = max(dot(l, normal), 0.0);
-    vec3 diffuse = diff * fs_in.light.rgbIntensity;
+    vec3 diffuse = diff * light.rgbIntensity;
 
     // Specular
     vec3 v = normalize(fragPosition.xyz);
-    float s = 0.0;
     vec3 halfway = normalize(l + v);
-    s = pow(max(dot(normal, halfway), 0.0), 64.0);
-    vec3 specular = s * fs_in.light.rgbIntensity;
+    float s = pow(max(dot(normal, halfway), 0.0), 64.0);
+    vec3 specular = s * light.rgbIntensity;
 
     return (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
 }
